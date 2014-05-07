@@ -1,0 +1,528 @@
+\documentstyle[11pt]{article}
+
+\setlength{\oddsidemargin}{0in}		%  1 inch (0 + 1) from left.
+\setlength{\topmargin}{-0.5in}		%  1 inch (1.5 - 0.5) from top.
+\setlength{\textwidth}{6.5in}		%  1 inch (8.5 - 1 - 6.5) from right.
+\setlength{\textheight}{9in}		%  1 inch (11 - 1 - 9) from bottom.
+
+\addtolength{\parskip}{0.5\baselineskip}
+
+\begin{document}			% Remember to put in \end{document}.
+\thispagestyle{empty}			% Don't number first page.
+
+\begin{center}
+{\Large\bf IDL Software for FITS Binary Tables}\\
+\mbox{}\\
+William Thompson\\
+NASA Goddard Space Flight Center\\
+2 July 1993\\
+Modified W. Landsman 12 Aug 1997 \\
+Modified C. Markwardt 10 Jan 2000
+\end{center}
+
+This software package was developed to support reading and writing FITS binary
+table extensions.  The primary source for a description of the FITS binary
+table extension is the document ``Binary Table Extension to FITS''
+by W. D.  Cotton, D. Tody and W. Pence (1995, A\&AS, 113, 159).  This
+information is also included  in the FITS standards document
+``Definition of the Flexible Image Transport System (FITS)'' by Hanisch et al.
+(2001, A\&A, 376, 359), and at the Web site \\
+{\tt http://heasarc.gsfc.nasa.gov/docs/heasarc/fits.html}.  As well as routines
+that are directly related to binary tables, there are also supporting routines
+which allow the user to read and write primary FITS header and data units
+(HDUs), and to copy FITS files to and from tapes.
+
+\section{Primary FITS Header and Data Units}
+
+Every FITS file must contain a primary Header and Data Unit (HDU).  This part
+represents the most basic kind of FITS file.  It allows for the storage of an
+array with NAXIS dimensions, but one can also have a primary HDU which only
+consists of a header without any data (signaled in the header by setting
+NAXIS=0).  All FITS extension HDUs, must then follow the primary HDU.
+
+The following routines are for writing primary FITS header and data units.
+They are listed in the order they would be used to create a basic FITS file to
+which binary table extension could then be appended.
+\begin{quote}
+\begin{description}
+\item[FXHMAKE:]
+Creates the primary FITS header based on the array passed as an optional
+parameter.  If no data array is passed, then a header array consistent with no
+data in the primary HDU is created.  When appending FITS extensions, such as
+binary tables, to the file, FXHMAKE should be called with the /EXTEND qualifier
+to generate a header record that reads ``EXTEND=T'' (true).
+\item[FXADDPAR:]
+Adds keyword=value records to the primary header, or modifies those that are
+already there.  The use of this routine is entirely at the user's
+discretion---the required keywords are inserted by FXHMAKE.
+\item[FXWRITE:]
+Writes the primary header and (optional) data array to a FITS file on disk.
+\end{description}
+\end{quote}
+
+There are a number of routines available to read and interpret FITS primary
+HDUs.  For example, the IDL Astronomy User's Library, available at \\
+{\tt http://idlastro.gsfc.nasa.gov/homepage.html}, contains a number of routines including
+READFITS\@.  The following lists two routines included in this package to
+support this function.
+\begin{quote}
+\begin{description}
+\item[FXREAD:]
+Reads a basic FITS file, or the primary HDU from a FITS file with extensions.
+This routine can either read the entire array, or a sub-array.  It also gives
+the user the option of reducing the amount of data read either by reading every
+$n$th pixel, or by averaging together \mbox{$n \times n$} pixels.
+\item[FXPAR:]
+Extracts values from FITS headers.
+\end{description}
+\end{quote}
+
+\section{Creating FITS binary table files}
+\label{creating}
+
+The processes of creating a FITS binary table file is fairly easy.  However,
+there are enough individual steps involved in creating the file, that it is
+anticipated that it will be carried out primarily using procedure files, rather
+than interactively from the keyboard.
+
+The routines used in writing FITS binary tables files are:
+\begin{quote}
+\begin{description}
+\item[FXBHMAKE:]
+Starts the definition of the FITS binary table header.  At this time the number
+of rows in the table is defined, but no information about the individual
+columns is as yet included.  Optionally, the extension is given a name.
+\item[FXBADDCOL:]
+Add the information about the columns to the binary table extension header.
+This routine is called once for each column that will be in the table.
+\item[FXBCREATE:]
+Opens the FITS file that the binary table will be appended to and writes the
+header.
+\item[FXBWRITE or FXBWRITM:]
+Writes the data into the binary table.  A separate call to FXBWRITE is
+made for every row and and every column in the table.  FXBWRITM may be
+used to write multiple rows and columns in a single call.
+\item[FXBFINISH:]
+Finishes up and closes the file containing the newly created binary table.
+\end{description}
+\end{quote}
+
+The basic steps involved in creating a FITS binary table extension file are as
+follows:
+%
+\begin{itemize}
+\item
+	First the primary FITS data unit must be created.  At the very minimum,
+	this will include a FITS header with the keyword ``EXTEND'' set to
+	T(rue).  It may also have data associated with it, or it may simply
+	have ``NAXIS'' set to zero to signal that there is no primary data
+	array.  This step is carried out through the FXHMAKE and FXWRITE
+	routines.
+\item
+	Next, the binary table extension header must be created, and the
+	various columns to be used have to be defined.  The routines FXBHMAKE
+	and FXBADDCOL take care of this.
+\item
+	Then, the extension file must be opened, and the header written out.
+	FXBCREATE takes care of this.
+\item
+	The next step is to actually write the data arrays themselves into the
+	table.  This is done using multiple calls to FXBWRITE or one or more
+	calls to FXBWRITM.
+\item
+	Finally, the table file is closed with the FXBFINISH command.
+\end{itemize}
+
+The following IDL statements demonstrate how to use these routines to create a
+simple binary table with three columns and five rows.  Some test arrays are
+generated to write into these columns, and are slightly modified for each row,
+to make the test more complete.
+%
+\begin{quote}
+\begin{verbatim}
+;  Create the data to write to the binary table.
+;
+a = intarr(10,100)
+b = reverse(intarr(20,100),2) - 100
+c = fix(dist(50))
+;
+;  Create a primary header and write it out.
+;
+fxhmake,header,/initialize,/extend,/date
+fxwrite,'sample.fits',header
+;
+;  Create a binary table extension header for a table with 5 rows.
+;
+fxbhmake,header,5,'TESTEXT','Test binary table extension'
+;
+;  Create the columns for the a, b, and c arrays.
+;
+fxbaddcol,acol,header,a,'Column 1'
+fxbaddcol,bcol,header,b,'Column 2'
+fxbaddcol,ccol,header,c,'Column 3'
+;
+;  Write out the extension header.
+;
+fxbcreate,unit,'sample.fits',header
+;
+;  Write out the data.  For each row, multiply the test arrays by the row
+;  number.
+;
+for i=1,5 do fxbwrite,unit,a*i,acol,i
+for i=1,5 do fxbwrite,unit,b*i,bcol,i
+for i=1,5 do fxbwrite,unit,c*i,ccol,i
+;
+;  Same result is achieved with following call to FXBWRITM:
+;  x = findgen(5) + 1
+;  fxbwritm, unit, [acol, bcol, ccol], a*x, b*x, c*x
+;
+;  Close the binary extension.
+;
+fxbfinish,unit
+end
+\end{verbatim}
+\end{quote}
+%
+The primary FITS header created by this routine is very simple, and looks like
+this
+%
+\begin{quote}
+\begin{verbatim}
+SIMPLE  =                    T /Written by IDL:  Sun Mar 28 20:24:37 2010
+BITPIX  =                    8 /
+NAXIS   =                    0 /
+EXTEND  =                    T /File contains extensions
+DATE    = '2010-03-29'         /
+END
+\end{verbatim}
+\end{quote}
+%
+And the binary table extension header looks like this
+%
+\begin{quote}
+\begin{verbatim}
+XTENSION= 'BINTABLE'           /Written by IDL:  30-Jan-1992 11:35:49.00
+BITPIX  =                    8 /
+NAXIS   =                    2 /Binary table
+NAXIS1  =                11000 /Number of bytes per row
+NAXIS2  =                    5 /Number of rows
+PCOUNT  =                    0 /Random parameter count
+GCOUNT  =                    1 /Group count
+TFIELDS =                    3 /Number of columns
+EXTNAME = 'TESTEXT '           /Test binary table extension
+TFORM1  = '1000I   '           /Integer*2 (short integer)
+TTYPE1  = 'Column 1'           /Label for column 1
+TDIM1   = '(10,100)'           /Array dimensions for column 1
+TFORM2  = '2000I   '           /Integer*2 (short integer)
+TTYPE2  = 'Column 2'           /Label for column 2
+TDIM2   = '(20,100)'           /Array dimensions for column 2
+TFORM3  = '2500I   '           /Integer*2 (short integer)
+TTYPE3  = 'Column 3'           /Label for column 3
+TDIM3   = '(50,50) '           /Array dimensions for column 3
+END
+\end{verbatim}
+\end{quote}
+
+One thing that sometimes confuses first time users is that UNIT is an output
+parameter of FXBCREATE, not an input parameter.  One does not specify the
+logical unit number for the file; instead FXBCREATE assigns one via a call to
+GET\_LUN.  A similar situation exists in regard to the column number argument
+to FXBADDCOL.  Column numbers are assigned in the order in which FXBADDCOL is
+called.  In the above example, the values of acol, bcol, and ccol will be
+returned by FXBADDCOL as 1, 2, and 3 respectively.
+
+\section{Reading FITS binary table files}
+
+The process of reading FITS binary tables is much simpler than writing them,
+since the structure of the table is already set.  There are only three basic
+steps in reading a FITS binary table file:
+%
+\begin{itemize}
+\item
+	The file is opened, and the binary table extension selected, with the
+	routine FXBOPEN.
+\item
+	Data is read from the table with the routines FXBREAD or
+	FXBREADM.  Using FXBREAD, a particular row and column can be
+	read, or an entire column can be read into a single array
+	(except for columns containing variable-length arrays).
+	FXBREADM can read multiple columns in a single procedure call.
+\item
+	The file is closed with the routine FXBCLOSE.
+\end{itemize}
+%
+For instance, the binary table created in the above example could be read with
+the following statements.
+%
+\begin{quote}
+\begin{verbatim}
+IDL> FXBOPEN,UNIT,'sample.fits','testext',header
+IDL> FXBREAD,UNIT,A,'Column 1'
+IDL> FXBREAD,UNIT,B,'Column 2'
+IDL> FXBREAD,UNIT,C,'Column 3'
+IDL> FXBCLOSE,UNIT
+IDL> HELP,A,B,C
+A               INT       = Array(10, 100, 5)
+B               INT       = Array(20, 100, 5)
+C               INT       = Array(50, 50, 5)
+\end{verbatim}
+\end{quote}
+%
+In the above example the columns were read individually using three
+calls to FXBREAD.  The same effect can be achieved by calling FXBREADM
+in the following way.
+%
+\begin{quote}
+\begin{verbatim}
+IDL> FXBREADM,UNIT, ['Column 1', 'Column 2', 'Column 3'], A, B, C
+\end{verbatim}
+\end{quote}
+%
+Note that, because the entire columns were read in, the arrays A, B, and C each
+have an extra last dimension of 5.  Also, the same comment in
+Section~\ref{creating} above about FXBCREATE and UNIT also applies to FXBOPEN.
+
+The following routines support reading FITS binary table extensions:
+\begin{quote}
+\begin{description}
+\item[FXBOPEN:]
+Opens a FITS binary table extension for reading.  One can open several binary
+tables at once, either in the same or different files, by specifying different
+variable names for FXBOPEN to store the logical unit number into.
+\item[FXBREAD or FXBREADM:]
+Reads data from a column in a FITS binary table.  One can read an entire
+column, a range of rows within a column, or a single row and column
+combination.  FXBREADM can read multiple columns in a single call.
+\item[FXBTDIM:]
+Parses keywords from binary tables with a TDIM-like format.  See
+Section~\ref{tdim} for more information.
+\item[FXBHELP:]
+Prints to the screen a simple table giving information about each of the
+columns in the binary table.
+\item[FXBFIND:]
+Finds the values of keywords in the header associated with the binary table
+columns.  For example, the command
+\begin{quote}
+\begin{verbatim}
+fxbfind, header, 'TTYPE', columns, values, n_found
+\end{verbatim}
+\end{quote}
+would return an array containing the values of the keywords TTYPE1, TTYPE2,
+etc., the columns for which they were found, and how many were found.
+\item[FXBCOLNUM:]
+Returns the column number of a FITS binary table specified either as a number
+or by name.
+\item[FXBHEADER:]
+Returns the header of a FITS binary table opened with FXBOPEN.  (Note that the
+header can also be returned as an optional parameter of FXBOPEN.)
+\item[FXBISOPEN:]
+Returns whether or not a logical unit number points to a FITS binary table that
+is open for read.
+\item[FXBSTATE:]
+Similar to FXBISOPEN, but returns a state variable denoting whether or not a
+logical unit number points to an open FITS binary table, and if so whether that
+table is open for read or for write.
+\item[FXBCLOSE:]
+Closes a FITS binary table that had been opened with FXBOPEN.
+\end{description}
+\end{quote}
+
+\section{Modifying Existing FITS Binary Tables}
+
+After a FITS binary table extension has been written, a subsequent
+need may arise to modify or augment the table.  This may be required
+if, for example, new data or corrections must be overwritten in a
+pre-existing data file.  In general this is accomplished using the
+standard procedures to write data to FITS columns, typically FXBWRITE
+or FXBWRITM.  However, after a table extension has been created, it is
+not possible to change its number of columns or the number of header
+keywords.
+
+Since the table has already been created, there is no need to call
+FXBHMAKE or FXBADDCOL again.  An existing FITS table extension is
+opened for write access using the FXBOPEN procedure with the ACCESS
+keyword.
+%
+\begin{quote}
+\begin{verbatim}
+IDL> FXBOPEN,UNIT,'sample.fits','testext',header, ACCESS='RW'
+\end{verbatim}
+\end{quote}
+%
+The keyword value \verb|'RW'| indicates that the FITS file is both
+readable and writable.  [ The default is \verb|'R'|, read-only. ]
+
+After the table has be opened for writing, the FXBWRITE and/or
+FXBWRITM procedures should be used to modify the desired columns.
+Finally, FXBFINISH should be used to close the table.
+
+\section{Enlarging an Existing FITS Binary Table}
+
+After a FITS binary table has been created it may also be necessary to
+increase the number of rows in the table.  As mentioned above, one
+cannot change the number of columns.  The number of rows can be
+changed to the new value \verb|NEW_NROWS| by using the following
+FXBGROW procedure call.  .  FXBGROW is safe for variable-length tables.
+%
+\begin{quote}
+\begin{verbatim}
+IDL> FXBOPEN,UNIT,'sample.fits',1,access='RW'
+IDL> FXBGROW,UNIT,HEADER, NEW_NROWS
+IDL> FXFINISH,UNIT
+\end{verbatim}
+\end{quote}
+%
+Both the header and the unit must be passed to FXBGROW because both
+disk and memory images of the header must be modified.  Also, be aware
+that the number of rows in the table can never decrease by calling
+FXBGROW.
+
+
+\section{Multidimensional Array Facility}
+\label{tdim}
+
+The routines described here provide direct support for the Multidimensional
+Array Facility described in C\&T\@.  This convention uses keywords TDIM$n$ of
+the format
+\begin{quote}
+TDIM$n$ = '($D_1$, $D_2$, \ldots)'
+\end{quote}
+to define the dimensions associated with column $n$.  For an example of the use
+of this keyword, see the sample binary table header in Section~\ref{creating}
+above.
+
+Support for this convention is automatic---FXBADDCOL inserts TDIM$n$ keywords
+into the header, and FXBOPEN interprets any found in the header---unless the
+/NO\_TDIM keyword is used.  Values of TDIM$n$ can also be overridden with the
+DIMENSIONS keyword in the FXBREAD routine.
+
+In addition to the keywords described in the binary tables extension proposal,
+several additional keywords are supported by FXBADDCOL.  These keywords have a
+one-to-one correspondence with standard keywords used in primary FITS headers,
+i.e.
+\begin{center}
+\begin{tabular}{cc}
+Additional Keyword	& Standard Equivalent\\
+\hline
+			&	\\
+TDMIN$n$		& DATAMIN \\
+TDMAX$n$		& DATAMAX \\
+			&	\\
+TDESC$n$		& CTYPE$m$ \\
+TROTA$n$		& CROTA$m$ \\
+TRPIX$n$		& CRPIX$m$ \\
+TRVAL$n$		& CRVAL$m$ \\
+TDELT$n$		& CDELT$m$ \\
+\end{tabular}
+\end{center}
+The anticipated use of these keywords is such that TDMIN$n$ and TDMAX$n$ would
+have a ordinary FITS record format, no different from their standard
+equivalents, and that the rest would have a format similar to TDIM$n$.
+
+\section{Variable-Length Array Facility}
+
+These routines also support the Variable-Length Array Facility described in
+C\&T\@.  Variable-length array columns are defined by using FXBADDCOL with the
+/VARIABLE keyword.  Other than that, support for variable-length arrays is
+automatic.  Some operations, such as reading entire columns, and the
+multidimensional array facility described above, are not allowed with
+variable-length arrays.
+
+Ordinarily, the default THEAP value \mbox{(NAXIS1 $\times$ NAXIS2)} is used to
+write the variable-length arrays.  However, a different THEAP value can be used
+by using FXADDPAR to insert the desired value into the binary table header
+before calling FXBCREATE.
+
+\section{IEEE Not-a-Number (NaN) Special Values}
+
+Data dropout in FITS binary table arrays are signalled in one of two ways.
+Dropouts in integer arrays are signalled with values specified by TNULL$n$
+keywords.  However, dropouts in floating point arrays (including single or
+double precision, and real or complex) are signalled with standard IEEE NaN
+(not-a-number) special values.  The routine FXBREAD will optionally translate
+these NaN numbers into a user-specified value, given by the NANVALUE keyword.
+Conversely, the same keyword, when used with the FXWRITE or FXBWRITE routines,
+will write out NaN for any points in the array with the value of the NANVALUE
+keyword.
+
+\section{Bit, Logical, and Double-precision Complex Arrays}
+
+
+
+Bit arrays (type ``X'' in FITS binary tables) are treated in IDL as byte arrays
+with approximately 1/8th the number of elements.  Support for this is automatic
+when reading binary tables.  Columns can be defined as type ``X'' when writing
+binary tables if the BIT keyword is passed to FXBADDCOL giving the number of
+bits, and the data array is of type byte.  Dimension information is ignored for
+bit arrays, since the dimensions apply to the bits, and not to the bytes that
+IDL processes.
+
+Logical arrays (type ``L'' in FITS binary tables) are treated in IDL as byte
+arrays.  Support for this is automatic when reading binary tables.  Columns can
+be defined as type ``L'' when writing binary tables if the /LOGICAL keyword is
+passed to FXBADDCOL, and the data array is of type byte.
+
+\section{Virtual Columns}
+
+It is possible to treat keywords in binary table headers as if they were
+columns in the table, with the same value replicated for every row.  This
+virtual column convention allows the user to have a unified view in a table
+regardless of whether the information is stored in a table column and thus
+capable of varying from row to row, or stored in the header and thus the same
+for every row.
+
+To use the virtual column convention, the user must call FXBREAD with the
+/VIRTUAL keyword, and must also reference the desired information by name
+rather than by column number.  FXBREAD will then look first for a column with
+that name.  If it doesn't find one, it then looks for a keyword with that name
+in the header.
+
+\section{Associated routines}
+
+The remaining routines are mainly used internally by the other routines
+mentioned above.
+\begin{quote}
+\begin{description}
+\item[FXHCLEAN:]
+Remove obsolete keywords---called by FXHMAKE, FXHBMAKE.
+\item[FXPARPOS:]
+Find position in FITS header---called by FXADDPAR.
+\item[FXBFINDLUN:]
+Find LUN in FXBINTABLE---called by FXBCREATE, FXBOPEN.
+\item[FXBPARSE:]
+Parse binary table header---called by FXBCREATE, FXBOPEN.
+\item[FXBTFORM:]
+Parse TFORM column descriptor---called by FXBPARSE.
+\item[FXHREAD:]
+Read FITS header---called by FXBOPEN.
+\item[FXFINDEND:]
+Find the last FITS record---called by FXBCREATE.
+\item[WHERENAN:]
+Find points equal to IEEE NaN---called by FXBREAD.
+\item[BOOST\_ARRAY:]
+Resize array, and append another array.
+\item[STORE\_ARRAY:]
+Resize array, and insert another array.
+\item[DETABIFY:]
+Removes tabs from strings.
+\item[PRODUCT:]
+Calculates total product of all elements of an array.
+\item[FXTPIO\_READ:]
+Reads a file from a tape---called from FXTAPEREAD.
+\item[FXTPIO\_WRITE:]
+Writes a file to a tape---called from FXTAPEWRITE.
+\end{description}
+\end{quote}
+
+\section{Implementation notes}
+
+The routines in this directory also make use internally of other routines from
+the SDAS, FITS, and MISC directories from the Astronomy User's Library.  In
+some cases these files are distributed along with the routines described here.
+
+The file ``fxbintable.pro'' is an include file containing the definition of the
+IDL common block FXBINTABLE.  This file must be in one of the directories
+pointed to by the IDL search path parameter !PATH\@.  Normally, this is ensured
+by keeping this file in the same directory with the IDL procedures found here.
+
+\end{document}

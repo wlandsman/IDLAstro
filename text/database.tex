@@ -1,0 +1,825 @@
+\documentstyle[12pt,titlepage]{article}
+\topmargin -0.2in
+\oddsidemargin-0.15in
+\evensidemargin-0.25in
+\textheight 8.5in     
+\textwidth 6.5in
+\newcommand{\de}{$^{\rm o}$ } 
+\newcommand{\kms}{km~s$^{-1}$ } 
+\newcommand{\exbegin}{\par\medskip}
+\newcommand{\exend}{\medskip\noindent}
+\newcommand{\exs}[2]{
+\hbox to \hsize{\small\hskip .2in
+\parbox[t]{2.2in}{\raggedright\setlength{\parindent}{-.2in}\tt #1}
+\hspace{.2in}
+\parbox[t]{3.4in}{\raggedright\setlength{\parindent}{-.2in}\rm #2}\hss}
+\prevdepth=1.5pt\relax}
+\newcommand{\exc}[2]{
+\hbox to \hsize{\small\hskip .2in
+\parbox[t]{3.0in}{\raggedright\setlength{\parindent}{-.2in}\tt #1}
+\hspace{.2in}
+\parbox[t]{2.6in}{\raggedright\setlength{\parindent}{-.2in}\rm #2}\hss}
+\prevdepth=1.5pt\relax}
+% One line example
+\newcommand{\exone}[1]{\begin{center}\tt #1 \end{center}}
+\newcommand{\ea}{{\em et~al.} {}}
+\newcommand{\apjl}{{\em Ap.~J. (Letters)}}
+\begin{document}
+\title{The IDLAstro Database System \\(Version July  2001)}
+\author{W.B. Landsman \\ Raytheon ITSS}
+\maketitle
+\section{INTRODUCTION}
+
+This document describes the use of an IDL database system that is available in
+the IDL Astronomy Library ({\tt http://idlastro.gsfc.nasa.gov/}).   The
+database software was designed by Don Lindler of the GHRS (Goddard
+High-Resolution Spectrograph) group, and  has been adopted by several
+astronomy  groups.      The software was originally written in 1987 (though
+modest improvements are  made each year) and is a ``flat'' (as opposed to a
+relational or object-oriented) database system.   It is thus a ``primitive''
+database system compared to modern commercial alternatives but remains useful
+because  it shares the IDL programming, plotting, and image display syntax.   
+This makes the database system very versatile and easy to learn for those
+already familiar with IDL programming.
+In addition, the database software can be run on any computer 
+with IDL installed (Unix, Windows, MacOS, or VMS).
+
+In discussing the database software, it is useful to have in mind a
+book copy of, for example, the Yale Bright Star Catalogue 5th Edition 
+called `YALE\_BS' in the computer database.  (A copy of YALE\_BS and other 
+IDL databases is available at \\
+{\tt http://idlastro.gsfc.nasa.gov/ftp/zdbase/}).  The data for a specific star
+is contained in one row, while column headings are placed at the top of
+a page.  Similar concepts apply to the computer database, and the following
+terms will be referred to constantly.
+\begin{description}
+\item[entry]  a ``row'' of a catalogue.  The
+YALE\_BS catalog contains 9110 entries.
+\item[item]   a ``column'' of a catalogue.
+The YALE\_BS catalog contains 41 items including `HD', `NAME', and
+`V\_MAG'.  
+\item[value]  the field corresponding to a specified entry and item. 
+It can be either numeric or a character string.
+For entry 1708 of the YALE\_BS catalog, item `NAME' contains
+a value of `ALP AUR' and item `V\_MAG' contains a value of 0.08.
+It is possible for an item to be multiple valued.  For example, the
+`COPERNICUS'  database contains {\em Copernicus} spectra of 40 hot stars.
+In this case, the value of the item `FLUX' for a particular entry
+consists of 2250 numbers specifying the relative flux between 1000 and
+1450 \AA.
+\end{description}
+
+The managers of the IDL database would greatly profit by suggestions from 
+the users.  In particular, the managers would appreciate hearing about 
+(1) astronomical
+catalogues that should be added to the database  (2) improvements needed in the
+help files of a database or items within a database, (3) catalogues that 
+should be linked together via pointers (4) items that should
+be indexed.  (As explained below, indexed items require more disk space, but
+can be searched much more quickly than non-indexed items.)
+
+Section 2 of this document describes the six ``core'' database procedures,
+which may be all that are ever required by the typical user.  Section 3
+discusses five more special-purpose procedures and the concept of
+``pointers.''   Section 4 gives instructions on how to create or modify
+a database, and need only be read by would-be experts.  
+This document is most effectively read 
+while sitting at a terminal, where the numerous examples can be worked out.
+
+\section{DATABASE FUNDAMENTALS}
+All of the database procedures begin with the letters ``DB''.  
+As with all other IDL procedures,
+help on a specific database procedure can be obtained by typing
+{\tt man,`$<$procedure\_name$>$'}.  These help files provide more detailed information
+than is given in this document.
+Although there exist a total of 35 database procedures,
+the following
+six ``core'' procedures will often be all that are required by the user.
+\begin{description}
+\item[DBOPEN] Open a catalogue for subsequent processing.
+\item[DBHELP] Display information on catalogues, or items within a catalogue.
+\item[DBFIND] Find entries meeting specified search criteria.
+\item[DBPRINT] Print catalogue information of specified entries and items.
+\item[DBEXT] Extract specified values as vectors for subsequent processing
+with IDL.
+\item[DBCLOSE] Close a catalogue.
+\end{description}
+In addition to the ``core'' procedures above, there are seven other database 
+procedures that may be used occasionally.
+\begin{description}
+\item[DBCIRCLE] Search for entries in positional catalogue within a specified 
+              radius of a specified center
+\item[DBGET] Use instead of DBFIND when search values are in an IDL vector.
+\item[DBMATCH] Find one entry for each element of a vector of item values.
+\item[DBSORT] Sort a list of catalogue entries by any item.
+\item[DB\_OR] Remove duplicate values from a list of entries.
+\item[IMDBASE] Find entries within an image with a specified FITS header
+\item[TVDBASE] Overlay position of entries within image with a specified FITS
+header
+\end{description}
+  
+The rest of the 35 database procedures are either low-level, or used for
+building databases (see section 4).
+
+\subsection{DBOPEN and DBHELP}
+The database commands discussed here should all be entered in response
+to the IDL prompt.  
+To list the names of the online catalogues, one simply types {\tt DBHELP}.
+Alternatively, the command {\tt DBHELP,1} will print a one-line description 
+of all catalogues, and the command {\tt DBHELP,$<$name$>$} will
+print a description of a specified database. 
+Before any further work can be done with a database, it must be opened 
+with the DBOPEN
+command.  If later, one decides to work with another catalogue, then 
+the DBOPEN command must be used again.  DBOPEN will close the first
+database and open the second.  Once a database  has been opened, 
+DBHELP is used to give the name, type of data, and brief description of items
+within the database.   (If an item is multiple-valued, then a number in
+parentheses will appear beside the item name.) The command 
+{\tt DBHELP,1} will also show
+which items are indexed, and thus much quicker to search on.
+The following example illustrates these ideas:
+\exbegin
+\exs{\$IDL}{!Get into IDL}
+\exs{DBHELP}{;List the names of all databases}
+\exs{DBHELP,1}{;Give a one-line description of all databases}
+\exs{DBHELP,'PTL'}{;Print a brief description of the ASTRO Program Target 
+List (PTL) database}
+\exs{DBOPEN,'PTL'}{;Open the PTL database}
+\exs{DBHELP}{;Print the names of all items in the PTL}
+\exs{DBHELP,1}{;Give the datatype and a brief description of all items and show 
+which ones are indexed}
+\exs{DBHELP,'JOTFID'}{;Print a description of the JOTFID item}
+\exs{DBOPEN,'SAO'}{;Close the PTL catalogue and open the SAO catalogue}
+\exs{DBCLOSE}{;Close all catalogues}
+\exend
+The output device of all the database procedures is controlled by the
+TEXTOUT keyword.   The default output device (TEXTOUT=1) is the user's
+terminal.   Set TEXTOUT=3 to direct output to a disk file with a default
+name, or set TEXTOUT = `filename', to specify the output file name.   The
+non-standard system variable !TEXTOUT can also be used instead of the
+TEXTOUT keyword.    The documentation for the TEXTOPEN procedure gives a 
+complete description of the TEXTOUT keyword.  
+
+For example, if no database has yet been opened, 
+then the following commands would write a one-line description of all catalogues
+to a disk file.
+\exbegin
+\exs{DBHELP,1,TEXT = 3}{;Write a one line description of all catalogues to a
+disk file DBHELP.PRT}
+\exs{DBHELP,1,T='db.txt'}{;Write a one line description to a file db.txt}
+\subsection{DBFIND}
+
+The function DBFIND is used to select the entries of interest in a catalogue.
+The general format of the DBFIND call is
+\exone{LIST = DBFIND(`SEARCH\_CRITERIA',[ SUBLIST ] )}
+LIST is an IDL longword output vector containing the desired entry numbers.  It is 
+subsequently used either by DBPRINT to display the desired entry values, or
+by DBEXT to extract item values for plotting or analysis.   SUBLIST is
+an optional input parameter that restricts the search to a subset of the
+catalogue.   SEARCH\_CRITERIA is a string or string array that contains
+the desired search items.
+Search criteria can be selected in seven different ways.  For example, the
+JOTFID item (Joint Target File ID) in the PTL database could be searched in
+the following ways: \\
+\vspace{0.1in}
+\begin{tabular}{lll}
+ & Search Format & Example     \\
+  &   & \\
+(1) & ITEM = value & JOTFID = 8102 \\
+(2) & ITEM = [value1,value2] & JOTFID = [8104,8105] \\
+(3) & ITEM = min\_value $<$ ITEM $<$ max\_value  & 7000 $<$ JOTFID $<$ 7999 \\
+(4) & ITEM $>$ min\_value    & JOTFID $>$ 3000 \\
+(5) & ITEM $<$ max\_value    & JOTFID $<$ 2999 \\
+(6) & ITEM = value(tolerance) & JOTFID = 5000(2000) \\
+(7) & ITEM  ;non-zero value & JOTFID   \\
+\end{tabular}
+\vspace{0.1in}
+
+The $>$ and $<$ signs in (3) -- (5) are interpreted as less than or equal to
+(i.e.\ example (5) would include all jotfid numbers up to and including 2999).
+
+You can use two or more search criteria at the same time by separating the
+individual criteria with commas.  For example, to find the UIT observations
+of normal galaxies (6000 $\leq$ JOTFID $\leq$ 6999) in the ASTRO target list,
+\exbegin
+\exc{dbopen,'PTL'}{;Open the Program Target List}  
+\exc{list = dbfind('U=U,6000 < jotfid < 6999')}{;Specify UIT target, JOTFID
+range}
+\exend
+Suppose, one now one wants to further restrict the list found above to targets in
+the northern hemisphere.  The DBFIND search {\em could} be repeated adding
+the additional search criterion {\tt 'dec $>$ 0'}.  However, it would be quicker
+to restrict the search for positive declinations to the entries that have
+already been selected and stored in the vector LIST:
+\exone{newlist = dbfind('dec>0',list)}
+
+When using DBHELP to display the contents of a catalogue, certain items are
+identified as being ``indexed.''  Indexed items can be searched {\em much} 
+faster than non-indexed items. 
+{\em Use indexed items whenever possible in your search criteria.}   
+(The reason that not every item is indexed is that such items require more disk
+space.)
+For example, one could find
+the star $\alpha$ Aur in the SKYMAP star catalog as follows:
+\exbegin
+\exc{dbopen,'skymap'}{;Open the SKYMAP catalog}
+\exc{list = dbfind(`name = alp aur')}{;Slow non-indexed search for 
+the star name}
+\exend
+but the search will take a couple of  minutes since NAME is not an indexed
+item.  On the other hand, a search on the HD number will be almost
+instantaneous.
+\exbegin
+\exc{list = dbfind(`hd=34029')}{;Fast indexed search on the HD number}
+\exend 
+
+The most commonly used items with DBFIND are probably those 
+pertaining to position.
+All of the positional databases will have an indexed item named RA in decimal
+hours, and an indexed item named DEC in decimal degrees.  In addition, another
+set of non-indexed items may exist (e.g.\ RA\_2000, DEC\_2000) which store
+the position as character strings.  These latter items are used for pretty
+output with DBPRINT, {\em and should not be used with} DBFIND.  A nice
+feature of DBFIND is that it recognizes numbers separated by colons as being
+in sexigesimal format (e.g.\  45:30 = 45.5).
+For example, to determine if 3C273 is an IRAS source, we could search on the
+known position with a $15'' (=1^s)$ tolerance:
+\exbegin
+\exc{dbopen,`iras\_psc'}{;Open the IRAS point source catalog}
+\exc{list = dbfind('ra = 12:26:33.3(0:0:1), dec=2:19:43(0:0:15)')}{;Search
+on known position of 3C273}
+\exc{dbprint,list,`*'}{;Print all items in table format}
+\exend
+The colons can be used with any item, although, of course, the use of 
+sexigesimal format is most common with RA and Dec.   The help file for
+DBFIND can be read to learn how to use slashes and dashes to encode the
+date and time.  However, be aware that arithmetic operations {\em cannot}
+be done within the search\_criteria string of DBFIND; if the right ascension
+is 30 degrees, then conversion to hours must be done before the DBFIND call
+\exbegin
+\exc{list = dbfind('ra=30/15.')}{;ILLEGAL statement  - do not try this!}
+\exend
+
+By default, string searches are matched whenever the supplied string appears anywhere in
+an item.   Thus, in the YALE\_BS catalog
+\exone{list = dbfind('name = tau')}
+will find all stars with the three characters `tau' appearing anywhere in
+their name.    The search is case insensitive and leading and trailing blanks 
+are ignored.   The /FULLSTRING keyword to DBFIND can be used if you want all
+characters in the database value to match the search string (i.e. no substring
+matches).  One can also use the same item twice in a search.   Thus
+\exone{list = dbfind(`name = tau,name=eri')}
+will find all stars (nine of them!) with the substrings `tau' and `eri' in
+their name.
+
+\subsection{DBPRINT}
+
+DBPRINT will display selected fields of database on the device specified
+by the TEXTOUT keyword.  The basic calling sequence is:
+
+\exone{DBPRINT, LIST, ITEMS, TEXTOUT = , FORMS = }
+where LIST is a vector of entry numbers (e.g. as found with DBFIND), and 
+ITEMS is a list of the desired items to print.   One line of output will
+be generated for each entry printed, and fields will be printed with
+appropiate headings.  (Page overflow will occur if the item list doesn't
+fit on a single line -- 80 characters for a typical terminal and 132 
+characters for a line printer).  The list of items to be used can
+be specified in six different ways:
+\exbegin
+\exc{dbprint,list}{Display default items}
+\exc{dbprint,list,''}{;Interactively select items via menu}
+\exc{dbprint,list,'jotfid,id1,id2'}{;Items are in a single string}
+\exc{dbprint,list,['jotfid','   id1','   id2']}{;Items are in a string array}
+\exc{dbprint,list,'\$FILENAME'}{;Items are in a disk file named FILENAME,
+(one item per line)}
+\exc{dbprint,list,indgen(3)+1}{;Use items 1-3, (Item 0 is always the entry
+number)}
+\exc{dbprint,list,'*'}{;Select all items and print in table format}
+\exend
+An useful variant of the first form of DBPRINT is to pass
+either an undefined variable or an empty string as the ITEMS parameter
+to DBPRINT.   A full screen menu will appear, and the items to be printed
+can be selected with the mouse.  The items selected will be returned
+in the ITEMS variables, so that one can skip the menu on subsequent calls
+to DBPRINT.
+\exbegin
+\exc{f = ''}{;Define an empty string}
+\exc{dbprint,list,f}{;Interactively select items via menu, print, and return
+items list in f}
+\exc{dbprint,list,f,text=3}{;Print to a disk file with items previously selected}
+\exend
+The list of entry numbers can be either the output of DBFIND, or a scalar
+or vector directly specified by the user.  Set LIST $= -1$ to print all 
+entries.  Entry numbers begin with 1, so that supplying an entry number
+of zero may give nonsensical results.
+\exbegin
+\exc{dbopen,'ptl'}{;Open the PTL database}
+\exc{items = indgen(9)+1} {;Select first 9 items for printing}
+\exc{dbprint,132,items}{;Print selected items of entry 132}
+\exc{dbprint,indgen(50)+1,items}{;Print selected items of first 50 entries}
+\exc{dbprint,-1,items}{;Print selected item, all entries}
+\exend
+\subsection{DBEXT}
+DBEXT allows one to extract item vectors from a database for plotting
+or subsequent analysis.  Its basic calling sequence is 
+\exone{DBEXT,LIST,ITEMS,V1,V2.,\ldots V12}
+The parameters LIST and ITEMS have the same meanings as in the DBPRINT
+command.  The outputs V1,V2,\ldots are the IDL variable names to be
+filled with the values of the specified items.  For example, to produce
+a scatter plot of the right ascension and declination of all targets
+in the PTL:
+\exbegin
+\exc{dbopen,'ptl'}{;Open the Program Target List}
+\exc{list = dbfind('ra<24.')}{;Solar system objects have RA=99.9}
+\exc{dbext,list,'ra,dec',r,d}{;Extract RA and dec}
+\exc{plot,r,d,psym=3}{;Plot RA vs. Dec for all Astro targets}
+\exend 
+Thanks to WUPPE and BBXRT, the observed distibution of targets shows some
+concentration toward the galactic plane.
+
+For another example, de Lapparent \ea (\apjl, {\bf 302}, L1) have used the
+CFA redshift survey to display a ``slice of the universe''.  Figure 1
+in their paper (the so-called ``dancing man'') was obtained by plotting
+galaxy velocity (distance) versus right ascension.  The galaxies were
+restricted to the declination wedge 26.5\de $\leq \delta \leq$ 32.5\de,
+and also $m_{B} \leq 15.5$, and $V \leq 15000$ \kms.   The following
+IDL statements will quickly create a rough version of this plot.
+\exbegin
+\exc{dbopen,'REDSHIFT'}{;Open the CFA Redshift Catalogue}
+\exc{list = dbfind('$26.5<$dec$<32.5$, b\_mag$<15.5$, $1<$vhelio$<15000$')}
+{;Select galaxies meeting search criteria}
+\exc{dbext,list,'ra,vhelio',ra,vhelio}{;Extract RA and velocity vectors}
+\exc{plot, ra, vhelio, psym=3}{;Plot projection of galaxies on the RA-Vhelio plane}
+\exend
+In this example, galaxies for which a redshift has not been determined
+were assigned a velocity of zero.  Therefore, it was essential that the search
+on the VHELIO item had a lower limit of 1 and not 0.
+
+It is possible for an item to contain more than one value for a particular
+entry.  This is often true for databases containing spectra,   
+where the wavelength and flux items will be multiple-valued.
+For example, to plot a spectrum of $\eta$ Uma (HR 5191) from the 
+TD-1 spectrophotometric catalog:
+\exbegin
+\exc{dbopen,'TD1\_SPEC'}{;Open spectrophotometric catalog}
+\exc{dbhelp,'FLUX'}{;Read how to create wavelength array}
+\exc{w = [1360.\ + findgen(60)*20., 2740.]}{;Wavelength array is 
+1360 \AA ~-- 2540 \AA ~at 20 \AA ~resolution plus 2740 \AA ~photometer}
+\exc{list = dbfind('bs\_no = 5191')}{;Find entry number for $\eta$ Uma}
+\exc{dbext,list,'flux',f}{;Extract 61 element flux vector}
+\exc{plot,w,f}{;Plot flux vs. wavelength}
+\exend
+The TD1\_SPEC catalog does not include an item for the wavelength array
+because it is the same for each entry; instead the help file for the
+item FLUX tells how to construct the wavelength array in a single IDL
+statement.  Note that if more than one entry number were supplied to DBEXT,
+then the output flux vector would be 2 dimensional, with the first dimension
+containing the 61 flux values for a particular entry. 
+
+The DBEXT command can be combined with the WHERE function of IDL to 
+perform searches on fields not directly present in the catalogue.
+As an example, we will use the IRAS point source catalog to search
+for infrared selected high luminosity galaxy and quasar candidates (AGNs).  
+
+Following Low \ea (1988)
+(\apjl, {\bf 327}, L41) we set our search criteria to be (1) a 25 to 60
+micron flux ratio of $0.25 <$ F25/F60 $< 3$,
+(2) a galactic latitude greater than 30\de, and (3) no previous
+identification from a stellar catalog.  (As a prerequisite for criterion
+(1), the sources must have measurable fluxes at 25 and 60 microns.)
+Search criterion (1) cannot be performed using DBFIND since F25/F60 is
+not an item in the database.  Instead one must extract the F25 and F60
+vectors with DBEXT, form the ratio, and use the WHERE function to 
+select the desired
+range.  Similarly, since the catalogue does not include galactic coordinates,
+one must DBEXT the RA and DEC, and then convert to galactic coordinates. 
+Criterion (3) presents a minor problem because DBFIND does not allow
+a ``not equal to" search criterion; however, one can explicitly search
+on the catalog identifications (item IDTYPE) that are not stellar
+(IDTYPE = 2).
+
+\exbegin
+\exc{dbopen,`iras\_psc'}{;Open IRAS point source catalog}
+\exc{list = dbfind(`idtype =[0,1,3,4], 25\_fqual>2, 60\_fqual>2')}
+{;Not in stellar catalogs, detected at 25 and 60 microns}
+\exc{dbext,list,`60\_flux,25\_flux',f60,f25}{;Extract 25 and 
+60 micron flux vectors}
+\exc{ratio = f25/f60}{;Form 25 to 60 micron flux ratio}
+\exc{list = list(where ( (ratio gt 0.25) and (ratio lt 3.0) ))}{;Ratio
+to select for AGNs}
+\exc{dbext,list,`ra,dec',ra,dec}{;Extract RA and DEC vectors}
+\exc{euler,ra*15.,dec,l,b,1}{;Convert to galactic coordinates}
+\exc{list = list(where ( (b gt 30) or (b lt -30)) )}{;Select high galactic
+latitude objects}
+\exc{dbprint,list,`name,b\_mag, 12\_flux,25\_flux,60\_flux,100\_flux}{;Print 
+name and IRAS fluxes of selected sources}
+\exend
+
+The above sequence of commands above will run slowly
+because the 25\_fqual, 60\_fqual items are not indexed,
+and because not all the desired search items (e.g.\ galactic coordinates)
+are in the database.   Should similar searches of the IRAS catalog be required
+often, 
+then the database manager should include and index the desired items.
+\section{Advanced Databasing}
+\subsection{DBCIRCLE}
+DBCIRCLE can be used to search a catalog for all sources within a specified
+radius of a given position.  For example, suppose one wants to determine
+if any quasars are within the $20'$ UIT field of the star AE Aqr (JOTFID number 3226).
+\exbegin
+\exc{dbopen,'PTL'}{;Open the ASTRO Program Target List}
+\exc{l = dbfind('jotfid=3226')}{;Get entry number of JOTFID 3226}
+\exc{dbext,l,'ra,dec',ra,dec}{;Extract the Ra and Dec of this star}
+\exc{dbopen,'quasars'}{;Open Hewitt and Burbidge (1989) Quasar catalog}
+\exc{list = dbcircle(ra,dec,20,dis)}{;Find sources within $20'$ of given RA and
+Dec}
+\exend
+DBCIRCLE will display that 3 entries were found in the quasar catalog, and
+place the entry values in the vector {\tt list}.
+The vector {\tt dis} contains the distance (in arc minutes) of each quasar 
+found to the specified field center.   
+
+\subsection{DB\_OR}
+The DB\_OR function concatenates the entries found in two different
+lists, while removing duplicates.
+For example, suppose one wants to identify the Astro targets that are 
+{\em either} WUPPE or HUT targets. The command
+\exone{list = dbfind('H=H,W=W')}
+will identify targets that belong to  {\em both}  HUT and WUPPE.
+To find targets that belong to either instruments, one must perform
+two searches and concatenate the results.
+\exbegin
+\exc{list1 = dbfind(`H=H')}{;Get entry numbers of HUT targets}
+\exc{list2 = dbfind(`W=W')}{;Get entry numbers of WUPPE targets}
+\exc{list = db\_or(list1,list2)}{;Combine entry vectors and remove
+duplicates}
+\exend
+Of course, IDL allows one to combine the three steps above into a single step:
+\exone{list = db\_or( dbfind(`H=H'), dbfind(`W=W') )}
+\subsection{Sorting}
+Up to this point all results were printed in the order stored in the database
+(by entry number).  The procedure DBSORT will sort an entry list on up to nine
+sort items.  Its calling sequence is  
+\exone{SORTLIST = DBSORT(LIST,`item1,item2 \ldots')}
+where LIST is the input list of entry numbers and SORTLIST is the sorted
+list.   Item1 is the primary sort item, item2 the secondary, and so on.
+For example, the following statements will produce a printout of all 
+IUE high-dispersion observations of the nuclei of of planetary nebulae,
+(object class 70)
+sorted by right ascension:
+\exbegin
+\exc{dbopen,`IUE'}{;Open the IUE catalogue}
+\exc{list = dbfind(`obj\_class = 70,disp=h')}{;Specify object class, dispersion
+mode}
+\exc{sortlist = dbsort(list,`ra,image')}{;Primary sort is by RA, secondary by
+image number}
+\exc{dbprint,sortlist, `object,ra\_1950,dec\_1950,cam\_no,image'}{;Print
+selected items}
+\exend
+\subsection{DBGET}
+Suppose one has a list of five IUE SWP images, and wishes to obtain information
+about the observational parameters.  DBFIND can be used to find the entry
+numbers
+\exone{list = dbfind(`cam\_no=3,image=[3427,15191,20227,29992,30022]')}
+The SWP camera is camera number 3, and the individual images are identified.
+For a larger number of images, however, this use of DBFIND breaks down.
+It is awkward to write each image value in a string, and, in fact, DBFIND
+can only parse 10 individual values.   What is needed is a function that
+can search on values in an IDL vector, and this is why DBGET was created.
+\exbegin
+\exc{images = [3427,15191,20227,29992,30022]}{;Values are in an IDL vector}
+\exc{list = dbfind(`cam\_no=3')}{;Restrict search to SWP camera}
+\exc{list = dbget(`IMAGE',images,list)}{;Search on ``images'' vector}
+\exend
+One limitation of DBGET is that it can only be used with one item at
+a time.  Be aware that the number of entries returned by DBGET might
+not equal the number of values in the search vector; if, for example,
+an image number is missing, or appears twice (e.g.\ as both large 
+and small aperture).   The function DBMATCH should be used if a one-to-one 
+correspondence is desired between the elements of the search item vector
+and the found entries.
+\subsection{DBMATCH} 
+    Suppose one wants to find the Gliese catalog number of every star in the
+Yale Bright Star catalog.  Both these catalogs contain an HD item, so one
+can extract the HD numbers from the Yale Bright Star Catalog, and then use
+this vector to search for entries in the Gliese catalog.      
+\exbegin
+\exc{dbopen,`YALE\_BS'}{;Open the Yale Bright Star Catalog}
+\exc{dbext,-1,`HD\_NO',hd}{;Extract the HD number for all stars}
+\exc{dbopen,`GLIESE'}{;Open the Gliese Catalog of Nearby Stars}
+\exc{gl = dbmatch(`HD\_NO',hd)}{;Find Gliese numbers of specified HD numbers}
+\exend
+The output vector {\tt gl} will contain 9110 elements -- one for each entry
+in the Yale Bright Star catalog.  Stars not in the Gliese catalog will contain
+a value of 0 in the {\tt gl} vector.   DBGET could be used 
+to find all the Gliese numbers of stars in the Yale Bright Star catalog,
+but it would not keep track of which Gliese number went with which star.
+DBMATCH is slower than either DBFIND or DBGET because it must loop over
+each element of the item search vector.  However, DBMATCH is very useful
+for building a ``pointer'' from one catalog to another.
+\subsection{Pointers}
+It often happens that the entries in two different catalogues can
+refer to the same object.   It is then possible to open both catalogues
+simultaneously, and for the entry in catalogue 1 to ``point'' to the
+entry in catalogue 2 corresponding to the same object.  The user can
+then print, or search on, items from either catalogue.
+For example, suppose one wants a printout of comments that have been
+written about the ASTRO targets, along with the names of the instrument(s)
+associated with each target.  The comments are given in the PTLCOM database,
+while the instruments are given in the PTL database.
+\exbegin
+\exc{dbopen,'PTL,PTLCOM'}{;Open both the PTL and the PTLCOM databases}
+\exc{list = dbfind('flag\_com')} {;Item is non-zero when comments exist}
+\exc{dbprint,list,'jotfid,id1,h,w,u,b,lcomm'}{;Print instrument and
+comments}
+\exend
+Use DBHELP to learn if one catalogue points to any others.  
+You {\em cannot} simultaneously open databases which do not have pointers
+already built in by the database manager.
+\section{Creating and Modifying a Database}
+\subsection{Introduction}
+A database actually consists of four disk files, each identified
+with a unique 3 letter extension.  For example, the PTL database
+consists of the four files, ptl.dbd, ptl.dbh, ptl.dbf, and ptl.dbx.
+The .dbd file is an ASCII file that contains all the item definitions,
+print formats, pointers etc.  The .dbh file contains a list of all items
+and item titles stored in binary format for quick access.  The .dbf
+file contains all the data stored in binary in entry order.  Finally,
+the .dbx file contain the values of all the indexed items stored in
+binary in item order.   The table below summarizes the four database
+files.       \\
+
+\vspace{0.1in}
+\begin{tabular}{|l|l|l|l|}  \hline
+.dbf & DataBase File & Binary & Row-ordered data \\ \hline
+.dbh & DataBase Contents & Binary & Title and item descriptions \\ \hline
+.dbx & DataBase indeX & Binary & Indexed and sorted data  \\  \hline
+.dbd & DataBase Definition & ASCII & User-supplied item characteristics \\
+\hline
+\end{tabular}
+\vspace{0.2in}
+
+In addition to these four files, the user can create ASCII help files as
+necessary.  For example, the file YALE\_BS.HLP will be printed when no database
+has been opened and the user types {\tt dbhelp,'yale\_bs'}.  The file 
+YALE\_BS\_DBLE\_NAME.HLP will be printed if the YALE\_BS database has been 
+opened, and the user types {\tt DBHELP,`DBLE\_NAME'}.     A final optional
+file for a database is an ASCII file with the extension .ITEMS.     This
+file lists the default print items (one per row) to  be used when the
+user types {\tt DBPRINT,LIST}.
+
+
+The steps a user must follow to create a database are as follows:
+\begin{itemize}
+\item Define the logical name (VMS) or environment variable (UNIX) 
+ZDBASE to point to the directories containing
+the catalogues.   To identify where existing database files are located, 
+type {\tt \$sho logical zdbase} (VMS) or {\tt printenv ZDBASE} (Unix).
+\item Create a database definition .dbd file using a text editor
+\item Use DBCREATE to create the .dbh file, and empty versions of the .dbx
+and .dbf files
+\item Fill the .dbx and .dbf files with data usually using the DBBUILD
+procedure.  Alternatively, entries can be written one at a time into the
+.dbf file with DBWRT, and the .dbx file can filled using DBINDEX.
+\end{itemize}
+\subsection{The .dbd file}
+The critical step in creating a database is making the database description
+(.dbd) file.  Reproduced in full below is a .dbd file for a data base that will
+be called EXAMPLE.
+\begin{center}
+{\bf example.dbd} \\
+************************************
+\end{center}
+\begin{tabbing}
+FLUX(61)XX \= I*2XXX \= Root   \kill
+\#title     \\
+Example of a Database catalogue \\
+\>  \>  \\ 
+\#maxentries   \\
+1356            \\
+\>  \>  \\ 
+\#items       \\
+CAT\_NO    \>   I*2  \>   Catalogue Number  \\
+BS\_NO     \>   I*4  \>   Bright Star Number \\
+RA\_2000   \>   C*10 \>   RA (2000)... Use RA for search  \\
+DEC\_2000  \>   C*9  \>   Dec (2000)... Use Dec for search  \\
+FLUX(61)   \>   R*4  \>   Flux (x 10[-10]), 1380A - 2740A) \\
+RA         \>   R*4  \>   RA (J2000, hours)...Use for Search          \\
+DEC        \>   R*4  \>   Dec (J2000, degrees)...Use for Search       \\
+ \> \> \\
+\#formats       \\
+ENTRY       \>   I6   \>   Entry               \\
+CAT\_NO     \>   I4   \>   TD1,No             \\
+BS\_NO      \>   I6   \>   Bright,Star,No    \\
+RA\_2000   \>   A10  \>   RA,(2000)          \\
+DEC\_2000   \>   A10  \>   Dec,(2000)         \\
+ \> \> \\
+\#index  \\
+CAT\_NO    \>     index  \\
+BS\_NO     \>     sort/index       \\
+RA         \>     sorted      \\
+DEC        \>     sort        \\
+ \> \> \\
+\#pointers                  \\
+BS\_NO     \>      yale\_bs    \\ 
+\end{tabbing}
+\begin{center}
+************************************
+\end{center}
+
+A .dbd file contains several ``block'' headers identifiable by a 
+preceding pound sign ``\#''.  The \#title and \#items blocks are
+required, the \#maxentries and \#formats blocks are strongly recommended,
+while the \#index and \#pointers blocks are optional.
+\begin{description}
+\item [\#title] Underneath the \#title header should be a one line description
+(50 characters or less) of the database that will be displayed with
+DBHELP.  The actual name of the database (to be used with DBOPEN) is the
+same as the name of the .dbd file.   
+\item [\#maxentries] Underneath the \#maxentries header should be a single
+number giving the maximum number of entries one expects to be in the database.
+The only cost in making the value of \#maxentries too large is that extra
+disk space will have to be allocated for the index files.  In fact, this
+value is now mostly obsolete, since if the value of
+\#maxentries is less than the actual number of entries, then DBCREATE will
+automatically be called create a larger index file.   
+\item [\#items]  This required block contains three columns of information.
+The first column contains the name of every item.  Multiple valued items
+should have the number of values per entry put in parentheses next to the
+item name.
+The second column
+gives the datatype of every item.  Acceptable values of datatype include
+R*4, I*2, I*4, R*8, L*1 or B*1.   Since IDL V5.2 64 bit integers (I*8) and
+unsigned integers (U*2, U*4, U*8) are also allowed datatypes. The datatype 
+of a string item should be
+written as C*[n] where [n] is the string length.  The last column
+gives a brief description of the item that will be used with DBHELP.
+\item [\#formats] This block lists the item name, print format, and print
+heading.  If an item is not listed here, then it is given the default
+IDL print format for its datatype (e.g.\ I7 for I*2 data), and the item
+name is used for the print heading.  Each print heading consist of three
+rows, so that a heading can consist of up to three words separated by
+commas.   However, each word must fit into the space allocated by the
+print format; e.g. a heading for the item BS\_NO (format I6) will be
+truncated after 6 characters.
+\item [\#index]  
+This block lists the indexed items and their index types.    
+There are four acceptable index types; ``index'', ``sorted'',
+``sort'', and ``sort/index''.   
+The values of an ``index'' item are copied in 
+entry order to the index file; this allows the values to be extracted
+quickly.   The values of a ``sort'' item are copied to the index file
+in numeric order (i.e sorted), along with a lookup table relating 
+the numeric order to the entry order.  ``Sort'' items can therefore be
+searched very quickly.  `Sorted' items are assumed to have entry order
+already coincident with numeric order, and the ``sorted'' index should be
+used whenever it is allowed. For example, some catalogs are
+listed by increasing right ascension, which would allow RA to be a
+``sorted'' item.  Multiple-valued  items are not allowed 
+an index type of ``sort'' or
+``sorted''.   Since November 2009 string items are allows to be 'sorted'. 
+Finally, the values of a ``sort/index'' item are copied in both
+entry order and numeric order to the index file.  This type is mainly used
+for items which are used to ``point'' at another database (see below).
+The following table summarizes the relative disk space and search
+speed of the different index types. 
+\vspace{0.1in}
+\begin{tabular}{|l|l|l|l|l|} \hline
+Index  & Disk  & Search & Extraction & Comment \\ 
+Type & Space  & Speed & Speed & \\ \hline\hline
+None & 1 &  Slow & Slow & \\ \hline
+Index & 2 & Moderate & Fast & \\ \hline
+Sorted & 3 & Very Fast & Fast & Item must be in entry order \\ \hline 
+Sort & 4 & Fast & Slow & Multiple value items not allowed \\   \hline
+Sort/Index & 5 & Fast & Fast & Multiple value items not allowed \\ \hline
+\end{tabular}
+\vspace{0.1in}
+\item [\#pointers] The \#pointers block contains the names of items
+that point to the entry numbers of another catalogue.  In our example,
+BS\_NO points to the entry number in the Yale Bright Star catalogue.
+Item that serve as pointers must be either index type ``index'',
+``sort/index'' or the item ENTRY.
+
+The database software has no features specific to astronomy.    However,
+in order that general position-search software can be written, it is useful
+to have an established convention as to the labeling of right ascension and
+declination.   This convention is that right ascension should be
+stored in hours in the (searchable) item RA, and declination stored in
+degrees in the item DEC.     The item description should include the 
+equinox of the coordinates (e.g.\ J2000 or B1950).
+ 
+\end{description}
+\subsection{Adding or Modifying Data}
+
+Once a database description (.dbd) file has been created, adding and 
+modifying data is relatively easy.   The procedure DBCREATE is used
+to create the contents (.dbh) file, and optionally, new copies of the 
+data (.dbf) and index (.dbx) file.  Its basic calling sequence is
+\exone{DBCREATE,`$<$DATABASE\_NAME$>$',[NEWINDEX,NEWDB]}
+where NEWINDEX is non-zero to create a new .dbx file, and NEWDB is non-zero
+to create a new .dbf file.  DBCREATE requires that the user set the system
+variable !PRIV=2; this is to prevent novice users from accidently corrupting
+the database.
+
+It assumed that the user has been able to read the data into IDL vectors.
+(The procedures READCOL, RDFLOAT, and READFMT are extremely useful for 
+reading raw data from ASCII files into IDL vectors.)   For example, to create 
+the EXAMPLE database from the previous section, the user should have vectors
+named, say, CAT,BS,RA\_2000,DEC\_2000,FLUX,RA, and DEC corresponding to 
+each of the items.   The database must then be opened for update by
+adding a second parameter to the DBOPEN command.  It is also necessary
+for the user to have sole access to the database; an error message will
+result if one tries to update a database while another user is reading it.
+Finally, the database is loaded with the procedure
+DBBUILD as follows:
+\exbegin
+\exc{!PRIV=2}{;Set !PRIV to create or modify database files}
+\exc{dbcreate,`EXAMPLE',1,1}{;Need new index and data files}
+\exc{dbopen,`EXAMPLE',1}{;Open the database for update}
+\exc{dbbuild,cat,bs,ra\_2000,dec\_2000,flux, ra,dec}{;Load IDL vectors into
+database}
+\exend
+If {\tt DBCREATE} is supplied with an /EXTERNAL keyword then the data
+and index files are written in IEEE format, and the database can be
+shared by machines with different architectures (e.g.\ Suns and Vaxes).
+However, there is a substantial overhead for the use /EXTERNAL format 
+on machines which do not internally use the IEEE format.
+
+To modify the item titles or print formats in
+an existing database, one simply edits the .dbd file with the new information,
+and then types {\tt DBCREATE}.   There is no need to create new .dbx or .dbf
+files.  If, however, one wants to change the index type of an item or 
+set of items, then a new .dbx file must be created and built with DBINDEX.
+\exbegin
+\exc{!PRIV=2}{;As always}
+\exc{dbcreate,'EXAMPLE',1}{;Create a new index file}
+\exc{dbopen,'EXAMPLE',1}{;Open database for update} 
+\exc{dbindex}{;Make the index file}
+\exend
+There are several ways to append or modify the actual data in a database.
+To append new entries, the DBBUILD command can again be used, but without
+first calling DBCREATE, since the data in the existing .dbx and .dbf files
+must remain.  The procedure DBUPDATE can be used to load new item values into
+a database.  DBUPDATE can be viewed as the inverse of DBEXT -- instead of
+extracting item vectors, it will insert them.  For example, suppose the RA and
+DEC items are in 1950 equinox, and one wants to convert them to 2000 equinox.
+\exbegin
+\exc{!PRIV=2 \& dbopen,'EXAMPLE',1}{;Ultimately, will update database}
+\exc{dbext,-1,'RA,DEC',ra,dec}{;Extract RA and Dec vectors}
+\exc{ra = ra*15.}{;Convert to degrees}
+\exc{precess,ra,dec,1950,2000}{;Convert to 2000 equinox}
+\exc{dbupdate,-1,'RA,DEC',ra/15.,dec}{;Load new values of RA and Dec} 
+
+Finally, the procedure DBEDIT is useful for editing individual item
+values.  For example, suppose a database has values of V\_MAG set to 
+99.9 whenever the visual magnitude was unknown.  Once these values become
+known they can be inserted by hand into the database:
+\exbegin
+\exc{!PRIV=2 \& dbopen,'EXAMPLE',1}{;Open for update}
+\exc{list = dbfind('V\_MAG=99.9')}{;Get entry numbers with bad V\_MAG}
+\exc{dbedit,list,'V\_MAG'}{Interactive editing of selected entries}
+\exend
+DBEDIT will display the existing value of an item, and prompt the user
+whether to keep or replace it.
+
+\newpage
+\section{APPENDIX:  ONLINE CATALOGS}
+This appendix lists the IDL databases available at 
+{\tt http://idlastro.gsfc.nasa.gov/ftp/zdbase/}.  Use
+DBHELP to obtain a more complete and up-to-date listing.at your local
+installation.   
+
+\vspace{0.15in}
+
+\begin{tabular}{lll}
+ General Catalogues and Databases & \# of Entries & Name       \\
+         &          &        \\
+
+ Abell Rich Clusters of Galaxies & 5250 & ABELL  \\
+ EUVE 2nd Source List (1996) & 514 & EUVE \\
+ Gliese Catalog of Nearby Stars & 3,802 & GLIESE \\
+ ~~Preliminary 3rd Edition (1991) & & \\
+  Hipparcos Catalog (1997) & 118218 & HIPPARCOS \\
+ Hipparcos Input Catalog (1992) & 118218 & HIC \\
+ Catalogue of HST observations (2000) & 234,069 & HST\_CATALOG \\
+ {\em IRAS} Point Source Catalogue & 255,578 & IRAS\_PSC \\
+ {\em IUE} Merged Log Catalogue (1997) & 116,736 & IUE           \\ 
+ Nearby Galaxies Tully (1988) & 2367 & NEARBY\_GAL  \\
+ New General Catalog (NGC) objects (1988) & 13,226 & NGC2000 \\
+ Position and Proper Motion (PPM) catalog & 468,907 & PPM \\
+ Catalogue of Principal Galaxies (Paturel et al. 1989) & 73,197 & PRIN\_GAL \\
+ Quasars and AGN $10^{th}$ ed. & 30,119 & QUASAR\_AGN \\
+ ~~Veron-Cetty and Veron (2001) & & \\
+ Catalog of Quasars and BL Lac Objects & 7,315 & QUASARS \\
+ ~~Hewitt and Burbidge (1993) \\
+ 3rd Reference Catalog of Galaxies  & 23,022 & RC3 \\
+  CFA Redshift Survey (1995) & 57,536 & REDSHIFT            \\
+  Catalogue of White Dwarfs 4th ed   & 4,401 & WDWARF \\
+ ~~McCook and Sion (1998) & & \\
+ Yale Bright Star Catalogue & 9,110 & YALE\_BS        \\  
+ ~~Preliminary 5th Edition (1991) & & \\
+
+\end{tabular}
+                                                      
+\end{document}                                        

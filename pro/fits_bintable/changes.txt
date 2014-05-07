@@ -1,0 +1,92 @@
+				    CHANGES         (last update 13-Mar-2014)
+
+This file contains a list of changes made to the software in this directory.
+Changes are listed in reverse chronological order, with the latest changes
+first.
+
+Mar 2014   FXREAD, FXBREAD, FXBREADM, FXWRITE - Use intrinisic
+           SWAP_ENDIAN_INPLACE rather than HOST_TO_IEEE or IEEE_TO_HOST.    
+	   Use post-V6.0 notation
+
+Apr 2010   FXBTORM, FXBHELP, FXBFIND, FXBPARSE - Stop using obsolete !ERR
+                system variable (and maintain GDL compatibility) 
+
+Apr-2010: FXBCREATE - Fixed rare truncation of FITS header when updating 
+                        THEAP keyword
+
+Feb 2009: FXBWRITM, FXBADDCOL - Now work with unsigned integers
+
+Jan  2008: FXWRITE - Now has /APPEND keyword to append to existing FITS files
+             FXHMAKE - Now has /XTENSION keyword to specify header is for an
+                       image extension.
+             FXBWRITM - Now allows output table to have TSCAL/TZERO keyword 
+                       values, unless new /NOSCALE keyword is set       
+             FXBREADM - Now recognizes unsigned integer scalings, and scalings
+                       can be either float or double precision.                      
+
+  March 2005    - FXHMODIFY - Fix bug in extending size of primary header
+
+   May 2005     - FXBWRITM - Replace EXECUTE() calls with pointers
+    
+   Apr 2005     - FXBGROW - Fix bug in zeroing the output file
+   
+   Sep 2004      -FXHMAKE, FXWRITE - Recognize unsigned data types
+   
+   Jul 2004     - FXBWRITM - Remove pre-V5.0 HANDLE options
+
+03 Mar 2003     - FXBREADM correctly handle case where TSCAL/TZERO changes type
+
+13 Dec 2002     - FXBGROW no longer restricted to working on only the last 
+                  extension 
+
+11 Dec 2002     - FXBREADM, FXBWRITM - Allow more than 50 output columns when
+                  using pointers 
+
+24 Jul 2002     - FXADDPAR - Now forces EXTEND keyword to appear immediately
+                  after last NAXISi keyword,
+
+31 Jul 2001     - FXBWRITM - Added ability to pass columns using pointers 
+                - FXBREADM - Can now read variable length binary tables, 
+               ability to read unlimited number of columns via POINTER keyword
+
+22 Jul 2001    -  FXBWRITM - Fixed bug when column numbers specified instead of
+                 names 
+
+11 Apr 2000    -  FXWRITE - Catch error if unable to open file 
+
+03 Apr 2000    -  FXADDPAR - Exponential format now always written in
+                  upper-case ('E' or 'D') per FITS standard 
+
+21 Dec 1999    - FXBCREATE, FXBFINDLUN - Now return newly created extension number 
+
+               - FXBFIND - vectorized for speed increase 
+
+               - FXPAR - Optimized to do local lookup using START keyword 
+
+	       - FXBOPEN - added access = 'RW' for read/write on an existing
+                          table keyword REOPEN an already open file 
+
+	       - FXBPARSE - performance increase by (1) using START keyword to
+                           FXPAR (2) using FXBFIND instead of multiple FXPARs 
+
+	       - FXBTFORM - performance increase on calls to FXPAR using START
+                           keyword
+
+20 Dec 1999     - FXBGROW - Increase the number of rows in a binary table 
+
+                - FXBREAD - Now has /NOIEEE keyword to leave byteorder unchanged
+
+18 Nov 1999     - FXBWRITM - Write multiple columns/rows to a FITS binary table file 
+
+                - FXBREADM - Read multiple columns/rows from a FITS binary table file. 
+
+17 Feb 1999     - FXPAR() - Now recognize the FITS keyword continuation convention
+
+20 May 1998     - FXREAD - Can now read single rows or columns. Also now includes additional error checking. 
+
+28 Sep 1997     - Modified FXBREAD to call WHERE_NEGZERO (since IEEE -0.0 
+                  values are not handled well under VMS)
+
+5 Sep 1997      - Fixed bug in FXADDPAR when inserting strings with containing 
+                  a '/' character
+

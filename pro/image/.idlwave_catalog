@@ -1,0 +1,28 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("boxave" fun nil (lib "boxave.pro" nil "Astrolib") "Result = %s(array, xsize, ysize)" (nil))
+   ("convolve" fun nil (lib "convolve.pro" nil "Astrolib") "Result = %s(image, psf)" (nil ("AUTO_CORRELATION") ("CORRELATE") ("FT_IMAGE") ("FT_PSF") ("NO_FT") ("NO_PAD")))
+   ("correl_images" fun nil (lib "correl_images.pro" nil "Astrolib") "Result = %s(image_A, image_B)" (nil ("MAGNIFICATION") ("MONITOR") ("NUMPIX") ("REDUCTION") ("XOFFSET_B") ("XSHIFT") ("YOFFSET_B") ("YSHIFT")))
+   ("correl_optimize" pro nil (lib "correl_optimize.pro" nil "Astrolib") "%s, image_A, image_B, xoffset_optimum, yoffset_optimum" (nil ("MAGNIFICATION") ("MONITOR") ("NUMPIX") ("PLATEAU_TRESH") ("PRINT") ("XOFF_INIT") ("YOFF_INIT")))
+   ("corrmat_analyze" pro nil (lib "corrmat_analyze.pro" nil "Astrolib") "%s, correl_mat, xoffset_optimum, yoffset_optimum, max_corr, edge, plateau" (nil ("MAGNIFICATION") ("PLATEAU_THRESH") ("PRINT") ("REDUCTION") ("XOFF_INIT") ("YOFF_INIT")))
+   ("cr_reject" pro nil (lib "cr_reject.pro" nil "Astrolib") "%s, input_cube, rd_noise_dn, dark_dn, gain, mult_noise, combined_image, combined_noise, combined_npix" (nil ("BIAS") ("DFACTOR") ("DILATION") ("EXPTIME") ("INIT_MEAN") ("INIT_MED") ("INIT_MIN") ("INPUT_MASK") ("MASK_CUBE") ("MEAN_LOOP") ("MEDIAN_LOOP") ("MINIMUM_LOOP") ("NOCLEARMASK") ("NOISE_CUBE") ("NOSKYADJUST") ("NSIG") ("NULL_VALUE") ("RESTORE_SKY") ("SKYBOX") ("SKYVALS") ("TRACKING_SET") ("VERBOSE") ("WEIGHTING") ("XMEDSKY")))
+   ("dist_circle" pro nil (lib "dist_circle.pro" nil "Astrolib") "%s, im, n, xcen, ycen" (nil ("DOUBLE")))
+   ("dist_ellipse" pro nil (lib "dist_ellipse.pro" nil "Astrolib") "%s, im, n, xc, yc, ratio, pos_ang" (nil ("DOUBLE")))
+   ("filter_image" fun nil (lib "filter_image.pro" nil "Astrolib") "Result = %s(image)" (nil ("ALL_PIXELS") ("FWHM_GAUSSIAN") ("ITERATE_SMOOTH") ("MEDIAN") ("NO_FT_CONVOL") ("PSF") ("SMOOTH")))
+   ("frebin" fun nil (lib "frebin.pro" nil "Astrolib") "Result = %s(image, nsout, nlout)" (nil ("total")))
+   ("imlist" pro nil (lib "imlist.pro" nil "Astrolib") "%s, image, xc, yc" (nil ("DESCRIP") ("DX") ("DY") ("OFFSET") ("TEXTOUT") ("WIDTH")))
+   ("max_entropy" pro nil (lib "max_entropy.pro" nil "Astrolib") "%s, data, psf, deconv, multipliers" (nil ("FT_PSF") ("LINEAR") ("LOGMIN") ("NO_FT") ("RE_CONVOL_IMAGE")))
+   ("Max_Likelihood" pro nil (lib "max_likelihood.pro" nil "Astrolib") "%s, data, psf, deconv, Re_conv" (nil ("FT_PSF") ("GAUSSIAN") ("NO_FT") ("POSITIVITY_EPS") ("UNDERFLOW_ZERO")))
+   ("medarr" pro nil (lib "medarr.pro" nil "Astrolib") "%s, inarr, outarr, mask, output_mask" (nil))
+   ("positivity" fun nil (lib "positivity.pro" nil "Astrolib") "Result = %s(x)" (nil ("DERIVATIVE") ("EPSILON")))
+   ("psf_gaussian" fun nil (lib "psf_gaussian.pro" nil "Astrolib") "Result = %s(parameters)" (nil ("CENTROID") ("DOUBLE") ("FWHM") ("NDIMENSION") ("NORMALIZE") ("NPIXEL") ("ST_DEV") ("XY_CORREL")))
+   ("RINTER" fun nil (lib "rinter.pro" nil "Astrolib") "Result = %s(P, X, Y, DFDX, DFDY)" (nil ("INITIALIZE")))
+   ("sigma_filter" fun nil (lib "sigma_filter.pro" nil "Astrolib") "Result = %s(image, box_width)" (nil ("ALL_PIXELS") ("DEVIATION_IMAGE") ("ITERATE") ("KEEP_OUTLIERS") ("MONITOR") ("N_CHANGE") ("N_SIGMA") ("RADIUS") ("VARIANCE_IMAGE")))
+   ("EXTRAP" pro nil (lib "skyadj_cube.pro" nil "Astrolib") "%s, Deg, X, Y, Y2" (nil ("LIMS")))
+   ("SKYADJ_CUBE" pro nil (lib "skyadj_cube.pro" nil "Astrolib") "%s, Datacube, Skyvals, Totsky" (nil ("EDEGREE") ("EXTRAPR") ("INPUT_MASK") ("NOEDIT") ("REGION") ("SELECT") ("VERBOSE") ("XMEDSKY")))
+   ("XMEDSKY" pro nil (lib "xmedsky.pro" nil "Astrolib") "%s, Image, Bkg" (nil ("CLIP") ("Nsig")))))

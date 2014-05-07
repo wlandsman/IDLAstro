@@ -1,0 +1,17 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("QueryDSS" pro nil (lib "querydss.pro" nil "Astrolib") "%s, target, Image, Header" (nil ("ESO") ("IMSIZE") ("NED") ("OUTFILE") ("STSCI") ("SURVEY") ("VERBOSE")))
+   ("Querygsc" fun nil (lib "querygsc.pro" nil "Astrolib") "Result = %s(target, dis)" (nil ("BOX") ("HOURS") ("magrange") ("VERBOSE")))
+   ("QuerySimbad" pro nil (lib "querysimbad.pro" nil "Astrolib") "%s, name, ra, de, id" (nil ("CADC") ("CFA") ("ERRMSG") ("Found") ("Hmag") ("Jmag") ("Kmag") ("NED") ("parallax") ("Print") ("Server") ("SILENT") ("Verbose") ("Vmag")))
+   ("Queryvizier" fun nil (lib "queryvizier.pro" nil "Astrolib") "Result = %s(catalog, target, dis)" (nil ("ALLCOLUMNS") ("CANADA") ("CONSTRAINT") ("SILENT") ("VERBOSE")))
+   ("MimeType" pro nil (lib "webget.pro" nil "Astrolib") "%s, Header, Class, Type, Length" (nil))
+   ("webget" fun nil (lib "webget.pro" nil "Astrolib") "Result = %s(url)" (nil ("COPYFILE") ("HTTP10") ("POST") ("SILENT") ("timeout")))
+   ("query_irsa_cat" fun nil (lib "query_irsa_cat.pro" nil "Astrolib") "Result = %s(targetname_OR_coords)" (nil ("catalog") ("change_null") ("DEBUG") ("outfile") ("radius") ("radunits")))
+   ("read_ipac_table" fun nil (lib "read_ipac_table.pro" nil "Astrolib") "Result = %s(filename)" (nil ("change_null") ("debug")))
+   ("read_ipac_var" fun nil (lib "read_ipac_var.pro" nil "Astrolib") "Result = %s(textvar)" (nil ("change_null") ("debug")))
+   ("write_ipac_table" pro nil (lib "write_ipac_table.pro" nil "Astrolib") "%s, in_struct, outfile" (nil ("exact_format") ("format") ("short_format")))))

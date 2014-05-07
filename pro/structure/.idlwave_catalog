@@ -1,0 +1,15 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("compare_struct" fun nil (lib "compare_struct.pro" nil "Astrolib") "Result = %s(struct_A, struct_B, Struct_Name)" (nil ("BRIEF") ("EXCEPT") ("FULL") ("NaN") ("RECUR_A") ("RECUR_B")))
+   ("copy_struct" pro nil (lib "copy_struct.pro" nil "Astrolib") "%s, struct_From, struct_To, NT_copied, Recur_Level" (nil ("EXCEPT_TAGS") ("RECUR_From") ("RECUR_TANDEM") ("RECUR_TO") ("SELECT_TAGS")))
+   ("copy_struct_inx" pro nil (lib "copy_struct_inx.pro" nil "Astrolib") "%s, struct_From, struct_To, NT_copied, Recur_Level" (nil ("EXCEPT_TAGS") ("INDEX_From") ("INDEX_To") ("RECUR_From") ("RECUR_TANDEM") ("RECUR_To") ("SELECT_TAGS")))
+   ("create_struct" pro nil (lib "create_struct.pro" nil "Astrolib") "%s, struct, strname, tagnames, tag_descript" (nil ("CHATTER") ("DIMEN") ("NODELETE")))
+   ("mrd_struct" fun nil (lib "mrd_struct.pro" nil "Astrolib") "Result = %s(names, values, nrow)" (nil ("no_execute") ("old_struct") ("silent") ("structyp") ("tempdir")))
+   ("print_struct" pro nil (lib "print_struct.pro" nil "Astrolib") "%s, structure, Tags_to_print, title, string_matrix" (nil ("FILE") ("FORM_FLOAT") ("FRANGE") ("LUN_OUT") ("MAX_ELEMENTS") ("NO_TITLE") ("STRINGS") ("TNUMS") ("TRANGE") ("WHICH_TO_PRINT")))
+   ("tag_exist" fun nil (lib "tag_exist.pro" nil "Astrolib") "Result = %s(str, tag)" (nil ("index") ("quiet") ("recurse") ("top_level")))
+   ("where_Tag" fun nil (lib "where_tag.pro" nil "Astrolib") "Result = %s(Struct, Nfound)" (nil ("ISELECT") ("NOPRINT") ("RANGE") ("TAG_NAME") ("TAG_NUMBER") ("VALUES")))))

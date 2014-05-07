@@ -1,0 +1,274 @@
+\documentclass[twoside,12pt]{article}
+\topmargin -0.5in
+\oddsidemargin-.15in
+\evensidemargin-.25in
+%\textheight 8.5in     
+\textwidth 6.5in
+\newcommand{\exbegin}{\par\medskip}
+\newcommand{\exend}{\medskip\noindent}
+\newcommand{\exc}[2]{
+\hbox to \hsize{\small\hskip .2in
+\parbox[t]{2.8in}{\raggedright\setlength{\parindent}{-.2in}\tt #1}
+\hspace{.2in}
+\parbox[t]{3.8in}{\raggedright\setlength{\parindent}{-.2in}\rm #2}\hss}
+\prevdepth=1.5pt\relax}
+% One line example
+\newcommand{\exone}[1]{\begin{center}\tt #1 \end{center}}
+\title{FITS Table I/O in IDL}
+\author{W. Landsman \\ Raytheon ITSS Co.}
+\date{20 May 2000}
+\begin{document}
+\maketitle
+\section{Introduction} 
+
+This document describes how to use the procedures located in \\
+http://idlastro.gsfc.nasa.gov/ftp/pro/fits\_table to read and write FITS ASCII
+tables  and to read FITS 
+binary tables.    These procedures provide one of three methods in the IDL
+Astronomy Library to process FITS tables: the other two methods are to use (1)
+{\tt MRDFITS()/MWRFITS} which convert between FITS tables and IDL structures, and (2)
+the FX* procedures in \\
+http://idlastro.gsfc.nasa.gov/ftp/pro/fits\_bintable/ which allow one to read
+and write any type of binary table.  See
+http://idlastro.gsfc.nasa.gov/fitsio.html for further discussion of reading
+FITS files with IDL.
+
+This text concentrates on processing FITS ASCII tables after the data array and
+header  has been read into IDL memory using the procedures {\tt READFITS()} or
+{\tt FITS\_READ}.   For example,
+
+\exone{tab = READFITS('myfile.fits', h, EXT = 2) }
+
+The procedures for processing FITS tables begin with the letters `FT', and 
+analagous procedures for reading FITS binary tables are available and begin
+with the letters `TB'.   Note, however, that TB* procedures for {\em creating}
+a FITS binary table do not yet exist, so that to write FITS binary tables one
+must use either {\tt MWRFITS} or {\tt FXBWRITE}.     Finally, for reading
+tables, most users will
+prefer to use the higher level FTAB* procedures, which operate directly on FITS
+files, and work transparently with either ASCII or binary tables.
+
+Each column in a FITS ASCII table 
+is specified by a field name, TTYPEnnn, a column number, TBCOLnnn,
+and a FORTRAN format, TFORMnnn.  Optional column descriptions include
+the data units, TUNITnnn, a scale factor, TBCALnnn, a zero offset,
+TZEROnnn, and a null string, TNULLnnn.  A null string specifies the 
+characters to be used (e.g.\  `***') to specify that data does not exist.
+(Note that a blank field is interpreted with a numeric format as a zero.) 
+
+The most important routines can be summarized as follows. A header array and
+table array are read into IDL variables with {\tt READFITS} or {\tt
+FITS\_READ}  and written to disk with {\tt WRITEFITS} or {\tt FITS\_WRITE}.  {\tt
+FTHELP} ({\tt TBHELP}) will display table information in the header, and {\tt
+FTPRINT} ({\tt TBPRINT}) will print specified rows and columns.  Values are read from a table
+into IDL variables with {\tt FTGET} ({\tt TBGET}), and inserted into a table with
+{\tt FTPUT}.  A new header and table array is created with {\tt FTCREATE}, and
+a new column is added to a table with {\tt FTADDCOL}.  A table can be sorted
+with {\tt FTSORT}.
+
+A FITS table header can be manipulated in the same manner as an FITS 
+image header.
+In particular, note the procedures {\tt SXPAR}, to obtain the value of a FITS
+keyword, {\tt SXADDPAR}, to add a FITS keyword to a header, {\tt SXADDHIST}, to add
+a history record, and {\tt SXDELPAR}, to delete a FITS keyword.
+
+Fields can be specified either by their name or column number.   
+Upper or lower case can be used when specifying field names.
+They are always converted to upper case before use.
+
+Row numbers start with 0, but in concordance with the FORTRAN based
+FITS convention, column numbers start with 1.
+                          
+\section{Reading, updating, and writing FITS tables}
+
+{\tt FTADDCOL,H,TAB,NAME,IDLTYPE,[TFORM,TUNIT,TSCAL,TZERO,TNULL]} \\
+
+	This routine will add a new field to a table specified by
+        H and TAB.  The name of the field should be placed in NAME.
+        IDLTYPE specifies the IDL type of field (as in the SIZE
+        function).  For string data, IDLTYPE should be minus the
+        string length.  The remaining parameters are further optional
+        specifications of the field.   \\
+ 
+{\tt FTCREATE,MAXCOLS,MAXROWS,H,TAB} \\
+
+	This routine creates an empty table H and TAB with the 
+	specified allocated size.  MAXCOLS give the number of
+        byte columns to allocate.  MAXROWS give the number of 
+        allocated rows in the table.  The values of MAXCOLS and
+        MAXROWS are not critical, since subsequent procedures
+        can always enlarge the table (at the loss of some 
+        efficiency). \\
+
+{\tt FTDELCOL,H,TAB,FIELD} 
+
+{\tt TBDELCOL,H,TAB,FIELD} \\
+
+        Procedures to delete column specified by FIELD from table
+        with header, H, and data array, TAB.   When changing the
+        data format of a column, it is first necessary to delete
+        the column with {\tt FTDELCOL}, and then add a new column with
+        {\tt FTADDCOL.}  \\
+
+{\tt FTDELROW, H, TAB, ROWS}  
+
+{\tt TBDELROW, H, TAB, ROWS} \\
+
+        Procedures to delete row(s) specified ROWS (scalar or vector)
+        from a FITS table with header, H, and data array, TAB. \\
+
+{\tt FTGET(H,TAB,FIELD,ROWS,[NULLS]) or FTGET(FT\_STR,TAB,FIELD,ROWS,[NULLS])}	
+
+{\tt TBGET(H,TAB,FIELD,ROWS,[NULLS]) or TBGET(TB\_STR,TAB,FIELD,ROWS,[NULLS])}   \\
+
+	Functions to extract the specified row(s) from field
+	number (beginning with 1) or name FIELD from the 
+        table with header, H, and data, TAB.  If ROWS is not 
+        supplied, or set = --1, then values for all rows are 
+        returned.   If {\tt FTGET()} (or {\tt TBGET()}) are to be called multiple times, then
+        the efficiency can be improved by first calling {\tt FTINFO (TBINFO)} to
+     extract the header information into a structure, and then supplying this
+    structure rather than the header to {\tt FTGET()}.  \\
+
+{\tt FTHELP,H, TEXTOUT = } 
+
+{\tt TBHELP,H, TEXTOUT = } \\
+
+	These routines will print a short description of the table
+	on the terminal.  Information includes field names, units,
+        print formats, and column numbers. Output can be directed 
+        to a disk file by setting the TEXTOUT keyword  \\
+
+{\tt FTPRINT, H, TAB,[ COLUMNS, ROWS, TEXTOUT = ]} 
+
+{\tt TBPRINT, H, TAB,[ COLUMNS, ROWS, TEXTOUT = ]} \\
+
+	These routines print the specified columns in ASCII form
+	for the table specified by H and TAB.  Columns can be
+	specified by a string array of column names, or an integer
+	array of column numbers, or a scalar string with column
+	names separated by commas (i.e. `colname1,colname2,...').
+	ROWS is an optional parameter containing a vector of row
+	numbers to print.  If not supplied, or set = --1 then 
+        all rows are printed.  Output can be directed to a disk
+        file by setting the TEXTOUT keyword. \\
+
+{\tt  FTPUT,H,TAB,FIELD,ROWS,VALUES,[NULLS]} \\
+ 
+	This routine updates an existing field or adds a new
+	field to the table specified by H and TAB.  FIELD
+	is the name (or number) of the field to update or add.   
+        VALUES are the value(s) to be added to the column.  If 
+        ROWS is not specified they are added sequentially 
+        beginning in row 0.  If the column already exists, VALUES 
+        will automatically be converted to the correct data type 
+        for the column.  If the column does not exist the column 
+        type will be determined from values.  ROWS is an integer 
+        giving the starting row number to update or a vector giving
+	arbitary row numbers to update.  If ROWS is a vector, then
+	VALUES must be a vector of the same length (one-to-one
+	correspondence). If passed, NULLS should be the
+        same length as VALUES and set to 1 at null value positions
+        and 0 elsewhere. \\
+ 
+{\tt FTSORT,H,TAB,FIELD or FTSORT,H,TAB,HNEW,TABNEW,FIELD} \\
+
+        Sort all columns in a table in increasing order of the value(s)
+        specified in FIELD.  If FIELD is a vector, then the first element is 
+        used for the primary sort, the second element is used for the secondary
+       sort and so forth.   (A secondary sort only takes effect when values in
+        the primary sort field are equal.)    A REVERSE keyword is available to
+       specify that field should be sorted in descending rather than ascending
+        order.  If more than 3 parameters are supplied
+        then a new header and table are created, otherwise the original
+        header and table arrays are sorted. \\
+
+\subsection{Program Level Procedures}
+
+    The following procedures may be of some use but are generally
+    not required for table manipulation. \\
+ 
+{\tt FTHMOD,H,FIELD,PARAMETER,VALUE} \\
+
+        This routine modifies a parameter within a specified field
+        of a table with a header H.  FIELD can be specified either
+        by its name or column number.  PARAMETER is FITS table keyword
+        (e.g. TTYPE, TUNIT, TNULL, TFORM, TSCAL, or TZERO) to be
+        updated with a new value, VALUE.  \\
+
+{\tt FTINFO,H,FT\_STR}
+
+{\tt TBINFO,H,TB\_STR} \\
+   
+	These routines will extract information about the table from the FITS
+        header H and return it in a structure FT\_STR or TB\_STR.    Information 
+        for the field available as 
+        output include the starting column position in bytes, TBCOL, 
+        the field with in bytes, WIDTH, the IDL type (as in the SIZE 
+        function), IDLTYPE, the field units, TUNIT, scale factor, 
+        TSCAL, zero offset, TZERO, null value, TNULL, print format,
+        TFORM, and field name, TTYPE.  (TTYPE might be needed if FIELD 
+        was specified as a scalar rather than a name.)  \\
+ 
+{\tt FTSIZE,H,TAB,NCOLS,ROWS,TFIELDS,NCOLS\_ALL,NROWS\_ALL} 
+
+{\tt TBSIZE,H,TAB,NCOLS,ROWS,TFIELDS,NCOLS\_ALL,NROWS\_ALL} \\
+ 
+	These routines return the size of the table specified with H
+        and TAB.  NCOLS and NROWS are the actual table size.  ALLCOLS
+	and ALLROWS are the allocated size.  TFIELDS is the number of
+        fields per row.  NCOLS\_ALL and NROWS\_ALL are the actual
+        allocated size of TAB.
+ 
+\section{Examples}
+ 
+Read a FITS table (first extension), examine the contents, sort by flux, and 
+print 
+\exbegin
+\exc{tab = READFITS( `mytab.fits', tab, h, /EXTEN)}{;read FITS table mytab.fits  
+                           into header array,h and data array, tab}
+\exc{PRINT,h}{;look at header}
+\exc{FTHELP,h}{;look at header, pretty format}
+\exc{PRINT,STRING(tab)}{;look at data}
+\exc{FTPRINT,h,tab}{;look at data, pretty format}
+\exc{FTPRINT,h,tab,`X,Y,FLUX',indgen(10)}{;type fields `X', `Y' and `FLUX',
+                                         first 10 rows only}
+\exc{FTPRINT,h,tab,[1,3,4],[0,5,7]}{;Type rows 0, 5 and 7 of columns
+                                          1,3, and 4}
+\exc{FTSORT,h,tab,`FLUX'}{;Sort table in order of increasing flux}
+\exc{FTPRINT,h,tab, text=3}{;Write the entire table to an ASCII file,
+ftprint.prt}
+\exend
+Read a FITS ASCII table named MYTAB.FIT with columns FLUX, V, and B-V.   Plot 
+FLUX vs. V for stars with B-V $<$ 0.0.
+\exbegin
+\exc{tab = READFITS(`mytab.fit',h,tab,/EXTEN} {;Get header,h and data,tab}
+\exc{bv = FTGET(h,tab,`B-V')}{;get B-V column}
+\exc{rows = where( bv LT 0.)}{;selected rows}
+\exc{plot,FTGET(h,tab,`V',rows),FTGET(h,tab,`FLUX',rows)}
+\exend
+\exbegin 
+A program has created RA and DEC vectors, and a string array
+of star names, NAME.  Create a FITS ASCII table named ``star.fits''.
+\exbegin
+\exc{npts = n\_elements(ra)}{;Get \# of stars}
+\exc{FTCREATE,24,npts,h,tab}{;Create header,h and table, tab}
+\exc{FTADDCOL,h,tab,`RA',8,`F9.5',`DEGREES'}{;Create a new column for RA}
+\exc{FTADDCOL,h,tab,`DEC',8,`F9.5',`DEGREES'}{;Create a new column for DEC}
+\exc{FTPUT,h,tab,`NAME',0,name}{;Insert NAME vector into table starting at row 0.}
+\exc{FTPUT,h,tab,`RA',0,ra}{;Insert RA vector into table}
+\exc{FTPUT,h,tab,`DEC',0,dec}{;Insert DEC vector into table}
+\exc{MKHDR,h0,0,/exten}{;Make a default primary header showing extension}
+\exc{writefits,`star.fits',0,h0}{;Create FITS file with primary header}
+\exc{writefits,`star.fits',tab,h,/APPEND}{;Append ASCII table to FITS file}
+\exend
+In the last example, the table is created with a column size of 24, because
+that is the sum of the FORMAT field lengths (A6 + F9 + F9).  (If too small
+a size was specified, then FTADDCOL would enlarge the table size.)
+It is possible to add a vector to a table with FTPUT, even if the column
+did not previously exist.  However, the column is then created using 
+default formats, and other parameter options (e.g. TUNIT) are not possible.
+Therefore, it is recommended to first use FTADDCOL to create a new column 
+before adding numeric data.
+\end{document}
+                 

@@ -1,0 +1,31 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("ftab_delrow" pro nil (lib "ftab_delrow.pro" nil "Astrolib") "%s, filename, rows" (nil ("EXTEN_NO") ("NEWFILE")))
+   ("ftab_ext" pro nil (lib "ftab_ext.pro" nil "Astrolib") "%s, file_or_fcb, columns, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v45, v46, v47, v48, v49, v50" (nil ("EXTEN_NO") ("ROWS")))
+   ("ftab_help" pro nil (lib "ftab_help.pro" nil "Astrolib") "%s, file_or_fcb" (nil ("EXTEN_NO") ("TEXTOUT")))
+   ("ftab_print" pro nil (lib "ftab_print.pro" nil "Astrolib") "%s, filename, columns, rows" (nil ("EXTEN_NO") ("FMT") ("num_header_lines") ("nval_per_line") ("TEXTOUT")))
+   ("ftaddcol" pro nil (lib "ftaddcol.pro" nil "Astrolib") "%s, h, tab, name, idltype, tform, tunit, tscal, tzero, tnull" (nil))
+   ("ftcreate" pro nil (lib "ftcreate.pro" nil "Astrolib") "%s, MAXCOLS, MAXROWS, H, TAB" (nil))
+   ("ftdelcol" pro nil (lib "ftdelcol.pro" nil "Astrolib") "%s, h, tab, name" (nil))
+   ("ftdelrow" pro nil (lib "ftdelrow.pro" nil "Astrolib") "%s, h, tab, rows" (nil))
+   ("ftget" fun nil (lib "ftget.pro" nil "Astrolib") "Result = %s(hdr_or_ftstr, tab, field, rows, nulls)" (nil))
+   ("fthelp" pro nil (lib "fthelp.pro" nil "Astrolib") "%s, h" (nil ("TEXTOUT")))
+   ("fthmod" pro nil (lib "fthmod.pro" nil "Astrolib") "%s, h, field, parameter, value" (nil))
+   ("ftinfo" pro nil (lib "ftinfo.pro" nil "Astrolib") "%s, h, ft_str" (nil ("Count")))
+   ("ftkeeprow" pro nil (lib "ftkeeprow.pro" nil "Astrolib") "%s, h, tab, subs" (nil))
+   ("ftprint" pro nil (lib "ftprint.pro" nil "Astrolib") "%s, h, tab, columns, rows" (nil ("textout")))
+   ("ftput" pro nil (lib "ftput.pro" nil "Astrolib") "%s, h, tab, field, row, values, nulls" (nil))
+   ("ftsize" pro nil (lib "ftsize.pro" nil "Astrolib") "%s, h, tab, ncols, nrows, tfields, ncols_all, nrows_all" (nil ("ERRMSG")))
+   ("ftsort" pro nil (lib "ftsort.pro" nil "Astrolib") "%s, h, tab, hnew, tabnew, field" (nil ("reverse")))
+   ("tbdelcol" pro nil (lib "tbdelcol.pro" nil "Astrolib") "%s, h, tab, name" (nil))
+   ("tbdelrow" pro nil (lib "tbdelrow.pro" nil "Astrolib") "%s, h, tab, rows" (nil))
+   ("tbget" fun nil (lib "tbget.pro" nil "Astrolib") "Result = %s(hdr_or_tbstr, tab, field, rows, nulls)" (nil ("CONTINUE") ("NOSCALE")))
+   ("tbhelp" pro nil (lib "tbhelp.pro" nil "Astrolib") "%s, h" (nil ("TEXTOUT")))
+   ("tbinfo" pro nil (lib "tbinfo.pro" nil "Astrolib") "%s, h, tb_str" (nil ("errmsg") ("NOSCALE")))
+   ("tbprint" pro nil (lib "tbprint.pro" nil "Astrolib") "%s, hdr_or_tbstr, tab, columns, rows" (nil ("fmt") ("num_header_lines") ("nval_per_line") ("textout")))
+   ("tbsize" pro nil (lib "tbsize.pro" nil "Astrolib") "%s, h, tab, ncols, nrows, tfields, ncols_all, nrows_all" (nil))))

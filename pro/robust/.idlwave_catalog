@@ -1,0 +1,16 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("AUTOHIST" pro nil (lib "autohist.pro" nil "Astrolib") "%s, V, ZX, ZY, XX, YY" (nil ("_EXTRA") ("NOPLOT")))
+   ("BIWEIGHT_MEAN" fun nil (lib "biweight_mean.pro" nil "Astrolib") "Result = %s(Y, SIGMA, WEIGHTs)" (nil))
+   ("HISTOGAUSS" pro nil (lib "histogauss.pro" nil "Astrolib") "%s, SAMPLE, A, XX, YY, GX, GY" (nil ("_EXTRA") ("CHARSIZE") ("FONT") ("NOFIT") ("NOPLOT") ("Window")))
+   ("MEDSMOOTH" fun nil (lib "medsmooth.pro" nil "Astrolib") "Result = %s(ARRAY, WINDOW)" (nil))
+   ("RESISTANT_Mean" pro nil (lib "resistant_mean.pro" nil "Astrolib") "%s, Y, CUT, Mean, Sigma, Num_Rej" (nil ("dimension") ("double") ("goodvec") ("Silent") ("sumdim") ("wused")))
+   ("ROB_CHECKFIT" fun nil (lib "rob_checkfit.pro" nil "Astrolib") "Result = %s(Y, YFIT, EPS, DEL, SIG, FRACDEV, NGOOD, W, B)" (nil ("BISQUARE_LIMIT")))
+   ("ROBUST_LINEFIT" fun nil (lib "robust_linefit.pro" nil "Astrolib") "Result = %s(XIN, YIN, YFIT, SIG, SS)" (nil ("BISECT") ("Bisquare_Limit") ("Close_Factor") ("NUMIT")))
+   ("ROBUST_POLY_FIT" fun nil (lib "robust_poly_fit.pro" nil "Astrolib") "Result = %s(X, Y, NDEG, YFIT, SIG)" (nil ("DOUBLE") ("NUMIT")))
+   ("ROBUST_SIGMA" fun nil (lib "robust_sigma.pro" nil "Astrolib") "Result = %s(Y)" (nil ("GOODVEC") ("ZERO")))))

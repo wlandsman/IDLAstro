@@ -1,0 +1,582 @@
+        Contents of IDL Astronomy User's Library             Apr 2014
+        (also see http://idlastro.gsfc.nasa.gov/contents.html)
+
+Astronomical Utilities    in pro/astro
+________
+--------
+ADSTRING() - Format RA and DEC as a character string
+AIRTOVAC - Convert air wavelengths to vacuum wavelengths
+AITOFF - Convert longitude,latitude to X,Y using Aitoff equal-area projection
+AITOFF_GRID - Create an overlay grid using the AITOFF projection 
+ALTAZ2HADEC - Convert Horizon (Alt-Az) coordinates to Hour Angle and Declination
+ARCBAR - Draw an arcbar over an image showing the astronomical plate scale
+ARROWS - Given a FITS header, display a "weathervane" showing N-E orientation 
+ASTDISP - Display formatter for pixel + astronomical coordinates
+ASTRO - Interactive driver to compute astronomical precession,
+        or coordinate conversions (calls EULER and PRECESS).
+BARYVEL - Compute components of barycentric Earth velocity, given Julian date
+BPRECESS - Precess coordinates, proper motion from J2000 to B1950
+CALZ_UNRED - Deredden a galaxy spectrum using the Calzetti et al. (2000) formula
+CCM_UNRED - Deredden a spectrum using the Cardelli, Clayton and Mathis (1989)
+         parameterization.
+CO_ABERRATION - Calculate changes to Ra and Dec due to aberration effects
+CO_NUTATE - Calculate changes in RA and Dec due to nutation of the Earth's rotation
+CO_REFRACT() - Calculate correction to altitude due to atmospheric refraction
+COSMO_PARAM - Derive a full set of cosmological parameters given a subset
+CT2LST- Convert from civil time to local sidereal time
+DATE()  - Convert day of year to a DY-MON-CCYY string (FITS standard)
+DATE_CONV() - Function to perform various date format conversions
+DAYCNV- Convert from Julian Date to calendar date.
+DEREDD- Deredden Stromgren indices (called by UVBYBETA)
+ECI2GEO() - Convert Earth-centered inertial coordinates to geographic  coords
+EQ2HOR - Convert celestial  (ra-dec) coords to local horizon coords (alt-az).
+EQPOLE - Convert longitude,latitude to X,Y using polar equal-area projection
+EQPOLE_GRID - Create overlay grid using polar equal-area projection
+EULER - Astronomical coordinate system conversions
+FLUX2MAG() - Convert from flux units to magnitudes
+FM_UNRED - Deredden a spectrum using the Fitzpatrick & Massa (1998)
+         parameterization.
+GAL_UVW - Calculate the Galactic space velocity (U,V,W) of a star
+GAL_FLAT()  - Correct a galaxy image for inclination effects.
+GALAGE - Derive a galaxy age as a function of redshift for a cosmological model
+GCIRC - Compute rigorous great circle distance
+GEO2ECI() - Convert geographic coordinates to Earth-centered inertial coords 
+GEO2GEODETIC() - Convert from geographic to geodetic coordinates
+GEO2MAG() - Convert from geographic to geomagnetic coordinates
+GEODETIC2GEO() - Convert from geodetic to geographic coordinates
+GET_COORDS - Read in angular input in decimal or sexigesimal format
+GET_DATE - Get the current date in CCYY-MM-DD format (FITS standard)
+GET_JULDATE - Get the current Julian date as a double precision scalar
+GLACTC- Convert between Galactic (or SuperGalactic) and equatorial coordinates
+GLACTC_PM - Convert between celestial and Galactic (or Supergalactic) proper motion
+HADEC2ALTAZ -  Converts Hour Angle and Declination to Horizon (alt-az) coordinates                                 
+HELIO - Compute (low-precision) heliocentric coordinates of the planets 
+HELIO_JD() - Convert geocentric (reduced) Julian date to heliocentric Julian date
+HELIO_RV() - Compute radial velocity given binary star orbit parameters
+HOR2EQ - Convert local horizon coords (alt-az) to equatorial (ra-dec).
+IMCONTOUR - Contour plots with astronomical labeling (either RA,Dec or 
+            arc distance from the image center
+IMF() - Return values for a multi-component power law initial mass function
+ISMEUV() - Compute EUV optical depth due to photoionization of HI, HeI and HeII
+JDCNV - Convert from calendar date to Julian date.
+JPLEPHINTERP - Interpolate position and motion of planetary bodies (JPL Ephemeris)
+JPLEPHREAD - Open and read JPL DE200 or DE405 Ephemeride FITS File
+JPRECESS - Precess positions & proper motions from B1950 to J2000
+JULDATE-Convert from calendar date to reduced Julian date. 
+LSF_ROTATE - Create a 1-d convolution kernel to broaden a spectrum from a rotating star
+LUMDIST - Return luminosity distance for a given redshift & cosmological model
+MAG2GEO() - Convert from geomagnetic to geographic coordinates
+MAG2FLUX() - Convert from magnitudes to flux units
+MONTH_CNV() Convert a month name to the equivalent number or vice-versa 
+MOONPOS- Compute the RA and Dec (and distance) of the Moon at a given date
+MPHASE - Compute illuminated fraction of the Moon's disk for given Julian dates
+NUTATE - Compute the nutation in longitude and latitude for given Julian date(s)
+OBSERVATORY - Return coordinates, altitude & time zones of an observatory
+PLANCK() - Returns a blackbody flux for a given effective temperature
+PLANET_COORDS - Return low-precision RA and Dec of planets give a date(s)
+POSANG - Compute the position angle between sources of specified RA and Dec
+PRECESS - Precess RA and Dec to a new equinox
+PRECESS_CD - Precess the PC (or CD) matrix in a FITS header to a new equinox
+PRECESS_XYZ - Precess equatorial geocentric rectangular coordinates
+PREMAT() - Returns precession matrix from equinox 1 to equinox 2
+QDCB_GRID - Create overlay grid using COBE quad cube database coordinates
+RADEC - Format RA, Dec as Hours,Min,Sec,Deg,Min,Sec
+SIXTY - Convert decimal number to sexigesimal                 
+SPHDIST() - Find angular distance on a sphere (in /jhuapl)
+SUNPOS - Compute the RA and Dec of the Sun at a given date
+TDB2TDT() - Relativistic clock corrections due to Earth motion in solar system
+TEN() - Convert sexigesimal number to decimal             
+TENV() -  Like TEN but will work on a vector of sexigesimal numbers.
+TICPOS - Specify distance between tic marks for astronomical coordinates
+TICLABELS - Create labels for astronomical coordinate tick marks 
+TICS - Compute the optimum distance between tic marks for astronomical labeling
+TIC_ONE - Determine optimum position of the first tic in astronomical labeling  
+UVBYBETA - Use Stromgren indices to derive dereddened colors, metallicity,
+        and effective Temperature.
+VACTOAIR - Convert vacuum wavelengths to air wavelengths.
+XYZ - Compute heliocentric rectangular coordinates at given Julian date.
+YMD2DN() - Convert year,month,day to day number of the year (in /jhuapl)
+YDN2MD - Convert day number of the year to year, month,day
+ZANG() - Compute angular size as a function of redshift in a Friedman cosmology
+ZENPOS - Compute the RA and Dec of the local zenith at a given date
+
+----------------------------------------------------------------------------
+DAOPHOT-Type Photometry Procedures    in pro/idlphot (see text/daophot.tex)
+________
+--------
+APER -   Circular APERture photometry
+CNTRD -  Obtain the centroid of a star by locating where derivatives go to zero
+DAOERF - Calculate the intensity, (and optionally, the derivatives) of
+         a bivariate Gaussian, integrated over pixels.  Called by DAO_VALUE
+DAO_VALUE -  Obtain the value of a DAOPHOT PSF function at a given set of points
+FIND -   FIND point sources within an image
+GCNTRD - Determine centroid by Gaussian fits to the marginal X,Y distributions 
+GETPSF - Obtain a PSF (Gaussian + residuals) from isolated stars.
+GROUP -  Place stars with non-overlapping PSF's in distinct groups
+MMM -    (Mean, Median, Mode) sophisticated sky background computation
+NSTAR -  Simultaneous PSF fitting of a group of stars 
+PIXWT -  Compute the area of the intersection of a circle on a rectangle
+PKFIT -  Fit a Gaussian + residuals to a isolated star (called by GETPSF)
+RDPSF -  Read a PSF file that was created by GETPSF into an IDL array.
+RINTER - Cubic Interpolation at a set of reference points, optionally
+         obtain derivatives.  (in /image)
+SKY -    Compute image sky level using MMM
+SRCOR -  Correlate the source positions in two different lists
+SUBSTAR- Subtract a scaled PSF at specified star positions
+T_APER - Driver procedure for  APER with I/O to a disk FITS ASCII table
+T_FIND - Driver procedure for FIND with I/O to a disk FITS ASCII table
+T_GROUP- Driver procedure for GROUP with I/O to a disk FITS ASCII table
+T_GETPSF - Driver procedure for GETPSF with I/O to a disk FITS ASCII table
+T_NSTAR -  Driver procedure for NSTAR with I/O to a disk FITS ASCII table
+T_SUBSTAR - Driver procedure for SUBSTAR with I/O to a disk FITS ASCII table
+
+-----------------------------------------------------------------------
+Database Procedures   in pro/database  (see text/database.tex)
+____________
+------------
+DBBUILD - Load or append a database with new entry values.
+DBCIRCLE() - Find entries within a specified circular area.
+DBCLOSE - Close a database
+DBCOMPARE - Display the values of two database entries side by side   
+DDBCREATE - Create a new database data, index and/or format file.
+DBDELETE - Delete an entry from a database
+DBEDIT - Interactively edit the entries in a database 
+DBEXT - Extract items from a database into IDL variables 
+DBFIND() - Find entries meeting specified criteria in an IDL database
+DBGET() - Use instead of DBFIND when search values are in an IDL vector
+DBHELP - List names of databases, or entries within a database
+DB_INFO() - Lower level routine to obtain information on an opened database 
+DBINDEX - Update the IDL database index file.
+DB_ITEM_INFO() - Lower level routine to obtain information on specified item(s)
+DB_ITEM - Lower level routine to return item number and other information
+DBMATCH() - Match database entries one-to-one to specified item values
+DBOPEN - Open a IDL database  
+DBPRINT - Print specified fields about specified entries in an IDL database
+DBPUT - Lower level routine to place new value for specified item into an entry
+DBRD - Lower level routine to read an entry from a database
+DBSORT() - Sort entries in an IDL database 
+DBTARGET() - Find entries within specified distance of an astronomical target 
+DBUPDATE -  Update an IDL database with new item values.
+DB_OR() - Combine two catalog entry lists, removing duplicate values
+DBVAL - Lower level routine to extract value of specified item from an entry
+DBXVAL - Lower level routine to extract values of specified item from an entry
+DBWRT - Lower level routine to update or add a new entry to a database
+IMDBASE - Find all catalog sources within the field of an astronomical image 
+DB_ENT2EXT,DB_ENT2HOST,DBEXT_DBF,DBEXT_IND,DBXPUT,DBFPARSE,DBFIND_ENTRY,
+DBFIND_SORT,DBSEARCH,DBTITLE,DB_TITLE() - Lower level database procedures
+
+----------------------------------------------------------------------------
+Disk I/O (e.g. IRAF files)    in pro/disk_io
+_________
+---------
+IRAFDIR - Describe IRAF images on specified directory
+IRAFRD -  Read a disk IRAF image file into IDL variables.  
+IRAFWRT - Write IDL image and header to an IRAF (.pix & .imh) file
+READ_FMR() - Read a journal (ApJ, AJ) machine-readable table into IDL
+WFPC2_READ - Read a Wide Field/Planetary Camera 2 (WFPC2) image
+
+-----------------------------------------------------------------------
+FITS Astrometry and Calibration  in pro/astrom (see text/astrom.tex)
+________
+--------
+ADD_DISTORT - Add SIP distortion parameters into a FITS header
+AD2XY - Use astrometry structure to convert celestial to pixel coordinates 
+ADXY  - Use FITS header to convert celestial (RA,Dec) to pixel coordinates
+CONS_DEC() - Obtain the X and Y coordinates of a line of constant 
+        declination
+CONS_RA() - Obtain the X and Y coordinates of a line of constant right
+        ascension
+EXTAST- EXTract ASTrometry parameters from a FITS header into an IDL structure
+FITS_CD_FIX - Update obsolete representations of the CD matrix in a FITS header
+GET_EQUINOX() - Return a numeric equinox value from a FITS header
+GETROT - GET ROTation and plate scale from a FITS header
+GSSS_STDAST - Insert the closest tangent projection astrometry into an STScI
+         Guidestar Survey Image
+GSSSADXY - Convert RA, Dec to pixel coordinates for an STScI survey image
+GSSSEXTAST - Extract astrometry parameters from an STScI Survey Image
+GSSSXYAD - Convert pixel coordinates to RA, Dec for an STScI survey image
+HASTROM - Rotate, Congrid, and/or shift an image until astrometry matches
+        that in a reference FITS header.  Used to align images.
+HBOXAVE - Boxaverage an image and update astrometry in a FITS header
+HCONGRID - CONGRID an image and update astrometry in a FITS header
+HEULER - Convert between Galactic, celestial and ecliptic coordinates in FITS a
+header
+HEXTRACT - Extract a subimage and update astrometry in a FITS header
+HPRECESS - Precess the astrometry in a FITS header to a new equinox.
+HREBIN - REBIN an image and update the astrometry in a FITS header
+HREVERSE - Reverse an image about either dimension and update astrometry
+        in a FITS header                                    
+HROT  - Rotate an image and update astrometry in a FITS header.
+HROTATE - Apply IDL ROTATE function and update astrometry in a FITS header
+MAKE_ASTR - Build an astrometry structure from input parameter values
+PRECESS_CD - Precess coordinate description (CD) matrix in a FITS header 
+          to a new equinox.   Called by HPRECESS
+PUTAST - Put astrometry parameters (e.g. rotation, plate scale) into a FITS header. 
+SIP_EVAL() - Compute distorted coordinates given SIP (simple imaging polynomial)
+coefficients
+SOLVE_ASTRO - Solve for an tangent-plane astrometric plate solution with 
+optional distortion terms.
+STARAST - Obtain an exact astrometry solution given the coordinates and
+        plate position of 2 or 3 stars.
+TNX_EVAL() - Compute distorted coordinates give TNX (IRAF) projection	
+TPV_EVAL() - Compute distorted coordinates given TPV (Tangent + PV_ polynomial)
+coefficients	
+UPDATE_DISTORT - Update SIP astrometry coefficients for a linear transformation	
+WCS_CHECK_CTYPE - Check that pair of CTYPE parameters conform to WCS format. 
+WCS_GETPOLE -  Compute the coordinates of the native pole for non-polar projection
+WCSSPH2XY - Convert between longitude,latitude to X,Y angular coordinates for
+        25 different map projection types
+WCSXY2SPH - Inverse of WCSSPH2XY
+WCS_DEMO - Demo program for WCSSPH2XY and WCSXY2SPH
+WCS_ROTATE - Rotate between standard (e.g. celestial) and native coordinates
+XYAD  - Use FITS header to convert pixel (X,Y) to celestial(RA, Dec) coordinates
+XY2AD - Use astrometry structure to convert pixel to celestial coordinates
+XYXY -  Convert X,Y values on one image to X,Y values in another image
+         using astrometry in the FITS headers
+
+----------------------------------------------------------------------------
+STSDAS Image manipulation         in pro/sdas
+________
+--------
+EXTGRP - Extract group parameter information out of SXREAD output
+ST_DISKREAD - Read an HST FITS file and reconstruct a GEIS (STSDAS) file
+SXGINFO -  Return info on all group parameters in a FITS header
+SXGPAR() - Obtain group parameter values from a FITS header and parameter block
+SXGREAD() -  Read group parameters from an STSDAS file
+SXHCOPY -  Copy a selected portion of one header into another
+SXHMAKE -  Create a basic STSDAS header file from an IDL data array
+SXHREAD -  Read a STSDAS header from disk
+SXHWRITE - Write a STSDAS header to disk
+SXMAKE -   Make a basic STSDAS header from an IDL array
+SXOPEN -   Open an STSDAS disk file for subsequent I/O
+SXREAD() -   Read an STSDAS image from disk
+SXWRITE -  Write an image to STSDAS  format
+
+----------------------------------------------------------------------------
+FITS ASCII & Binary Table I/O      in pro/fits_table      ( see text/ft.tex )
+________
+--------
+FTAB_DELROW - Delete specified rows in a FITS table extension
+FTAB_EXT - Extract specified columns of a FITS table extension into IDL vectors
+FTAB_HELP - Print info about the fields in a FITS table extension
+FTAB_PRINT - Print specified columns and rows of a FITS table extension
+FTADDCOL - Add a new column to a FITS ASCII table
+FTCREATE - Create an empty FITS ASCII table header and data array
+FTDELCOL - Delete specified column from a FITS ASCII table data array
+FTDELROW - Delete specified row(s) from a FITS ASCII table data array
+FTGET() - Extract a specified field from a column in a FITS ASCII table array
+FTHELP - Display the fields in a FITS ASCII table header
+FTHMOD - Modify the attributes of a field in a FITS ASCII table
+FTINFO - Return an informational structure from a FITS ASCII table header
+FTKEEPROW - Subscript (and reorder) a FITS ASCII table array
+FTPRINT - Print specified columns and rows in a FITS ASCII table array
+FTPUT - Update or add data to a field in a FITS ASCII table array
+FTSIZE - Return the size and number of fields in a FITS ASCII table  array
+FTSORT - Sort a FITS ASCII table according to the values in a specified field.
+TBDELCOL - Delete specified column from a FITS Binary table array
+TBDELROW - Delete specified row(s) from a FITS Binary table array
+TBGET() - Extract a specified field from a column in a FITS Binary table
+TBHELP - Display the fields in a FITS Binary table header
+TBINFO - Return an informational structure from a FITS Binary table header
+TBPRINT - Print specified columns and rows in a FITS Binary table array
+TBSIZE - Return the size and number of fields in a FITS Binary table array
+
+-------------------------------------------------------------------------
+FITS Binary Table Extensions I/O    in pro/fits_bintable
+_________ 
+---------
+FXADDPAR          - Add or modify a parameter in a FITS header array.
+FXBADDCOL         - Adds a column to a binary table extension.
+FXBCLOSE          - Close a FITS binary table extension opened for read.
+FXBCOLNUM()       - Returns a binary table column number.
+FXBCREATE         - Open a new binary table at the end of a FITS file.
+FXBDIMEN()	  - Returns the dimensions for a column in a FITS binary table.
+FXBFIND           - Find column keywords in a FITS binary table header.
+FXBFINDLUN()      - Find logical unit number UNIT in FXBINTABLE common block.
+FXBFINISH         - Close a FITS binary table extension file opened for write.
+FXBGROW           - Increase the number of rows in a binary table
+FXBHEADER()       - Returns the header of an open FITS binary table.
+FXBHELP           - Prints short description of columns in a FITS binary table.
+FXBHMAKE          - Create basic FITS binary table extension (BINTABLE) header.
+FXBINTABLE        - Common block FXBINTABLE used by "FXB" routines.
+FXBISOPEN()       - Returns true if UNIT points to an open FITS binary table.
+FXBOPEN           - Open FITS binary table extension  for read or update
+FXBPARSE          - Parse the binary table extension header.
+FXBREAD           - Read a data array from a disk FITS binary table file.
+FXBREADM          - Read multiple columns/rows from a FITS binary table file.
+FXBSTATE()        - Returns the state of a FITS binary table.
+FXBTDIM()         - Parse TDIM-like keywords.
+FXBTFORM          - Returns information about FITS binary table columns.
+FXBWRITE          - Write a binary data array to a disk FITS binary table file.
+FXBWRITM          - Write multiple columns/rows to a FITS binary table file
+FXFINDEND         - Find the end of a FITS file.
+FXHCLEAN          - Removes required keywords from FITS header.
+FXHMAKE           - Create a basic FITS header array.
+FXHMODIFY         - Modify a FITS header in a file on disk.
+FXHREAD           - Reads a FITS header from an opened disk file.
+FXPAR()           - Obtain the value of a parameter in a FITS header.
+FXPARPOS()        - Finds position to insert record into FITS header.
+FXREAD            - Read basic FITS files.
+FXWRITE           - Write a disk FITS file.
+
+-------------------------------------------------------------------------
+FITS I/O        in pro/fits
+_________
+---------
+CHECK_FITS - Check that array agrees with NAXISi, BITPIX keywords of FITS header
+FITSDIR - Display info about primary FITS header(s) on disk
+FITSRGB_to_TIFF - Combine separate red, green, blue FITS files into TIFF format
+FITS_ADD_CHECKSUM - Add/update the CHECKSUM/DATASUM keywords in a FITS header
+FITS_ASCII_ENCODE() - Encode an unsigned longword as an ASCII string
+FITS_CLOSE - Close a FITS file defined by a FITS Control Block (see FITS_OPEN)
+FITS_HELP - Summarize the primary data units and extensions in a FITS file
+FITS_OPEN - Open a FITS file and define a FITS Control Block (FCB)
+FITS_READ - Read a FITS file specified by name or FITS Control Block (FCB)
+FITS_TEST_CHECKSUM() - Verify the values of the CHECKSUM/DATASUM FITS keywords
+FITS_WRITE - Write a FITS primary data unit or extension
+FITS_INFO - Display info about disk FITS file(s) at a terminal or in Common 
+FXMOVE() - Skip a specified number of extensions in a FITS file
+FXPOSIT() - Open a FITS file positioned to beginning of a specified extension
+HEADFITS() - Read a FITS header from a disk FITS file.
+MKHDR - Make a minimal FITS header for an image array.
+MODFITS - Modify the header or data in a FITS array (without changing the size)
+MRDFITS() -  Read FITS file mapping table columns into IDL structure tags
+MRD_HREAD -  Like FXHREAD but can also read a FITS header from a Unix pipe
+MWRFITS - Write a FITS file from a IDL array or structure
+RDFITS_STRUCT - Read an entire disk FITS file into an IDL structure
+READFITS() - Read a disk FITS file into an IDL data and header array.
+SXADDHIST - Add a history record to a FITS header
+SXADDPAR -  Add or modify a parameter in a FITS header
+SXDELPAR -  Delete a keyword from a FITS header
+SXPAR()  -   Obtain the value of a keyword in a FITS  header
+WRITEFITS - Write IDL data and header array to a disk FITS file.
+
+-----------------------------------------------------------------------------
+Image Manipulation       in pro/image
+_______
+-------
+BOXAVE() - Boxave an image, always using at least REAL*4 arithmetic
+CONVOLVE() - Convolve an image with a PSF using the product of Fourier Transforms
+CORREL_IMAGES() - Correlation of two images.   Called by CORREL_OPTIMIZE
+CORREL_OPTIMIZE - Compute the optimal pixel offset of one image relative
+         to another by maximizing the correlation function.
+CORRMAT_ANALYZE - Analyze the correlation function made by CORREL_IMAGE
+CR_REJECT - General iterative cosmic ray rejection for 2 or more images
+DIST_CIRCLE - Create a mask array useful for circular aperture photometry.
+DIST_ELLIPSE - Create a mask array useful for elliptical aperture photometry.
+FILTER_IMAGE() - Like MEDIAN or SMOOTH but handles edges & allows iteration
+FREBIN - Expand or contract an image while conserving flux
+IMLIST - Display image pixel values around a specified center
+MAX_ENTROPY - Deconvolution by Maximum Entropy, given a PSF
+MAX_LIKELIHOOD - Deconvolution by maximum likelihood, given a PSF
+MEDARR - Median filter across a set of images (e.g. for cosmic ray removal)
+POSITIVITY() - Map an image uniquely and smoothly into all positive values
+PSF_GAUSSIAN() - Create a 1-d, 2-d, or 3-d Gaussian with specified FWHM, center
+SIGMA_FILTER() - Replaces pixels deviant by more than a specified sigma from
+    its neighbors.   Useful for cosmic ray removal.
+SKYADJ_CUBE - Remove the sky level from individual images of a data cube
+XMEDSKY - Compute the median sky as a 1-d function of X (for slitless spectra) 
+
+----------------------------------------------------------------------------
+Math and Statistics    in pro/math
+_________
+---------
+ASINH() - Return the inverse hyperbolic sine of its argument
+AVG() - Return the average value of an array or 1 dimension of an array.
+CIC - Cloud In Cell interpolation of irregularly gridded data
+CSPLINE() - Interpolate using the Numerical Recipes natural cubic spline
+FACTOR - Find the prime factors of a given number (in /jhuapl)
+FITEXY - Best straight-line fit to data with errors in both coordinates
+FLEGENDRE() - Compute the first M terms in a Legendre polynomial expansion
+GAUSSIAN() - Evaluate a 1-d Gaussian and optionally its derivative
+HERMITE() - Interpolate a tabulated function using a Hermite spline
+KSONE -  Compute the one-sided Kolmogorov-Smirnov statistic
+KSTWO -  Compute the two-sided Kolmogorov-Smirnov statistic
+KUIPERONE - Compute the one-sided Kuiper statistic (NR)
+KUIPERTWO - Compute the two-sided Kuiper statistic (NR)
+LINMIX_ERR - Bayesian approach to linear regression with errors in both X and Y
+LINTERP - Linearly interpolate X,Y vectors onto a new X grid      
+MEANCLIP - Compute an iteratively sigma-clipped mean on a data set
+MLINMIX_ERR : Bayesian approach to linear regression with errors in both X and Y and multiple independent variables.
+MINF_BRACKET - Find 3 points which bracket the minimum of a function
+MINF_CONJ_GRAD - Find local minimum of a scalar valued function of several
+        variables using conjugate gradient method 
+MINF_PARABOLIC - Minimize a function using Brent's method with parabolic interpolation 
+MINF_PARABOL_D - Minimize a function using Brent's method with derivatives
+MLINMIX_ERR : Bayesian approach to linear regression with errors in both X and Y and multiple independent variables.
+MRANDOMN : Generate random vectors from a multivariate normal density.
+MULTINOM - Simulate multinomial random variables
+NGP - Nearest Grid Point interpolation of irregularly gridded data
+PCA - Perform a principal component analysis (Karhunen-Loeve expansion)
+PENT() - Return the information entropy S of time-series data for a set of trial periods
+PERMUTE() - Rearrange the elements of an array in random order
+POIDEV() - Generate a Poisson random deviate 
+POLINT - Polynomial interpolation of an (X,Y) pair 
+POLYLEG() - Evaluate a Legendre polynomial with specified coefficients
+POLY_SMOOTH() - Apply a least-squares (Savitzky-Golay) polynomial smoothing filter
+PRIME - Return the first N primes (in /jhuapl)
+PROB_KS - Return the significance of a Kolmogorov-Smirnov statistic
+PROB_KUIPER - Return the significance of the Kuiper statistic 
+QSIMP - Integrate using Simpson's rule to specified accuracy
+QTRAP - Integrate using trapezoidal rule to specified accuracy.  
+QUADTERP - Quadratic interpolation of X,Y vectors onto a new X grid
+RANDOMCHI - Generate chi-square distributed random variables
+RANDOMDIR - Generate Dirichlet-distributed random variables
+RANDOMGAM - Generate random numbers from a gamma distribution.
+RANDOMP - Create a vector of random numbers distributed as a power-law
+RANDOMWISH - Draw random matrices from a Wishart distribution
+SIXLIN - Compute linear regression by 6 different methods.
+SPLINE_SMOOTH - Compute cubic smoothing spline to (weighted) data
+TABINV - Find the effective index of a function value.                          
+TRANSFORM_COEFF - Compute new polynomial coefficients under a linear transformation
+TRAPZD - Compute Nth iteration of trapezoidal rule.  Called by QSIMP, QTRAP
+TSC - Triangular Shaped Cloud interpolation of irregularly gridded data onto a regular grid
+TSUM() - Trapezoidal integration of the area under a curve
+ZBRENT() - Find the root of a function known to lie between specified limits
+
+----------------------------------------------------------------------------
+Plotting Procedures    in pro/plot
+------------
+------------
+CLEANPLOT - Reset all plotting system variables to their default (X) values
+AL_LEGEND - Create an annotation legend for a plot
+AL_LEGENDTEST - Demo program demonstrating the capabilities of AL_LEGEND
+LINEID_PLOT - Annotate the identified lines in a spectrum
+MULTIPLOT - Create multiple plots with shared axes
+OPLOTERROR - Overplot Y vs. X with optional X and Y error bars
+PARTVELVEC - Plot the velocity vectors of a set of particles
+PLOTERROR - Plot Y vs. X with optional X and Y error bars
+PLOTHIST - Plot the histogram of an array
+PLOTSYM - Define useful plotting symbols not in the standard PSYM definition
+RDPLOT - Like intrinsic CURSOR procedure but with a full-screen cursor
+SUNSYMBOL() - Return the character string to plot a subscripted Sun symbol
+VSYM - Create "Mongo"-like plotting symbols, rotationally symmetric polygons
+
+----------------------------------------------------------------------------
+Robust Statistics procedures    in pro/robust
+___________
+-----------
+AUTOHIST  - Draw a histogram using automatic bin-sizing.
+BIWEIGHT_MEAN()  -  Iterative biweighted determination of mean and standard deviation
+HISTOGAUSS  -  Outlier-resistant autoscaled histogram drawing
+MEDSMOOTH() - Median smoothing including the points at the ends
+RESISTANT_MEAN -  Outlier-resistant determination of  mean and std. deviation.
+ROB_CHECKFIT() - Utility to determine quality of a fit and return biweights
+ROBUST_LINEFIT() - Robust fit of Y vs X (or bisector of Y vs X and X vs Y)
+ROBUST_POLY_FIT() - Robust polynomial fit
+ROBUST_SIGMA()  -   Robust analog of the standard deviation
+----------------------------------------------------------------------------
+IDL Structure procedures    in pro/structure
+___________
+-----------
+COMPARE_STRUCT() - Compare all matching Tag names and return differences
+COPY_STRUCT - Copy Fields with matching Tag names from one structure to another
+CREATE_STRUCT - Create an IDL structure from a list of tag types and dimensions
+MRD_STRUCT() - Like CREATE_STRUCT but tag values can be specified in a string
+PRINT_STRUCT - Print specified tags from structure (to LUN if given)
+TAG_EXIST() - Determine if a tag exists in a given structure
+WHERE_TAG() - Like WHERE but works on a structure tag names
+
+----------------------------------------------------------------------------
+Web Socket Procedures                    in pro/sockets                   
+___________
+-----------
+WEBGET() - Use the IDL SOCKET procedure to get data from http servers
+QUERYGSC() - Query the Guide Star Catalog (GSC V2.3.2) at STScI by position  
+QUERYDSS - Query the digital sky survey (DSS) online at the ESO or STSCI servers
+QUERYSIMBAD - Query the SIMBAD or NED name resolver to obtain J2000 coordinates
+QUERYVIZIER() - Positional query of any catalog in the VIZIER database.
+QUERY_IRSA_CAT - queries IRSA catalogs, returning an IDL structure
+READ_IPAC_TABLE - reads an IPAC Table file into an IDL structure
+READ_IPAC_VAR -   converts an internal variable to an IDL structure
+WRITE_IPAC_TABLE - writes an IDL structure to an IPAC Table file
+----------------------------------------------------------------------------
+TV Display Procedures                    in pro/tv                   
+___________
+-----------
+BLINK - Blink two or more windows in an image display
+CURS - Change the shape of the (X windows only) cursor
+CURVAL - Interactive display of image intensities and astronomical coordinates
+PIXCOLOR - Set specified pixel values to a specified color
+SIGRANGE() - Find range of pixel values which contain 90% of the image values
+TVBOX - Draw a box of specified size on the image display
+TVCIRCLE - Draw a circle of specified radius on the image display
+TVELLIPSE - Draw an ellipse of specified axes on the image display
+TVLASER - Write an image to postscript file with annotation from a FITS header
+TVLIST - Display intensity values surrounding the cursor position
+UNZOOM_XY - Convert from window coordinates to image coordinates
+ZOOM_XY - Convert from image coordinates to window coordinates
+
+-----------------------------------------------------------------------------
+Miscellaneous (Non-Astronomy) Procedures         in pro/misc
+________
+--------
+ASTROLIB - Add the non-standard system variables used in the IDL Astronomy User's Library
+BLKSHIFT - Shift a block of data to a new (possibly overlapping) position in a 
+          file
+BOOST_ARRAY - Append one array onto another, adjusting dimensions if necessary
+BREAK_PATH() - break up a !PATH-like string into individual directories
+BSORT() - Like the IDL SORT function but subscript order is maintained when
+        value are equal -- like a bubble sort.
+CHECKSUM32 - Compute the 32bit checksum of an array (ones-complement arithmetic)
+CIRRANGE - Force an angle to be in the range 0 to 360 (or 0 to 2*!PI).
+CONCAT_DIR - concatenate directory and file name for current OS
+DELVARX - Delete an IDL variable; like DELVAR but works at any calling level
+DETABIFY() - Replace tabs in a character string by equivalent number of spaces
+EXPAND_TILDE() - Expand tilde in UNIX directory names
+F_FORMAT() - Find the "best" F format to display an array of REAL*4 numbers.
+FDECOMP - Decompose a file name (Disk + Directory + Name + Extension + Version)
+FINDPRO - Find all occurrences of a procedure in one's !PATH
+FIND_ALL_DIR - Find all directories under a specified directory
+FIND_WITH_DEF - Search for files with default path and extension
+FORPRINT -Print a set of vectors by looping over each index value
+GET_PIPE_FILESIZE - Determine the number of bytes in a unit opened as a pipe with SPAWN
+GETOPT() -  Parse a user supplied string into numeric value(s).
+GETPRO -  Search !PATH directory for a procedure and copy into user's directory
+GETTOK() -  Extract a string up to a specified character.
+GETWRD() -  Get specified item (word) from a string (in /jhuapl)
+HGREP - Find a substring in a FITS header or other string array
+HOST_TO_IEEE - Convert IDL variable from host machine bit order to IEEE
+HPRINT -  Pretty terminal display of a FITS header (or other string array)
+IEEE_TO_HOST - Convert IDL variable from IEEE bit order to host machine
+ISARRAY() - Determine if an IDL variable is an array (in /jhuapl)
+IS_IEEE_BIG() - Determine if the host machine is IEEE big endian 
+LIST_WITH_PATH() - Search for files within specified directory path
+MAKE_2D - Change from 1-D indexing to 2-D indexing
+MATCH -   Find the subscripts where the values of two vectors match.
+MATCH2 -  Find the matches for each element of two arrays.
+MRD_SKIP - Skip a number of bytes from current location in a file or a Unix pipe
+MINMAX() -  Return the min and max of an array in an 2 element vector
+N_BYTES() - Return the number of bytes in an IDL variable
+NINT() - Like intrinsic ROUND() function but returns integer instead of long
+NULLTRIM() -Delete all characters after, and including, the the first null
+          byte(0).  Called by TAB_PUT.
+ONE_ARROW - Draw an arrow labeled with a single character
+ONE_RAY - Draw a ray by specifying starting point, angle, and length
+ORDINAL() - Return the English equivalent of ordinal numbers, i.e. '1st','2nd'
+POLREC - Convert from polar to rectangular coordinates (in /jhuapl)
+QGET_STRING() - Read a string (eg. password) from the keyboard without echoing it
+RDFLOAT - Quickly read an ASCII file with columns of data into IDL vectors
+READCOL - Read a file of free-format  ASCII columns into IDL vectors
+READFMT - Quickly read a file of fixed-format ASCII columns into IDL vectors
+READ_KEY() - Like GET_KBRD but returns a code for escape sequences.
+RECPOL - Convert from rectangular to polar coordinates (in /jhuapl)
+REMCHAR - Remove all appearances of a character from a string.
+REM_DUP() - Remove duplicate values from a vector.
+REMOVE -  Contract a vector or up to 8 vectors by removing specified elements
+REPCHR() -  Replace all occurrences of one character by another (in /jhuapl)
+REPSTR() -  Replace all occurrences of one substring in a string by another.
+SELECT_W - Allow user to interactively select from a list of strings
+SPEC_DIR() - Complete specification of a file name using default disk & directory
+STORE_ARRAY - Insert one array into another, adjusting dimensions if necessary
+STRCOMPRESS2() - Remove blanks around specified spaces in a string
+STRN() - Convert a number to a string and remove padded blanks.
+STRNUMBER()- Determine whether a string is a valid numeric value.
+TEXTOPEN - Open a file for text output as specified by TEXTOUT keyword
+TEXTCLOSE - Close a file that had been opened by TEXTOPEN.
+TO_HEX()    - Translate a decimal integer to a hex string.
+VALID_NUM() - Determine if a string is a valid number (cf. STRNUMBER)
+VECT() - Display a set of numbers to a string with delimiters
+WHERENAN() - Find points equal to big-endian IEEE NaN (not a number) values
+XDISPSTR - Widget display of a string array with a simple search facility
+ZPARCHECK - Check the type and size of a parameter

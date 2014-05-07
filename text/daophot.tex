@@ -1,0 +1,322 @@
+\documentstyle[12pt,titlepage]{article}
+\topmargin -0.2in
+\oddsidemargin-0.15in
+\evensidemargin-0.25in
+\textheight 8.5in     
+\textwidth 6.5in
+\newcommand{\exbegin}{\par\medskip}
+\newcommand{\exend}{\medskip\noindent}
+\newcommand{\exc}[2]{
+\hbox to \hsize{\small\hskip .2in
+\parbox[t]{2.2in}{\raggedright\setlength{\parindent}{-.2in}\tt #1}
+\hspace{.2in}
+\parbox[t]{3.4in}{\raggedright\setlength{\parindent}{-.2in}\rm #2}\hss}
+\prevdepth=1.5pt\relax}
+% One line example
+\newcommand{\exone}[1]{\begin{center}\tt #1 \end{center}}
+\begin{document}
+\title{IDL and DAOPHOT \\ CCD Version }
+\author{W.B. Landsman \\ ST Systems Co.}
+\date{9 May 1996}
+\maketitle
+\section{INTRODUCTION}
+This document describes an implementation of an early (1984) version of
+the DAOPHOT point-source
+photometry algorithm into IDL.  Extensive discussions of DAOPHOT are given   
+by Peter Stetson both in his April, 1987 P.A.S.P article, as well as in 
+the DAOPHOT user's
+manual.
+This document will
+concentrate on the features of the IDL code that differ from standard
+DAOPHOT.   
+
+It should be emphasized that the creators of DAOPHOT have no responsibility
+whatsoever for the IDL code.  If you want to use ``true'' DAOPHOT, then use
+the FORTRAN version.
+
+We have converted the DAOPHOT algorithms into IDL for two main reasons.
+\begin{itemize}
+\item The IDL version of DAOPHOT can easily be integrated with the IDL 
+TV display and plotting package.  The IDL-DAOPHOT procedures can be 
+interrupted at any time to print or plot any variable.
+In addition, the use of FITS tables allows 
+easy transport of the results to other systems. 
+
+\item The IDL-DAOPHOT code can be easily modified or cannibalized 
+for other uses.  For example, the Ultraviolet Imaging Telescope (UIT) group 
+has modified the IDL code for use with digitized photographic images. 
+The procedures MMM and APER have been adapted for use with extended-source 
+photometry.  The procedure GETPSF has been used to supply a point
+spread function for deconvolution algorithms.    
+\end{itemize}
+
+It should also be emphasized that the IDL code was adapted from an early
+version of DAOPHOT, and does not include the following recent improvements
+to the DAOPHOT code:
+
+\begin{itemize}
+\item FIND will ignore bad pixels when convolving the image with
+           a Gaussian PSF. 
+
+\item GETPSF will weight stars by their magnitude before combining
+           them to create a final PSF.
+      
+\item A magnitude dependent fitting radius is used in GROUP, allowing
+           stars to be broken up into smaller groups.
+
+\item The most recent versions of DAOPHOT allow a spatially dependent
+           PSF.
+
+\item The functions of GROUP and NSTAR have been combined into a single
+routine named ALLSTAR.  This presumably speeds up the NSTAR calculation
+by reevaluating group membership during NSTAR iterations.
+
+\item The early version of DAOPHOT (and the IDL code) could only represent
+the PSF as a Gaussian plus residuals.    More recent versions of DAOPHOT
+allow the use of other functions besides a Gaussian.
+
+\end{itemize}
+
+There are 4 ways to obtain the output to the IDL-DAOPHOT procedures.  All
+the procedures will display their results at the terminal.    The keyword
+/PRINT can be set to also write these results to a file with a default name
+(e.g.\ aper.prt), or one can set PRINT = `filename' to specify the name of
+the output file. 
+By supplying sufficient parameters to a procedure, one can
+also store the results in IDL output variables.  Finally, a set of IDL
+driver procedures exist, beginning with ``T\_'', which perform I/O to FITS 
+tables.  For example, the procedure T\_FIND performs the same results as
+FIND, but writes the results to a disk FITS ASCII table.     This file can
+be read with any FITS table reader, such as the MRDFITS() function in IDL.
+  
+A typical DAOPHOT sequence would be to run procedures in the following
+order.
+\begin{description}
+\item[SKY] Determine overall sky background for the image.  This value is
+needed to help determine a threshold for FIND.
+\item[FIND] Find the positive brightness perturbations (i.e.\ stars) that
+meet specified sharpness, roundness, and centroid criteria.
+\item[APER] Obtain integrated fluxes within circular apertures for source
+positions obtained by FIND.  A sky value for each source is also determined,
+using pixels within an annulus of specified inner and outer radii.  This
+is the only place in the DAOPHOT sequence where sky values are
+determined for individual stars.
+\end{description}
+APER will give correct results, of course, only when the PSF of individual
+stars do not overlap.
+\begin{description}
+\item[GETPSF]  Obtain a point-spread function (PSF) from one or the sum of
+several isolated stars.   The PSF is parameterized as a 2-dimensional
+gaussian (integrated over each pixel) and a lookup table of residuals.
+If desired, the PSF disk file created by GETPSF can be read using the
+procedure RDPSF.
+\item[GROUP]  Place stars with non overlapping point-spread functions
+into distinct groups.
+\item[NSTAR]  Simultaneous point-spread function fitting of all stars 
+within each group.   In a sense, the purpose of all the previous 
+procedures is to obtain the initial conditions to the NSTAR least-squares
+fit.   NSTAR will eliminate stars found by FIND that are too faint, or
+that merge with other stars.  However, NSTAR cannot add any stars that
+were not found by FIND
+\item[SUBSTAR]  Take a set of star positions and magnitudes, (usually from
+NSTAR), scale and shift the PSF according to each position and magnitude,
+and subtract it from the original image.  The subtracted image can be
+used to determine the accuracy of the NSTAR fits, or to search for faint
+stars that were missed by FIND (e.g.\ because they were hidden in the wings
+of a much brighter star.)  In principle, one could run FIND on the subtracted
+image, to obtain additional source positions.
+\end{description}
+\section{Specific Procedures}
+This section briefly describes the use of the IDL-DAOPHOT procedures.
+The calling sequence is displayed for both the FITS table, as well as
+the direct procedure call.  
+Optional parameters are placed within square brackets.  
+More detailed information on each procedure can be found in the 
+documentation header for the individual procedures.   
+For many procedures one can set /DEBUG to print out more diagnostics during
+execution.
+
+The first step is to read an image and header (e.g.\ with READFITS)
+into IDL variables, which we shall call here IMAGE and IMG\_HDR.  
+(An image header is needed only for the FITS table calling sequence.)
+\subsection{SKY}
+{\tt SKY,IMAGE,[SKYMODE,SKYSIG]} \\
+
+Obtains the overall skylevel of an image by applying the procedure MMM
+to approximately 4000 uniformly spaced pixels.  MMM (Mean, Median, Mode)
+is sophisticated sky background algorithm that assumes that the sky 
+contamination (i.e.\ stars) gives predominantly {\em positive} deviations
+from the true value.
+The only need for the sky intensity in subsequent 
+procedures is to 
+determine the threshold detection limit in FIND.
+\subsection{FIND}
+{\tt FIND,IMAGE,[X,Y,FLUX,SHARP,ROUND,HMIN,FWHM, ROUNDLIM, SHARPLIM]} \\
+{\tt T\_FIND,IMAGE,IMG\_HDR, FITSFILE}  \\ 
+   
+FIND will output the X and Y centroids, an appoximate flux (in magnitudes
+relative to the threshold intensity)
+and the sharpness and roundness index, for all local enhancements meeting
+the threshold, sharpness, roundness, and centroid criteria.  Default
+sharpness (0.2-1.0) and roundness (-1.0 - 1.0) limits are used if not
+supplied.  FIND will print the number of sources rejected by each criterion,
+to help determine whether the supplied parameters are appropiate. 
+Note that the FIND algorithm is not a good one for identifying galaxies
+or HII regions, since non-stellar objects are discriminated against in the
+search.
+           
+FIND requires the user to supply an
+approximate FWHM (in pixel units, not necessarily integral) for the image,
+and an intensity threshold,
+HMIN, above background.  Appendix II of the DAOPHOT manual describes
+how to choose the intensity threshold to obtain a desired significance
+level (e.g.\ 3.5 sigma) for the sources detected by FIND.
+One is required to know the readout noise, RONOIS, and photons per
+analog digital unit PHPADU for the CCD (needed for computing Poisson
+statistics).  For a single (not coadded) image 
+the threshold is determined as follows.
+\begin{enumerate}
+\item The random noise per pixel is computed from the sky level (found by
+SKY) and the readout noise.
+\begin{center}
+random noise = {\tt SQRT(PHPADU$\ast$SKYMODE + RONOIS^2)}
+\end{center}
+\item After a FWHM (in pixels) 
+has been supplied, FIND will print a value called the
+``Relative Error''.  This is simply a scaling factor to convert the standard
+error of one pixel, to that for detecting a point source.  For example,
+the relative error = 1.06 and 0.79, respectively, for FWHM of 2.0 and 6.0
+pixels
+\item The 1 sigma random noise should be multiplied by the ``Relative error''.
+This value should then be mulitiplied by the desired detection significance
+(i.e. multiply by 3 for 3-sigma detection significance.)    
+\end{enumerate}
+
+The Gaussian convolution in FIND cancels out any large-scale variations
+in the sky brightness.  However, FIND does not identify any variation 
+in the {\em errors} (or fluctuations) in the sky brightness across an image.   
+In this latter case, the detection significance of a supplied threshold 
+may vary across the image.
+
+FIND requires a large amount of virtual memory to perform the convolution.
+This is because the Gaussian convolution requires REAL*4 data for both
+input and output (even if your image array is INTEGER*2).  
+\subsection{APER}
+{\tt APER,IMAGE,X,Y,MAG,ERRAP,SKY,SKYERR,[PHPADU,APR,SKYRAD,BADPIX, /FLUX]} \\
+{\tt T\_APER,IMAGE,FITSFILE,[APR,SKYRAD,BADPIX]} \\
+
+APER performs circular aperture photometry, linearly weighting pixels
+that are partially wihin the aperture radius.
+The user must supply a set of aperture radii, an inner and
+outer sky radius, and low and high bad pixel values.   
+For each position (X,Y) found by FIND, APER will determine a sky value
+and uncertainty, and the sky-corrected magnitude and uncertainty 
+within each aperture.   Relative magnitudes are computed from the aperture flux,
+FLUX in data units 
+\begin{center}
+{\tt MAG = 25 - 2.5$\ast$ALOG10(FLUX)} 
+\end{center}
+so that an aperture flux of 1 data unit is assigned a magnitude of 25.
+If the /FLUX keyword is set, then APER will not convert to magnitudes.
+
+APER will not compute a flux if one of the 
+following conditions holds:
+\begin{itemize}
+\item The aperture exceeds the edge of the image
+\item A sky value could not be determined (e.g. if MMM requires too many
+      iterations), or the sky exceeds the gross intensity within the 
+      aperture
+\item At least one pixel within, or partially within, the aperture radius
+      is ``bad''.                              
+\end{itemize}
+
+If a flux could not be computed, the star is assigned either a flux
+of -100. or a magnitude of 99.9.
+Although APER will output results in either flux units or magnitudes,
+the subsequent procedures GETPSF and NSTAR will require their input in
+magnitudes.
+\subsection{GETPSF}                         
+\begin{tabbing}
+GETPSF,IMAGE, \=   \kill
+{\tt GETPSF,IMAGE,X,Y,MAG,SKY,} \\
+\>  {\tt  [RONOIS,PHPADU,GAUSS,PSF,IDPSF,PSFRAD,FITRAD,PSFNAME]} \\
+{\tt T\_GETPSF,IMAGE, FITSFILE,[IDPSF,PSFRAD,FITRAD,PSFNAME]} \\
+\end{tabbing}
+                                                      
+GETPSF requires the positions (X,Y) found by FIND, and the magnitude,
+MAG and sky values, SKY, found by APER.  The PSF determined by GETPSF
+is represented by a 5 element vector GAUSS, containing the best-fit
+bivariate gaussian parameters, and by a lookup array of residuals.
+The user must supply the index numbers of the stars to be used to create
+the PSF.   Ideally, the PSF stars should be isolated, free of bad pixels, 
+and free of any saturated pixels.
+GETPSF will also store the PSF as an STSDAS (modified FITS) disk image.
+(In order to view the PSF, one must recombine the residuals with the Gaussian;
+this can be done with the procedure RDPSF.)
+
+\subsection{GROUP}
+{\tt GROUP,XC,YC,RMAX,NGROUP} \\
+{\tt T\_GROUP, FITSFILE,RMAX}     \\
+                          
+GROUP will assign a group number to each star with position (XC,YC).
+The user must supply a value of RMAX, the radius at which two stars
+are considered to be just overlapping.  Stetson suggests setting RMAX
+equal to the radius of the brightest star {\em plus} the fitting radius
+to be used in NSTAR.  The idea is that the pixels used to fit the PSF
+to a star will only be contaminated by stars with the same group number.
+
+The IDL code for GROUP is extremely elegant (only 7 lines long!)  However,
+it is approximately half as fast as the equivalent FORTRAN.
+
+\subsection{NSTAR}
+\begin{tabbing}
+NSTAR,IMAGE \= \kill
+{\tt NSTAR,IMAGE,ID,X,Y,MAG,SKY,GROUP,} \\
+\>    {\tt  [PHPADU,RONOIS,PSFNAME,MAGERR,ITER,CHISQ,PEAK, /VARSKY]} \\
+{\tt T\_NSTAR,IMAGE, FITSFILE,[PSFNAME,GROUPSEL, /VARSKY]} \\
+\end{tabbing}
+
+NSTAR will simultaneously fit the PSF to all stars within a given group.
+Three parameters are determined for each star - the (X,Y) position, and
+the magnitude, MAG.  As initial conditions to the least-squares fit, NSTAR
+requires the (X,Y) positions obtained from FIND, and the magnitudes, MAG
+obtained from APER.   The sky values obtained from APER are taken as fixed
+parameters.  Other required inputs are the GROUP vector created by GROUP,
+and the name of the PSF file created by GETPSF.   
+
+The DAOPHOT user's manual describes the moderately sophisticated star-rejection
+algorithm used by NSTAR.   Basically, a star is rejected if (1) it merges
+with a brighter star, (2)  it is more than 12.5 magnitudes fainter than
+the PSF star, or (3) its brightness  is less than the 2-sigma noise level.
+Upon output, the vector ID will contain the ID numbers of the stars that
+were {\em not} rejected.
+
+NSTAR has three output vectors that describe the quality of the fit.
+CHISQ gives the chi-square of the fit for each star per degree of freedom,
+and should be close to 1, {\em if  proper values of the readout noise
+and photon per analog digital unit were supplied}.  
+PEAK (called SHARP by Stetson) determines
+whether the star is broader or narrow than the PSF.  Isolated stars should
+have PEAK approximately equal to zero, while extended sources (galaxies,
+unresolved binaries) will have PEAK greater than zero.  Finally, NITER
+gives the number of iterations required for the fit.  If NITER = 50, then
+the least-squares solution did not converge for at least one star in the
+group.
+
+NSTAR is the most CPU-intensive step in the DAOPHOT sequence and should
+usually be done in batch.  The CPU time required depends exponentially
+(I would guess) on the size of the group.   
+The T\_NSTAR call allows one to select specific
+groups to process through the vector GROUPSEL.  
+\subsection{SUBSTAR}
+{\tt SUBSTAR,IMAGE,X,Y,MAG,[ID,PSFNAME]}  \\
+{\tt T\_SUBSTAR,IMAGE, FITSFILE,[ID, PSFNAME, /VERBOSE]} \\
+
+SUBSTAR will subtract the PSF, scaled to each star's magnitude, MAG, 
+from positions specified by the vectors (X,Y).  Note that IMAGE
+will be modified to contain the star-subtracted image, so be sure to 
+have a duplicate copy if the original is needed.
+If desired, then only a subset of stars, specified by the ID vector,
+will be subtracted.
+                   
+\end{document}                                        

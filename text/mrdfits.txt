@@ -1,0 +1,111 @@
+MRDFITS - A multiple format FITS reader. V2.15
+Last updated: June 2009
+
+
+The MRDFITS utility is intended to be a general purpose function allowing users
+to quickly read FITS files in all standard formats.  MRDFITS returns an array or
+structure containing the data from the specified FITS extension.  Header
+information may optionally be returned as a string array.  MRDFITS was
+originally written by Tom McGlynn (NASA/GSFC) but is now maintained by Wayne
+Landsman. 
+
+MRDFITS currently supports the following FITS data types:
+
+	Primary simple images
+	The IMAGE extension
+	Group data in both primary images and IMAGE extensions.
+	ASCII tables
+	BINARY tables including variable length records.
+
+MRDFITS uses the dynamic structure definition capabilities
+of IDL to generate a structure matching the characteristics of the
+FITS data and then reads the data into the structure.  Some tailoring
+of the FITS data is possible:
+
+	- A specified range of data may be retrieved.
+	- The data may be scaled to FLOAT or DOUBLE values as controlled
+	  by the BSCALE (TSCALE) and BOFFSET (TZERO) keywords.
+	  Note that the default is no scaling.
+	- Only a subset of the columns may be retrieved for ASCII
+	  and binary tables.
+        - Automatic mapping into IDL unsigned data types (/UNSIGNED) when the
+          appropriate BSCALE(TSCAL) and BZERO(TZERO) keywords appear in the 
+          header
+        - Variable length binary tables may read either into a fixed length
+          column (default) or into a IDL pointers (with /POINTER_VAR) for 
+          maximum efficiency
+
+MRDFITS has been tested to work on IDL Version V5.0 through V6.4, although not
+all of its capabilities are available in earlier IDL Versions.   For example,
+output of unsigned data types requires at least V5.2
+
+MRDFITS is called as a function similar to the old READFITS utility, e.g.,
+
+	str = mrdfits(file, exten_no, header)
+	
+where file is a file name, exten_no is the extension to be read (0 for the
+primary data array) and header is an optional variable in which the
+header information will be stored.  A number of optional keyword
+parameters are available.
+
+        ALIAS             Specify translation of column names to structure tags
+	/FSCALE and /DSCALE  cause scaling to single and double precision.
+	COLUMNS=  	     allows users to specify the columns desired.
+	RANGE=		     allows users to retrieve only a range of rows.
+        ROWS=                allows user to retrieve only specified rows
+	STRUCTYP=	     gives the structure type for the structure
+	TEMPDIR=	     gives the directory for temporary files
+	/SILENT		     suppresses informative messages
+	/USE_COLNUM          makes tag names of the form C#
+	/NO_TDIM             disable processing of TDIM keywords.
+	ERROR_ACTION         Set the ON_ERROR action to this value
+        /UNSIGNED            Convert to IDL unsigned integer type when possible
+	
+MRDFITS uses the EXECUTE function where possible but creates temporary
+procedures when complex structures are needed.  The MRD_STRUCT
+function is used for the dynamic definition of structures.
+
+MRDFITS is largely a standalone utility, but does use the parameter
+parsing of FXPAR to find elements in a header.  All I/O is done
+within MRDFITS.  The IEEE_TO_HOST routine is used to convert
+data to the local representation.
+
+Known limitations include:
+	
+	No special handling is done for NULL values.
+	
+	Note that MRDFITS is not a FITS checker.  It may read in
+	files that are not proper FITS since only a few FITS elements
+	needed by the reader are actually explicitly checked.  MRDFITS
+	should read in all correct FITS files and I would appreciate
+	copies of any correct FITS files that break the reader.
+	
+MRDFITS comprises several files.   The following procedures are included in 
+the main file MRDFITS.PRO
+
+	MRDFITS:	The main function with some utilities.
+	MRD_ASCII:	Code to handle ASCII tables.
+	MRD_TABLE:	Code to handle BINARY tables.
+	MRD_IMAGE:	Code to handle simple images and group data.
+	MRD_SCALE:	Data scaling.
+	MRD_COLUMNS:	Column selection.
+        MRD_FXPAR:      Fast extract of FITS BINARY table keywords
+
+The following procedures are in separate files (because they are of general
+use outside of MRDFITS.)
+
+	MRD_STRUCT:	Dynamic structure definition.
+	FXPOSIT:	Find an extension in a FITS file.
+
+
+MRDFITS can handle files with several compression types including the `standard'
+Unix compress utility, Gnu gzip, the Linux bzip2 utility or the FPACK 
+(http://heasarc.gsfc.nasa.gov/fitsio/fpack/) utility.     It assumes that files
+ending with .Z, .gz or .GZ  and .bz2 or .fz are to be decompressed. 
+Decompression of Unix, FPACK and bzip2 files is done using a sub-process and
+pipes so that no temporary file is created.    Gzip files are read directly
+using the /COMPRESS keyword to OPENR.  Please send comments and bug reports to:
+
+
+        or Wayne Landsman  
+	http://astrophysics.gsfc.nasa.gov/staff/CVs/Wayne.Landsman/

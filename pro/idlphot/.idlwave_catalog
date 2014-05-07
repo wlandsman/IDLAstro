@@ -1,0 +1,33 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("aper" pro nil (lib "aper.pro" nil "Astrolib") "%s, image, xc, yc, mags, errap, sky, skyerr, phpadu, apr, skyradii, badpix" (nil ("CLIPSIG") ("CONVERGE_NUM") ("EXACT") ("FLUX") ("MAXITER") ("MEANBACK") ("MINSKY") ("Nan") ("PRINT") ("READNOISE") ("SETSKYVAL") ("SILENT")))
+   ("cntrd" pro nil (lib "cntrd.pro" nil "Astrolib") "%s, img, x, y, xcen, ycen, fwhm" (nil ("DEBUG") ("EXTENDBOX") ("KeepCenter") ("SILENT")))
+   ("DAO_VALUE" fun nil (lib "dao_value.pro" nil "Astrolib") "Result = %s(XX, YY, GAUSS, PSF, DVDX, DVDY)" (nil))
+   ("daoerf" pro nil (lib "daoerf.pro" nil "Astrolib") "%s, x, y, a, f, pder" (nil))
+   ("find" pro nil (lib "find.pro" nil "Astrolib") "%s, image, x, y, flux, sharp, roundness, hmin, fwhm, roundlim, sharplim" (nil ("MONITOR") ("PRINT") ("SILENT")))
+   ("gcntrd" pro nil (lib "gcntrd.pro" nil "Astrolib") "%s, img, x, y, xcen, ycen, fwhm" (nil ("DEBUG") ("keepcenter") ("maxgood") ("SILENT")))
+   ("getpsf" pro nil (lib "getpsf.pro" nil "Astrolib") "%s, image, xc, yc, apmag, sky, ronois, phpadu, gauss, psf, idpsf, psfrad, fitrad, psfname" (nil ("DEBUG")))
+   ("GROUP" pro nil (lib "group.pro" nil "Astrolib") "%s, X, Y, RCRIT, NGROUP" (nil))
+   ("mmm" pro nil (lib "mmm.pro" nil "Astrolib") "%s, sky_vector, skymod, sigma, skew" (nil ("DEBUG") ("HIGHBAD") ("INTEGER") ("MAXITER") ("MINSKY") ("Nsky") ("ReadNoise") ("SILENT")))
+   ("nstar" pro nil (lib "nstar.pro" nil "Astrolib") "%s, image, id, xc, yc, mags, sky, group, phpadu, readns, psfname, errmag, iter, chisq, peak" (nil ("DEBUG") ("PRINT") ("SILENT") ("VARSKY")))
+   ("Arc" fun nil (lib "pixwt.pro" nil "Astrolib") "Result = %s(x, y0, y1, r)" (nil))
+   ("Chord" fun nil (lib "pixwt.pro" nil "Astrolib") "Result = %s(x, y0, y1)" (nil))
+   ("Oneside" fun nil (lib "pixwt.pro" nil "Astrolib") "Result = %s(x, y0, y1, r)" (nil))
+   ("Intarea" fun nil (lib "pixwt.pro" nil "Astrolib") "Result = %s(xc, yc, r, x0, x1, y0, y1)" (nil))
+   ("Pixwt" fun nil (lib "pixwt.pro" nil "Astrolib") "Result = %s(xc, yc, r, x, y)" (nil))
+   ("pkfit" pro nil (lib "pkfit.pro" nil "Astrolib") "%s, f, scale, x, y, sky, radius, ronois, phpadu, gauss, psf, errmag, chi, sharp, niter" (nil ("DEBUG")))
+   ("rdpsf" pro nil (lib "rdpsf.pro" nil "Astrolib") "%s, psf, hpsf, psfname" (nil))
+   ("sky" pro nil (lib "sky.pro" nil "Astrolib") "%s, image, skymode, skysig" (nil ("_EXTRA") ("CIRCLERAD") ("MEANBACK") ("NAN") ("SILENT")))
+   ("srcor" pro nil (lib "srcor.pro" nil "Astrolib") "%s, x1in, y1in, x2in, y2in, dcr, ind1, ind2" (nil ("count") ("magnitude") ("option") ("silent") ("spherical")))
+   ("substar" pro nil (lib "substar.pro" nil "Astrolib") "%s, image, x, y, mag, id, psfname" (nil ("VERBOSE")))
+   ("t_aper" pro nil (lib "t_aper.pro" nil "Astrolib") "%s, image, fitsfile, apr, skyrad, badpix" (nil ("EXACT") ("NEWTABLE") ("PRINT") ("SETSKYVAL") ("SILENT")))
+   ("t_find" pro nil (lib "t_find.pro" nil "Astrolib") "%s, image, im_hdr, fitsfile, hmin, fwhm, sharplim, roundlim" (nil ("PRINT") ("SILENT")))
+   ("t_getpsf" pro nil (lib "t_getpsf.pro" nil "Astrolib") "%s, image, fitsfile, idpsf, psfrad, fitrad, psfname" (nil ("DEBUG") ("NEWTABLE")))
+   ("t_group" pro nil (lib "t_group.pro" nil "Astrolib") "%s, fitsfile, rmax" (nil ("NEWTABLE") ("xpar") ("ypar")))
+   ("t_nstar" pro nil (lib "t_nstar.pro" nil "Astrolib") "%s, image, fitsfile, psfname, groupsel" (nil ("DEBUG") ("NEWTABLE") ("PRINT") ("SILENT") ("VARSKY")))
+   ("t_substar" pro nil (lib "t_substar.pro" nil "Astrolib") "%s, image, fitsfile, id, psfname" (nil ("NOPSF") ("VERBOSE")))))

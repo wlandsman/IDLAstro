@@ -1,0 +1,21 @@
+;;
+;; IDLWAVE catalog for library Astrolib
+;; Automatically Generated -- do not edit.
+;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;;
+(setq idlwave-library-catalog-libname "Astrolib")
+(setq idlwave-library-catalog-routines
+ '(("al_legend" pro nil (lib "al_legend.pro" nil "Astrolib") "%s, items" (nil ("background_color") ("BOTTOM_LEGEND") ("BOX") ("BTHICK") ("CENTER_LEGEND") ("CHARSIZE") ("CHARTHICK") ("CLEAR") ("COLORS") ("CORNERS") ("DATA") ("DELIMITER") ("DEVICE") ("FILL") ("FONT") ("HELP") ("HORIZONTAL") ("LEFT_LEGEND") ("LINESTYLE") ("LINSIZE") ("MARGIN") ("NORMAL") ("NUMBER") ("OUTLINE_COLOR") ("POSITION") ("PSPACING") ("PSYM") ("RIGHT_LEGEND") ("SPACING") ("SYMSIZE") ("TEXTCOLORS") ("THICK") ("TOP_LEGEND") ("USERSYM") ("VECTORFONT") ("VERTICAL") ("WINDOW")))
+   ("CleanPlot" pro nil (lib "cleanplot.pro" nil "Astrolib") "%s" (nil ("ShowOnly") ("silent")))
+   ("lineid_plot" pro nil (lib "lineid_plot.pro" nil "Astrolib") "%s, wave, flux, wline, text1, text2" (nil ("_EXTRA") ("extend") ("lcharsize") ("lcharthick") ("window")))
+   ("multiplot" pro nil (lib "multiplot.pro" nil "Astrolib") "%s, pmulti" (nil ("default") ("doxaxis") ("doyaxis") ("gap") ("help") ("initialize") ("mtitle") ("mTitOffset") ("mTitSize") ("mxTitle") ("mxTitOffset") ("mxTitSize") ("myTitle") ("myTitOffset") ("myTitSize") ("reset") ("rowmajor") ("square") ("verbose") ("xgap") ("xtickformat") ("ygap") ("ytickformat")))
+   ("oploterror" pro nil (lib "oploterror.pro" nil "Astrolib") "%s, x, y, xerr, yerr" (nil ("_EXTRA") ("ADDCMD") ("ERRCOLOR") ("ERRSTYLE") ("ERRTHICK") ("HATLENGTH") ("HIBAR") ("LOBAR") ("NOCLIP") ("NOHAT") ("NSKIP") ("Nsum") ("THICK") ("WINDOW")))
+   ("partvelvec" pro nil (lib "partvelvec.pro" nil "Astrolib") "%s, velx, vely, posx, posy, x, y" (nil ("_EXTRA") ("COLOR") ("FRACTION") ("LENGTH") ("OVER") ("VECCOLORS") ("WINDOW")))
+   ("ploterror" pro nil (lib "ploterror.pro" nil "Astrolib") "%s, x, y, xerr, yerr" (nil ("_EXTRA") ("ERRCOLOR") ("ERRSTYLE") ("ERRTHICK") ("HATLENGTH") ("NOCLIP") ("NOHAT") ("NSKIP") ("NSUM") ("TYPE") ("WINDOW") ("XLOG") ("XRANGE") ("YLOG") ("YRANGE")))
+   ("plothist" pro nil (lib "plothist.pro" nil "Astrolib") "%s, arr, xhist, yhist" (nil ("_EXTRA") ("AUTOBin") ("axiscolor") ("BIN") ("Boxplot") ("Color") ("FCOLOR") ("Fill") ("FLINE") ("FORIENTATION") ("FPATTERN") ("FSPACING") ("FTHICK") ("Halfbin") ("LINESTYLE") ("NAN") ("NOPLOT") ("OVERPLOT") ("Peak") ("PSYM") ("rotate") ("THICK") ("WINDOW") ("xlog") ("XSTYLE") ("ylog") ("yrange") ("YSTYLE")))
+   ("plotsym" pro nil (lib "plotsym.pro" nil "Astrolib") "%s, psym, psize" (nil ("Color") ("FILL") ("thick")))
+   ("RESET_RDPLOT" pro nil (lib "rdplot.pro" nil "Astrolib") "%s" (nil))
+   ("RDPLOT" pro nil (lib "rdplot.pro" nil "Astrolib") "%s, x, y, WaitFlag" (nil ("ACCUMULATE") ("BACKGROUND") ("CHANGE") ("COLOR") ("CROSS") ("CURSOR_STANDARD") ("DATA") ("DEVICE") ("DOWN") ("Err") ("FULLCURSOR") ("LINESTYLE") ("NOCLIP") ("NORMAL") ("NOWAIT") ("PRINT") ("THICK") ("WAIT") ("XTITLE") ("XVALUES") ("YTITLE") ("YVALUES")))
+   ("sunsymbol" fun nil (lib "sunsymbol.pro" nil "Astrolib") "Result = %s" (nil ("FONT")))
+   ("VSYM" pro nil (lib "vsym.pro" nil "Astrolib") "%s, Nvert" (nil ("FILL") ("POLYGON") ("ROT") ("SKELETON") ("STAR") ("THICK")))
+   ("al_legendtest" pro nil (lib "al_legendtest.pro" nil "Astrolib") "%s" (nil))))
