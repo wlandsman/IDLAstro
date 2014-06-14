@@ -1,4 +1,4 @@
-FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
+FUNCTION TSUM,X,Y,IMIN,IMAX, NAN=NAN              ;Trapezoidal summation
 ;+
 ; NAME:
 ;       TSUM
@@ -10,7 +10,7 @@ FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
 ; CALLING SEQUENCE:
 ;       Result = TSUM(y)
 ;              or
-;       Result = TSUM( x, y, [ imin, imax ] )  
+;       Result = TSUM( x, y, [ imin, imax, /nan ] )  
 ; INPUTS:
 ;       x = array containing monotonic independent variable.  If omitted, then
 ;               x is assumed to contain the index of the y variable.
@@ -22,6 +22,9 @@ FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
 ;               If omitted, then summation starts at x[0].
 ;       imax = scalar index of x value at which to end the integration 
 ;               If omitted then the integration ends at x[npts-1].
+;       nan: If set cause the routine to check for occurrences of the IEEE 
+;                 floating-point values NaN or Infinity in the input data. 
+;                 Elements with the value NaN or Infinity are treated as missing data
 ;
 ; OUTPUTS:
 ;       result = area under the curve y=f(x) between x[imin] and x[imax].
@@ -46,6 +49,7 @@ FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
 ;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Allow non-integer values of imin and imax  W. Landsman April 2001
 ;       Fix problem if only 1 parameter supplied W. Landsman June 2002
+;       Added /nan keyword. Julio Castro/WL May 2014
 ;-
 ; Set default parameters
  On_error,2
@@ -67,8 +71,16 @@ FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
    xx = x[ilo:ihi]
    yy = y[ilo:ihi]
    npts = ihi - ilo + 1
- endelse         
+ endelse   
+; 
+;  Remove NaN values
 ;
+   if keyword_set(NaN) then begin 
+   g = where(finite(yy),npts)
+   yy = yy[g]
+   xx = xx[g]
+  endif          
+;   
 ; Compute areas of trapezoids and sum result
 ;
   xdif = xx[1:*] - xx
@@ -79,9 +91,9 @@ FUNCTION TSUM,X,Y,IMIN,IMAX               ;Trapezoidal summation
 
   hi = imax - ihi
   lo = imin - ilo
-  if (ihi LT imax) then sum = sum + (x[ihi+1]-x[ihi])*hi* $
+  if (ihi LT imax) then sum +=  (x[ihi+1]-x[ihi])*hi* $
               (y[ihi] + (hi/2.) *(y[ihi+1] - y[ihi]) )
-  if (ilo LT imin) then sum = sum - (x[ilo+1]-x[ilo])*lo* $
+  if (ilo LT imin) then sum -=  (x[ilo+1]-x[ilo])*lo* $
               (y[ilo] + (lo/2.) *(y[ilo+1] - y[ilo]) )
   return, sum
 

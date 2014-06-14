@@ -70,6 +70,7 @@ pro ad2xy, a, d, astr, x, y
 ;      BROYDEN_COMMON - Used when solving for a reverse distortion tranformation
 ;        (either SIP or TGV) by iterating on the forward transformation.
 ; PROCEDURES USED:
+;       CGErrorMsg (from Coyote Library)
 ;       TAG_EXIST(), WCSSPH2XY
 ; REVISION HISTORY:
 ;     Converted to IDL by B. Boothman, SASC Tech, 4/21/86
@@ -92,7 +93,7 @@ pro ad2xy, a, d, astr, x, y
 ;     Iterate when forward SIP coefficients are supplied but not the reverse
 ;     coefficients.    Don't compute poles if not a cylindrical system
 ;              W. Landsman           Dec 2013
-;     Evalue TPV distortion (SCAMP) if present  W. Landsman  Jan 2014
+;     Evaluate TPV distortion (SCAMP) if present  W. Landsman  Jan 2014
 ;     Support IRAF TNX projection M. Sullivan U. of Southhamptom  Mar 2014
 ;     
 ;-
@@ -109,7 +110,7 @@ pro ad2xy, a, d, astr, x, y
  Catch, theError
  IF theError NE 0 then begin
      Catch,/Cancel
-     void = cgErrorMsg()
+     void = cgErrorMsg(/quiet)
      RETURN
      ENDIF
 
