@@ -1,7 +1,7 @@
 ;;
 ;; IDLWAVE catalog for library Astrolib
 ;; Automatically Generated -- do not edit.
-;; Created by idlwave_catalog on Wed May  7 12:06:36 2014
+;; Created by idlwave_catalog on Sat Jun 14 10:09:04 2014
 ;;
 (setq idlwave-library-catalog-libname "Astrolib")
 (setq idlwave-library-catalog-routines
@@ -60,5 +60,5 @@
    ("transform_coeff" fun nil (lib "transform_coeff.pro" nil "Astrolib") "Result = %s(coeff, alpha, beta)" (nil))
    ("trapzd" pro nil (lib "trapzd.pro" nil "Astrolib") "%s, func, a, b, s, step" (nil ("_EXTRA")))
    ("tsc" fun nil (lib "tsc.pro" nil "Astrolib") "Result = %s(value, posx, nx, posy, ny, posz, nz)" (nil ("AVERAGE") ("ISOLATED") ("NO_MESSAGE") ("WRAPAROUND")))
-   ("TSUM" fun nil (lib "tsum.pro" nil "Astrolib") "Result = %s(X, Y, IMIN, IMAX)" (nil))
+   ("TSUM" fun nil (lib "tsum.pro" nil "Astrolib") "Result = %s(X, Y, IMIN, IMAX)" (nil ("NAN")))
    ("ZBRENT" fun nil (lib "zbrent.pro" nil "Astrolib") "Result = %s(x1, x2)" (nil ("_EXTRA") ("FUNC_NAME") ("MAX_ITERATIONS") ("TOLERANCE")))))

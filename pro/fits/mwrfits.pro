@@ -5,7 +5,7 @@
 ;       Write all standard FITS data types from input arrays or structures.
 ;
 ; EXPLANATION:
-;       Must be used with a post-October 2009 version of FXADDPAR.
+;       Must be used with a post-September 2009 version of FXADDPAR.
 ;
 ; CALLING SEQUENCE:
 ;       MWRFITS, Input, Filename, [Header],

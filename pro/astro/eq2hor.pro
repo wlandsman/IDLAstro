@@ -145,6 +145,7 @@
 ;  Revision History: 
 ;    August 2012  Use Strict_Extra to flag spurious keywords W. Landsman
 ;    May 2013   Fix case of scalar JD but vector RA, Dec W. Landsman
+;    Jun 2014   Fix case of vector JD but scalar RA, Dec W. Landsman
 ;-
 
 pro eq2hor, ra, dec, jd, alt, az, ha, lat=lat, lon=lon, WS=WS, obsname=obsname,$
@@ -152,7 +153,7 @@ pro eq2hor, ra, dec, jd, alt, az, ha, lat=lat, lon=lon, WS=WS, obsname=obsname,$
                 refract_ = refract_, aberration_ = aberration_,  $
                 altitude = altitude, _extra= _extra
 
-; On_error,2
+ On_error,2
  compile_opt idl2
  
 if N_params() LT 4 then begin
@@ -195,31 +196,42 @@ d2r = !dpi/180.
 h2r = !dpi/12.
 h2d = 15.d
 
-ra_ = ra ; do this so we don't change ra, dec arrays.
-dec_ = dec
+npos = N_elements(ra)
+njd = N_elements(jd)
 
+if ~((npos EQ njd) || (npos EQ 1) || (njd EQ 1)) then message,'Error - ' + $
+   'Either JD or (ra,dec) must be scalars, or have the same # of elements'
 
+if (npos EQ 1) && (njd GT 1) then begin  
+    ra_ = replicate(double(ra[0]),njd)
+    dec_ = replicate(double(dec[0]),njd)
+endif else begin 
+    ra_ = ra
+    dec_ = dec
+endelse    
 
-if keyword_set(B1950) then s_now='   (J1950)' else s_now='   (J2000)'
-
+if keyword_set(B1950) then begin 
+     tstart = 1950.0
+     s_now='   (B1950)' 
+endif else begin 
+     tstart = 2000.0
+     s_now='   (J2000)'
+endelse 
 
 ;******************************************************************************
 ; PRECESS coordinates to current date
 ; (uses astro lib procedure PRECESS.pro)
 J_now = (JD - 2451545.)/365.25 + 2000.0 ; compute current equinox
-npos = N_elements(ra)
-njd = N_elements(jd)
 if precess_ then begin
-      if keyword_set(B1950) then begin
-                for i=0,n_elements(jd)-1 do $
-                        precess, ra_, dec_, 1950.0, J_now[i], /FK4
-         endif else begin
-                for i=0,n_elements(jd)-1 do $
-                        precess, ra_, dec_, 2000.0, J_now[i]
-               
-        endelse
-endif
- 
+   if njd GT 1 then begin
+       for i=0,n_elements(jd)-1 do begin
+            tmpra = ra_[i]  & tmpdec = dec_[i]
+            precess, tmpra, tmpdec, tstart, J_now[i], FK4 = keyword_set(B1950)
+	    ra_[i] = tmpra & dec_[i] = tmpdec
+        endfor
+    endif else $
+            precess, ra_, dec_, tstart, J_now, FK4 = keyword_set(B1950)
+ endif
 if v then begin      
    rap = ra_
    decp = dec_

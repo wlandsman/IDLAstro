@@ -1,3 +1,10 @@
+14-Jun-2014: EQ2HOR - Fix case of scalar position but vector JD 
+
+3-Jun-2014: TSUM() - Added /NaN keyword
+
+30-May-2014:  EXTAST - Fixed bug introduced Jan 2014 where SIP parameters were
+                not recognized when NAXIS = 0
+
 07-May-2014: FITS_READ - Fix bug when using /DATA_ONLY
 
 05-May-2014: FITS_OPEN - can now read Unix compressed (.Z) FITS files

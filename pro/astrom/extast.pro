@@ -151,7 +151,8 @@ pro extast,hdr,astr,noparams, alt=alt
 ;          Converts GLS to SFL if possible; added KNOWN tag.
 ;      v2.2 21/9/13 GLS conversion fixed.
 ;      v2.3 1 Dec 13 Add warning if distortions from SCAMP astrometry present
-;      v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2013
+;      v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2014
+;      v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
 ;-
  On_error, 0
  compile_opt idl2
@@ -227,6 +228,7 @@ pro extast,hdr,astr,noparams, alt=alt
      lat = MAX(lat,subs)
      lat_form = lat GE 0 ? form[subs] : -1
  ENDIF
+ 
 ;
 ; Longitude axis data is initially stored in element 0 and latitude
 ; axis data in element 1 of the various arrays. For backwards compatibility,
@@ -260,10 +262,10 @@ pro extast,hdr,astr,noparams, alt=alt
  ENDCASE
 
  naxis = lonarr(2)
- l = where(keyword EQ 'NAXIS'+lonc,  N_ctype1)
- if N_ctype1 GT 0 then naxis[0] = lvalue[l[N_ctype1-1]]
- l = where(keyword EQ 'NAXIS'+latc,  N_ctype2)
- if N_ctype2 GT 0 then naxis[1] = lvalue[l[N_ctype2-1]]
+ l = where(keyword EQ 'NAXIS'+lonc,  N_axis1)
+ if N_axis1 GT 0 then naxis[0] = lvalue[l[N_axis1-1]]
+ l = where(keyword EQ 'NAXIS'+latc,  N_axis2)
+ if N_axis2 GT 0 then naxis[1] = lvalue[l[N_axis2-1]]
 
  tpv = strmid(ctype[0],2,3,/reverse) EQ 'TPV'
  tnx = strmid(ctype[0],2,3,/reverse) EQ 'TNX'
@@ -272,6 +274,7 @@ pro extast,hdr,astr,noparams, alt=alt
     proj = 'TAN'
  ENDIF ELSE BEGIN
  proj = STRMID(ctype[0], 5, 3)
+ 
  badco = badco || proj NE STRMID(ctype[1], 5, 3)
  IF badco THEN BEGIN
      MESSAGE, 'ERROR' + altstr + $
@@ -279,7 +282,6 @@ pro extast,hdr,astr,noparams, alt=alt
      MESSAGE, 'Coords were CTYPE'+lonc+alt+': ' + ctype[0] + $
                         '; CTYPE'+latc+alt+': ' + ctype[1]
  ENDIF 
-  
   
 ; If the standard CTYPE* astrometry keywords not found, then check if the
 ; ST guidestar astrometry is present

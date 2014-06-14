@@ -8,6 +8,8 @@
 ;       This procedure plots the velocity vectors of particles (at the
 ;       positions of the particles).
 ;
+;       For a similar procedure look at cgDrawVectors 
+;        http://www.idlcoyote.com/idldoc/cg/cgdrawvectors.html
 ; CATEGORY:
 ;       Plotting, Two-dimensional.
 ;
