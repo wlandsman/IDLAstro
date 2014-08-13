@@ -113,6 +113,8 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Explicit XSTYLE, YSTYLE keywords to avoid _EXTRA confusion WL. Aug 2011
 ;        Fix PLOT keyword problem with /ROTATE  WL  Dec 2011
 ;        Fix problems when /XLOG is set A. Kimball/WL April 2013
+;        Fix FILL to work when axis is inverted (xcrange[0] >
+;          xcrange[1]) T.Ellsworth-Bowers July 2014
 ;-
 ;			Check parameters.
  On_error,2
@@ -270,8 +272,14 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
     ENDELSE
     ;JRM;;;;;;;;;;;
 
-    Xfill = Xfill > XCRANGE[0] < XCRANGE[1] ;Make sure within plot range
-    Yfill = Yfill > YCRANGE[0] < YCRANGE[1]
+    ;; TPEB;;;;;;;;;;;
+    ;; Check if plot ranges are reversed (i.e. large to small)
+    Xfill = (XCRANGE[0] GT XCRANGE[1]) ? Xfill > XCRANGE[1] < XCRANGE[0] : $
+            Xfill > XCRANGE[0] < XCRANGE[1] ;Make sure within plot range
+    
+    Yfill = (YCRANGE[0] GT YCRANGE[1]) ? Yfill > YCRANGE[1] < YCRANGE[0] : $
+            Yfill > YCRANGE[0] < YCRANGE[1]
+    ;; TPEB;;;;;;;;;;;
     
     if keyword_set(Fcolor) then Fc = Fcolor else Fc = 'Opposite'
     if keyword_set(Fline) then begin
