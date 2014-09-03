@@ -1,3 +1,22 @@
+3-Sep-2014:  HEULER - Now work for  GLS projection
+             PUTAST - PV1_3, PV1_4 keywords take precedence over LONPOLE,
+	              LATPOLE coordinates
+
+25-Aug-2014: STRN() - Fix truncation problem when used with vector input
+
+9-Aug-2014:  HPRECESS - Now works for GLS projection
+
+ 29-Jul-2014: MODFITS - A scalar in the header field means no header
+              PLOTHIST - Fix /FILL to work when axes are inverted
+ 
+ 21-Jul-2014: SAFE_CORRELATE() - compute the probability that data is uncorrelated 
+       while accounting for data uncertainties
+
+14-Jul-2014: XY2AD - Faster evalution of SIP polynomial
+
+9-Jul-2014:  CONVOLVE() - Fix bug where output is double precision even for
+                     float input
+
 14-Jun-2014: EQ2HOR - Fix case of scalar position but vector JD 
 
 3-Jun-2014: TSUM() - Added /NaN keyword

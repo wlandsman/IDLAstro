@@ -97,9 +97,10 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       PUTAST does not delete astrometry parameters already present in the 
 ;       header, unless they are explicity overwritten.   
 ;
-;       As of April 2012, PUTAST will add SIP 
-;      ( http://fits.gsfc.nasa.gov/registry/sip.html ) distortion parameters to
-;       a FITS header if present in the astrometry structure.  
+;       If present in the astrometry structure, PUTAST will add SIP 
+;      ( http://fits.gsfc.nasa.gov/registry/sip.html ) or TPV 
+;       ( http://fits.gsfc.nasa.gov/registry/tpvwcs.html ) distortion parameters
+;       to a FITS header.  
 ; PROMPTS:
 ;       If only a header is supplied, the user will be prompted for a plate 
 ;       scale, the X and Y coordinates of a reference pixel, the RA and
@@ -143,6 +144,8 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       Allow for version 2 astrometry structure J. P. Leahy July 2013
 ;       Bug fix in interactive use JPL Aug 2013.
 ;       Support IRAF TNX projection  M. Sullivan U. of Southamptom March 2014
+;       PV1_3, PV1_4 keywords take precedence over LONPOLE, LATPOLE keywords
+;                   WL, August 2014
 ;-
 
  compile_opt idl2
@@ -379,15 +382,24 @@ RD_CEN:
      sxaddpar, hdr, 'CRVAL'+ax[1]+alt, double(crval[1]), comm[1], 'HISTORY'
      hist = ' World Coordinate System parameters written'
   endif
- 
-    if N_elements(longpole) EQ 1 then $
-        sxaddpar, hdr, 'LONPOLE' +alt ,double(longpole), $
-	 ' Native longitude of ' +coord + ' pole', 'HISTORY', /SaveC
- 
-    if N_elements(latpole) EQ 1 then $
-        sxaddpar, hdr, 'LATPOLE' +alt ,double(latpole), $
-	 ' ' + coord + ' latitude of native pole', 'HISTORY',/SaveC 
 
+; 
+    if N_elements(longpole) EQ 1 then begin
+        astr.pv1[3] = longpole
+        test = sxpar(hdr,'LONPOLE',count=N_lonpole)
+        if N_lonpole EQ 1 then $
+            sxaddpar, hdr, 'LONPOLE' +alt ,double(longpole), $
+	 ' Native longitude of ' +coord + ' pole', 'HISTORY', /SaveC
+    endif 
+ 
+    if N_elements(latpole) EQ 1 then begin
+       astr.pv1[4] = latpole
+       test = sxpar(hdr,'LATPOLE',count=N_latpole)
+        if N_latpole EQ 1 then $
+         sxaddpar, hdr, 'LATPOLE' +alt ,double(latpole), $
+          ' Native latitude of ' +coord + ' pole', 'HISTORY', /SaveC
+    endif	 
+stop
     Npv2 = N_elements(pv2)
     if Npv2 GT 0 then begin
          ctyp = strmid(ctype[0],5,3)

@@ -139,6 +139,7 @@ function dbfind,spar,listin,SILENT=silent,fullstring = Fullstring,      $
 ;       Added new unsigned & 64bit datatypes       W. Landsman July 2001
 ;       Fix possible floating illegand operand error W. Landsman July 2009
 ;       Change arrays to LONG to support entries >32767 bytes W.L. Oct. 2010
+;       Delay warning now for 10000 instead of 2000 entries W.L. Aug 2014
 ;-
 ;
 ; ---------------------------------------------------------------------
@@ -298,7 +299,7 @@ endif
   if total(done) eq nitems then goto, FINI      ;all items searched
 
   nlist     = N_elements(list)        ;number of entries to search
-  if nlist GT 2000 then begin
+  if nlist GT 10000 then begin
         print,'Non-indexed search on ',strtrim(nlist,2),' entries'
         print,'Expect Delay'
   end

@@ -39,6 +39,7 @@ PRO HPRECESS, HDR, YEARF
 ;       Correct sign error introduced April 2006, include CDELT values
 ;         when computing rotation of pole   W. Landsman July 2007
 ;       Call hprecess/jprecess for 1950<>2000   W. L. Aug 2009
+;       Work when ASTR.LONGPOLE NE 180.0 W.L.  Aug 2014
 ;-     
  On_error, 2   
  compile_opt idl2
@@ -70,6 +71,9 @@ PRO HPRECESS, HDR, YEARF
         gsss_stdast, hdr
         extast, hdr, astr, noparams
  endif
+ 
+ ctype1 = sxpar(hdr,'CTYPE1')         ;Check if non-standard CTYPE was used
+ if strmid(astr.ctype[0],5,3) NE strmid(ctype1,5,3) then putast,hdr,astr
         
  cd = astr.cd
  crval = astr.crval
@@ -87,12 +91,13 @@ PRO HPRECESS, HDR, YEARF
        bprecess,a,d,ai,di
        sxaddpar,hdr,'RADECSYS','FK4'
        a = ai & d = di
- endif else if (yeari EQ 1950) and (yearf EQ 2000) then begin 
+ endif else if (yeari EQ 1950) && (yearf EQ 2000) then begin 
        jprecess,a,d,ai,di
        sxaddpar,hdr,'RADECSYS','FK5'
        a = ai & d = di
        
  endif else precess, a, d, yeari, yearf                    ;Precess the CRVAL coordinates
+ 
  precess_cd, cd, yeari, yearf, crval,[ a, d]    ;Precess the CD matrix
  if N_elements(CDELT) GE 2 then if (cdelt[0] NE 1.0) then begin
         cd[0,0] = cd[0,0]/cdelt[0] & cd[0,1] =  cd[0,1]/cdelt[0]
@@ -108,15 +113,18 @@ PRO HPRECESS, HDR, YEARF
     sxaddpar, hdr, 'CRVAL2', double(d)    
  endelse
 
- if (noparams EQ 3) or (noparams EQ 2)  then begin
+ if (noparams EQ 3) || (noparams EQ 2)  then begin
  
        putast, hdr, cd, EQUINOX = float(yearf)          ;Update CD values
- endif else begin
+ endif else begin      ;or CROTA2 value
        astr.cd= cd
-       getrot, astr, ROT                               ;or CROTA2 value
+       getrot, astr, ROT  
+       if astr.longpole NE 180.0 then rot -= 180.0d - astr.longpole                             
        sxaddpar,hdr, 'EQUINOX', yearf, ' Equinox of Ref. Coord.', 'HISTORY'
        sxaddpar, hdr, 'CROTA2', rot
  endelse        
+
+
 
  sxaddhist, 'HPRECESS: ' + STRMID(systime(),4,20) +  $ 
    ' Astrometry Precessed From Year' + string(form='(f7.1)',float(yeari)),hdr

@@ -67,6 +67,7 @@ function convolve, image, psf, FT_PSF=psf_FT, FT_IMAGE=imFT, NO_FT=noft, $
 ;            are not important.    W. Landsman      March 2010
 ;       Add warning when kernel type does not match integer array
 ;             W. Landsman Feb 2012
+;       Don't force double precision output   W. Landsman July 2014
 ;-
         compile_opt idl2
         sp = size( psf_FT,/str )  &  sif = size( imFT, /str )
@@ -133,13 +134,12 @@ function convolve, image, psf, FT_PSF=psf_FT, FT_IMAGE=imFT, NO_FT=noft, $
             ; here is where we make an array with twice the dimensions of image and
             ; pad with zeros -- thanks to Daniel Eisenstein for this fix
 
-            image_big = dblarr(sim[1]*2,sim[2]*2)
+            image_big = make_array(type = sim[sim[0]+1], sim[1]*2, sim[2]*2)
             image_big[0:sim[1]-1,0:sim[2]-1] = image
             imFT = FFT( image_big,-1 )
             npix = n_elements(image_big)
 
         endif
-
 
         if keyword_set( auto ) then begin
          intermed = shift( npix*real_part(FFT( imFT*conj( imFT ),1 )), sc[1],sc[2] )
@@ -158,7 +158,7 @@ function convolve, image, psf, FT_PSF=psf_FT, FT_IMAGE=imFT, NO_FT=noft, $
                 ; image and the center of the PSF
                 Loc = ( sc - floor((sp-1)/2) )  > 0
 
-                psf_image = dblarr(sim[1]*2,sim[2]*2)
+          psf_image = make_array(type = sim[sim[0]+1],sim[1]*2,sim[2]*2)
                 psf_image[Loc[1]:Loc[1]+sp[1]-1, Loc[2]:Loc[2]+sp[2]-1] = psf
                 psf_FT = FFT(psf_image, -1)
            endif
