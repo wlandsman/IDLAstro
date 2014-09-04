@@ -55,9 +55,9 @@ function strn, number, LENGTH = length, PADTYPE = padtype, PADCHAR = padchar, $
 ;	Ma7 92 Work correctly for byte values (W. Landsman)
 ;	19-NOV-92 Added Patch to work around IDL 2.4.0 bug which caused an
 ;	error when STRN('(123)') was encountered.            (E. Deutsch)
-;	Converted to IDL V5.0   W. Landsman   September 1997
-;       Handles array input, M. Sullivan March 2014
+;;       Handles array input, M. Sullivan March 2014
 ;       Use V6.0 notation W. Landsman April 2014
+;       Fix problem with vector strings of different length WL Aug 2014
 ;-
  On_error,2
   if ( N_params() LT 1 ) then begin
@@ -78,20 +78,20 @@ function strn, number, LENGTH = length, PADTYPE = padtype, PADCHAR = padchar, $
      if ( Format EQ '') then tmp[i] = strtrim( string(number[i], PRINT=PRN),2) $
      else tmp[i] = strtrim( string( number[i], FORMAT=Format, PRINT=PRN),2)
      
-     if (N_elements(length) eq 0) then length=strlen(tmp[i])
+     if (N_elements(length) eq 0) then len=strlen(tmp[i]) else len = length
      
-     if (strlen(tmp[i]) gt length) then tmp[i]=strmid(tmp[i],0,length)
-     
-     if (strlen(tmp[i]) lt length) && (padtype eq 0) then begin
-        tmp[i] += strmid(pad,0,length-strlen(tmp[i]))
+     if (strlen(tmp[i]) gt len) then tmp[i]=strmid(tmp[i],0,len)
+  
+     if (strlen(tmp[i]) lt len) && (padtype eq 0) then begin
+        tmp[i] += strmid(pad,0,len-strlen(tmp[i]))
      endif
      
-     if (strlen(tmp[i]) lt length) && (padtype eq 1) then begin
-        tmp[i] = strmid(pad,0,length-strlen(tmp[i]))+tmp[i]
+     if (strlen(tmp[i]) lt len) && (padtype eq 1) then begin
+        tmp[i] = strmid(pad,0,len-strlen(tmp[i]))+tmp[i]
      endif
      
-     if (strlen(tmp[i]) lt length) and (padtype eq 2) then begin
-        padln=length-strlen(tmp[i]) & padfr=padln/2 & padend=padln-padfr
+     if (strlen(tmp[i]) lt len) && (padtype eq 2) then begin
+        padln=len-strlen(tmp[i]) & padfr=padln/2 & padend=padln-padfr
         tmp[i]=strmid(pad,0,padfr)+tmp[i]+strmid(pad,0,padend)
      endif
   endfor

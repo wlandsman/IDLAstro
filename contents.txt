@@ -1,4 +1,4 @@
-        Contents of IDL Astronomy User's Library             Apr 2014
+        Contents of IDL Astronomy User's Library             Jul 2014
         (also see http://idlastro.gsfc.nasa.gov/contents.html)
 
 Astronomical Utilities    in pro/astro
@@ -425,6 +425,8 @@ RANDOMDIR - Generate Dirichlet-distributed random variables
 RANDOMGAM - Generate random numbers from a gamma distribution.
 RANDOMP - Create a vector of random numbers distributed as a power-law
 RANDOMWISH - Draw random matrices from a Wishart distribution
+SAFE_CORRELATE() - compute the probability that data is uncorrelated 
+     while accounting for data uncertainties
 SIXLIN - Compute linear regression by 6 different methods.
 SPLINE_SMOOTH - Compute cubic smoothing spline to (weighted) data
 TABINV - Find the effective index of a function value.                          

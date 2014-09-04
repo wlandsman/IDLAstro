@@ -235,8 +235,8 @@ DONE:
  if keyword_set(flux) then $
           fmt = '(F8.1,1x,A,F7.1)' else $           ;Flux format
           fmt = '(F9.3,A,F5.3)'                  ;Magnitude format
- fmt2 = '(I5,2F8.2,F7.2,3A,3(/,28x,4A,:))'       ;Screen format
- fmt3 = '(I4,5F8.2,6A,2(/,44x,9A,:))'            ;Print format
+ fmt2 = '(I5,2F8.2,F7.2,1x,3A,3(/,28x,4A,:))'       ;Screen format
+ fmt3 = '(I4,5F8.2,1x,6A,2(/,44x,9A,:))'            ;Print format
 
  mags = fltarr( Naper, Nstars) & errap = mags           ;Declare arrays
  sky = fltarr( Nstars )        & skyerr = sky     
