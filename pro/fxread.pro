@@ -153,6 +153,7 @@
 ;               Allow for possibility number of bytes requires 64 bit integer
 ;       Version 12, William Thompson, 18-Jun-2010, update BLANK value.
 ;       Version 13, W. Landsman  Remove IEEE_TO_HOST, V6.0 notation
+;       Version 14, William Thompson, 25-Sep-2014, fix BSCALE bug in version 13
 ;-
 ;
 	ON_ERROR, 2
@@ -540,14 +541,14 @@
                 BLANK  = FXPAR(HEADER,'BLANK',COUNT=NBLANK)
 		GET_DATE,DTE
 		IF (BSCALE NE 0) && (BSCALE NE 1) THEN BEGIN
-			DATA *= DATA
+			DATA *= BSCALE
 			IF ~KEYWORD_SET(NOUPDATE) THEN BEGIN
                             FXADDPAR,HEADER,'BSCALE',1.
                             FXADDPAR,HEADER,'HISTORY',DTE +		$
                               ' applied BSCALE = '+ STRTRIM(BSCALE,2)
                             IF NBLANK EQ 1 THEN BEGIN
                                 print, bscale, blank
-                                BLANK *= BLANK
+                                BLANK *= BSCALE
                                 FXADDPAR,HEADER,'BLANK',BLANK
                             ENDIF
 			ENDIF

@@ -1,3 +1,5 @@
+26-Sep-2014: FXREAD - Fix bug in handling of BSCALE keyword
+
 3-Sep-2014:  HEULER - Now work for  GLS projection
              PUTAST - PV1_3, PV1_4 keywords take precedence over LONPOLE,
 	              LATPOLE coordinates
