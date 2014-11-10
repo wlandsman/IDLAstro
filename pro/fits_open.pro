@@ -15,9 +15,10 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
 ;
 ; INPUTS:
 ;       filename : name of the FITS file to open, scalar string
-;                  FITS_OPEN can also open gzip compressed (.gz) file *for 
-;                  reading only*, although there is a performance penalty. 
-;                  FPACK ( http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ) 
+;                  FITS_OPEN can also open gzip compressed (.gz) files or Unix
+;                  compressed files *for  reading only*, although there is a 
+;                  performance penalty. FPACK (
+;                  http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ) 
 ;                  compressed FITS files can be read provided that the FPACK 
 ;                  software is installed.
 ;*OUTPUTS:
@@ -133,6 +134,9 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
 ;               W.L.  December 2010
 ;       Read gzip'ed files even if gzip is not installed W.L. October 2012
 ;       Handle axis sizes requiring 64 integer W.L.  April 2014
+;       Support for .Z compressed files M. Zechmeister/W.L.  April 2014
+;       Wrap filenames in "" when spawning subprocesses, to handle paths
+;          with spaces or other atypical characters. M. Perrin  Nov 2014
 ;-
 ;--------------------------------------------------------------------
       compile_opt idl2
@@ -182,6 +186,7 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
         ext = strlowcase(strmid(filename, 2, /rev))
         docompress = (ext EQ '.gz') || (ext EQ 'ftz') 
         fcompress = keyword_set(fpack) || ( ext EQ '.fz')
+	 zcompress = (strmid(filename, 1, /rev) EQ '.Z') 
          if docompress && open_for_overwrite then begin 
             message = 'Compressed FITS files cannot be open for update'
             if ~keyword_set(no_abort) then $
@@ -191,9 +196,11 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
  ;
 ; open file
 ;
-       if ~fcompress then get_lun,unit
+       if ~fcompress && ~zcompress then get_lun,unit
        if fcompress then $
-                spawn,'funpack -S ' + filename, unit=unit,/sh else $	
+                spawn,'funpack -S "' + filename+'"', unit=unit,/sh else $	
+       if zcompress then $	
+                spawn,'gzip -cd "'+filename+'"', unit=unit,/sh  else $	
        if docompress then $
                 openr,unit,filename, /compress,/swap_if_little else begin
        case 1 of
@@ -215,11 +222,11 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
         if fcompress then begin 
 	      get_pipe_filesize,unit, nbytes_in_file
 	      free_lun,unit
-	      spawn,'funpack -S ' + filename, unit=unit,/sh
+	      spawn,'funpack -S "' + filename+'"', unit=unit,/sh
         endif else if docompress then begin 
 	     if !VERSION.OS_FAMILY Eq 'Windows' then $
 	           fname = file_search(fname,/fully_qualify)
-             spawn,'gzip -l ' + fname, output
+             spawn,'gzip -l "' + fname+'"', output
              output = strtrim(output,2)
              g = where(strmid(output,0,8) EQ 'compress', Nfound)
 	     if Nfound EQ 0 then begin
@@ -228,7 +235,10 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
 		    openr,unit,filename, /compress,/swap_if_little
              endif else $
 	         nbytes_in_file = long64((strsplit(output[g[0]+1],/extract))[1])
-        endif else nbytes_in_file = file.size
+        endif else if zcompress then begin
+	     spawn,'zcat "' + filename + '" | wc -c', nbytes_in_file
+	     if nbytes_in_file EQ 0 then message,'Unable to zcat decompress ' + fname
+	endif else nbytes_in_file = file.size
 	
 ;
 ; create vectors needed to store header information for each extension
@@ -260,7 +270,7 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
 ; loop on headers in the file
 ;
             repeat begin
-            if skip GT 0 then if fcompress then mrd_skip,unit,skip else $
+            if skip GT 0 then if (fcompress || zcompress) then mrd_skip,unit,skip else $
 	                                     point_lun,unit,position 
               start = position
 ;
@@ -269,7 +279,7 @@ pro fits_open,filename,fcb,write=write,append=append,update=update, $
                 first_block = 1         ; first block in header flag
                 repeat begin
 
-                    if ~fcompress && position+2879 ge nbytes_in_file then begin
+                    if (~fcompress && ~zcompress) && position+2879 ge nbytes_in_file then begin
                         if extend_number eq 0 then begin
                                 message = 'EOF encountered while reading header'
                                 goto,error_exit
@@ -412,7 +422,7 @@ done_headers:
                         open_for_write:open_for_write + open_for_update*2}
            end else begin
                 nx = nextend
-               fcb = {filename:fname,unit:unit,fcompress:fcompress, $
+               fcb = {filename:fname,unit:unit,fcompress:fcompress||zcompress, $
 		        nextend:nextend, $
                          xtension:xtension[0:nx],extname:extname[0:nx], $
                         extver:extver[0:nx],extlevel:extlevel[0:nx], $
@@ -426,11 +436,13 @@ done_headers:
                         random_groups:random_groups, $
                         nbytes: nbytes_in_file }
         end
-         if fcompress then begin
-	
+         if fcompress then begin	
 	       free_lun,unit	      
-               spawn,'funpack -S ' + filename, unit=unit,/sh 
-         endif 
+               spawn,'funpack -S "' + filename+'"', unit=unit,/sh 
+         endif else if zcompress then begin 
+	       free_lun,unit
+	       spawn,'gzip -cd "' + filename+'"', unit=unit, /sh
+	endif       
         !err = 1            ;For obsolete users still using !err
         return
 ;
