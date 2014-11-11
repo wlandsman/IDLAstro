@@ -4,6 +4,8 @@
 ; PURPOSE:
 ;       Routine to cross-match values in two vectors (including non-matches)
 ; EXPLANATION:
+;       MATCH2 reports matching elements of two arrays.
+
 ;       This procedure *appears* similar to MATCH of the IDL astronomy
 ;       library.  However, this routine is quite different in that it
 ;       reports an index value for each element of the input arrays.
@@ -22,7 +24,9 @@
 ;       match2, a, b, suba, subb
 ;
 ; INPUTS:
-;       a,b - two vectors to match elements, numeric or string data types
+;       a,b - two vectors to match elements, numeric or string data
+;             types.  (See below for RESTRICTIONS on A and B)
+;
 ;
 ; OUTPUTS:
 ;       suba - vector with same number of elements as A, such that
@@ -38,6 +42,10 @@
 ;       The vectors A and B are allowed to have duplicates in them,
 ;       but for matching purposes, only the first one found will
 ;       be reported.
+;
+;       If A and B are string arrays, then non-printable ASCII values
+;       1B and 2B will confuse the algorithm.  Don't use these
+;       non-printable characters in strings.
 ;
 ; EXAMPLE:
 ;      A = [0,7,14,23,24,30]
@@ -60,6 +68,9 @@
 ;   Derived from the IDL Astronomy Library MATCH, 14 Feb 2007
 ;   Updated documentation, 17 Jul 2007
 ;   More updated documentation (example), 03 Sep 2007
+;   Bug fix for string arrays with numerical contents; the subset
+;   string is now 1B and 2B; this is now documented, 2014-10-20 CM
+;   
 ; 
 ;-
 ;-------------------------------------------------------------------------
@@ -83,7 +94,7 @@ pro match2, a, b, suba, subb
 
 ; Check for a single element array
 
- if (na EQ 1) || (nb EQ 1) then begin
+ if (na EQ 1) or (nb EQ 1) then begin
         if (nb GT 1) then begin
             wh = where(b EQ a[0], nw)
             if nw GT 0 then begin
@@ -107,9 +118,10 @@ pro match2, a, b, suba, subb
 
 ; sort combined list
 
- if da EQ 7 || db EQ 7 then begin
+ if da EQ 7 OR db EQ 7 then begin
+     vecstr = [string(1b), string(2b)]
      ;; String sort (w/ double key)
-     sub = sort(c+strtrim(vec,2))
+     sub = sort(c+vecstr[vec])
  endif else begin
      ;; Number sort (w/ double key)
      eps = (machar(/double)).eps

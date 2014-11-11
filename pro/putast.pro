@@ -399,7 +399,7 @@ RD_CEN:
          sxaddpar, hdr, 'LATPOLE' +alt ,double(latpole), $
           ' Native latitude of ' +coord + ' pole', 'HISTORY', /SaveC
     endif	 
-stop
+
     Npv2 = N_elements(pv2)
     if Npv2 GT 0 then begin
          ctyp = strmid(ctype[0],5,3)

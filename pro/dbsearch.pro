@@ -32,7 +32,8 @@ pro dbsearch,type,svals,values,good, FULLSTRING = fullstring, COUNT = count
 ;       Added COUNT keyword, deprecate !ERR   W. Landsman   March 2000
 ;      Some speed improvements W.L. August 2008
 ;       Add compound operators, slightly faster WL November 2009
-; D. Lindler  Aug 2013, added strtrim on values for a string search
+;       D. Lindler  Aug 2013, added strtrim on values for a string search
+;       Fix problem with "less than" string searches WL November 2014
 ;-
 ;-----------------------------------------------------------
  On_error,2
@@ -66,6 +67,7 @@ if datatype EQ 7 then begin
 	    valid = strtrim(values,2) EQ strtrim(sv0,2) else $
 	    valid = strpos(values,strtrim(sv0,2)) GE 0   ;substring search
         -1: valid = values GE sv0                        ;greater than
+        -2: valid = values LE sv0                        ;less than
 	-3: valid = (values GE sv0) and (values LE sv1)  ;in range
 	-4: valid = strtrim(values) NE ''       ;non zero (i.e. not null)
         -5: message, $                                  ;Tolerance value
