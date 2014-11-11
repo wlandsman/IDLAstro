@@ -281,13 +281,14 @@
 ;       Version 1.11b M. Haffner/W.L. 2012-10-12
 ;               Added /No_COPY keyword, fix problem with 32 bit overflow
 ;       Version 1.12 W. Landsman  2014-04-23
-;     
+;       Version 1.12a W.Landsman/M. Fossati 2014-10-14
+;               Fix LONG overflow for very large files
 ;-
 
 ; What is the current version of this program?
 function mwr_version
      compile_opt idl2,hidden
-    return, '1.12'
+    return, '1.12a'
 end
     
 
@@ -1575,7 +1576,7 @@ pro mwr_image, input, siz, lun, bof, hdr,       $
     ; Write the data.
     writeu, lun, data
 
-    nbytes = bytpix*npixel
+    nbytes = long64(bytpix)*npixel
     filler = 2880 - nbytes mod 2880
     if filler eq 2880 then filler = 0
   
