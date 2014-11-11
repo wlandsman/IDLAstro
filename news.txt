@@ -1,3 +1,15 @@
+10-Nov-2014: FITS_OPEN - Allow compressed file names to include spaces
+
+02-Nov-2014: DBSEARCH - Fix problem with string "less than" searches
+
+01-Nov-2014: SXPAR() - Use cgErrorMsg rather than On_error,2
+
+26-Nov-2014: QUERYVIZIER - Add /CFA keyword, remove /CADC keyword
+
+20-Oct-2014: MATCH2 - Fix occasional problem with strings with numerical content
+
+14-Oct-2014: MWRFITS - Avoid LONG overflow for very large files
+
 26-Sep-2014: FXREAD - Fix bug in handling of BSCALE keyword
 
 3-Sep-2014:  HEULER - Now work for  GLS projection
