@@ -14,13 +14,13 @@ pro dbfparse, spar, items, stype, values
 ; OUTPUTS:
 ;     items - list of items to search on
 ;     stype - search type, numeric scalar
-;               0    item=values(j,0)
-;               -1   item>values(j,0)
-;               -2   item<values(j,1)
-;               -3   values(j,0)<item<values(j,1)
+;               0    item=values[j,0]
+;               -1   item>values[j,0]
+;               -2   item<values[j,1]
+;               -3   values[j,0]<item<values[j,1]
 ;               -4   item is non zero
-;               -5   item=values(j,0) within tolerance values(j,1)
-;               0<   items in list values(j,i) for i=0,stype-1
+;               -5   item=values[j,0] within tolerance values[j,1]
+;               0<   items in list values[j,i] for i=0,stype-1
 ;     values - search values, 20 x 10 string array, can parse a string
 ;               with up to 20 items specifications, each item can have 10
 ;               values
@@ -89,7 +89,7 @@ while par ne '' do begin
              nvals=0
              while vals ne '' do begin
                 values[nitems,nvals]=gettok(vals,',')
-                nvals=nvals+1
+                nvals++
                 if nvals GE 10 then message, $ 
     'No more than 10 values/item allowed; use DBMATCH or DBGET instead'
              endwhile

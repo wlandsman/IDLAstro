@@ -66,6 +66,7 @@ pro heuler,h_or_astr, Galactic = galactic, celestial = celestial, $
 ;       Written    W. Landsman                  June 2003
 ;       Use PV2 tag in astrometry structure rather than PROJP1 W. L. May 2004
 ;       Use double precision to compute new North pole  W.L. Aug 2005
+;       Check for non-standard CTYPE value W.L. Sep 2012
 ;-
 compile_opt idl2
 if N_params() LT 1 then begin
@@ -73,7 +74,7 @@ if N_params() LT 1 then begin
      return
 endif
 sz = size(h_or_astr,/str)
-if (sz.type_name EQ 'STRING') and (sz.N_dimensions EQ 1) then begin
+if (sz.type_name EQ 'STRING') && (sz.N_dimensions EQ 1) then begin
     if N_elements(alt_out) EQ 0 then if N_elements(alt_in) NE 0 then $
        alt_out = alt_in
     EXTAST,h_or_astr,astr,status, alt = alt_in 
@@ -83,6 +84,11 @@ if (sz.type_name EQ 'STRING') and (sz.N_dimensions EQ 1) then begin
          GSSS_STDAST, h_or_astr
          EXTAST, h_or_astr, astr, status, alt = alt_in
     endif
+    
+    ctype1 = sxpar(h_or_astr,'CTYPE1')         ;Check if non-standard CTYPE was used
+   if strmid(astr.ctype[0],5,3) NE strmid(ctype1,5,3) then $
+         putast,h_or_astr,astr
+    
 endif else if sz.type_name EQ 'STRUCT' then astr = h_or_astr else message, $
    'ERROR - First parameter must be a FITS header or astrometry structure'
  map_types=['DEF','AZP','SZP','TAN','STG','SIN','ARC','ZPN','ZEA','AIR','CYP',$
@@ -98,7 +104,7 @@ imap = where(map_types EQ proj, N_imap)
 if N_imap EQ 0 then message,'ERROR - Unrecognized map projection of ' + proj
 imap = imap[0]
 if imap LE 9 then theta0 = 90 else $
-if (imap GE 18) and (imap LE 21) then theta0 = astr.pv2[0] else theta0 = 0
+if (imap GE 18) && (imap LE 21) then theta0 = astr.pv2[0] else theta0 = 0
           
 if keyword_set(GALACTIC) then begin
     case coord of
