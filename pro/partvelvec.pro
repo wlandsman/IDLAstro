@@ -92,11 +92,12 @@
 ;       Added VECCOLORS keyword. David Fanning (david@dfanning.com) March, 2005
 ;       Incorporate the Coyote Graphics (cg) plot programs  WL  January 2011
 ;       Allow VELX, VELY to include NaN values P. Blitzer/WL March 2013
+;       Allow NOCLIP=0 when overplotting  A. Negri    October 2014
 ;-
 
 PRO partvelvec,velx,vely,posx,posy,x,y, OVER = over, VECCOLORS=vecColors, $
                FRACTION=fraction,LENGTH=length,COLOR=color,WINDOW=window, $
-	       _EXTRA=extra
+	       NOCLIP=noclip, _EXTRA=extra
 
 
 ;---------------------------------------------
@@ -241,7 +242,7 @@ FOR i=0l,nvecs-1l DO BEGIN  ; Loop over particles.
            x1[i],x1[i]-(vx[i]*rcos-vy[i]*rsin)/vel[i]], $
           [py[i],y1[i],y1[i]-(vy[i]*rcos-vx[i]*rsin)/vel[i], $
            y1[i],y1[i]-(vy[i]*rcos+vx[i]*rsin)/vel[i]],COLOR=veccolors[i],$
-	   ADDCMD = window
+	   ADDCMD = window, noclip=noclip
 	
 ENDFOR
  if keyword_set(window) then cgcontrol,execute=1
