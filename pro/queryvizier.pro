@@ -1,5 +1,6 @@
 function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
-               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent
+               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent, $
+	       CFA = CFA
 ;+
 ; NAME: 
 ;   QUERYVIZIER
@@ -15,7 +16,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;    
 ; CALLING SEQUENCE: 
 ;     info = QueryVizier(catalog, targetname_or_coords, [ dis
-;                        /ALLCOLUMNS, /CANADA, CONSTRAINT= ,/VERBOSE ])
+;                        /ALLCOLUMNS, /CFA, CONSTRAINT= ,/VERBOSE ])
 ;
 ; INPUTS: 
 ;      CATALOG - Scalar string giving the name of the VIZIER catalog to be
@@ -72,9 +73,12 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;          /ALLCOLUMNS - if set, then all columns for the catalog are returned
 ;                 The default is to return a smaller VIZIER default set. 
 ;
-;          /CANADA - By default, the query is sent to the main VIZIER site in
-;            Strasbourg, France.   If /CANADA is set then the VIZIER site
-;            at the Canadian Astronomical Data Center (CADC) is used instead.
+;          /CANADA - obsolete, the Canadian Vizier site no longer seems 
+;                  supported.
+;
+;          /CFA - By default, the query is sent to the main VIZIER site in
+;            Strasbourg, France.   If /CFA is set then the VIZIER site
+;            at the Harvard Center for Astrophysics (CFA) is used instead.
 ;            Note that not all Vizier sites have the option to return
 ;            tab-separated values (TSV) which is required by this program.
 ;   
@@ -158,19 +162,20 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;         Better checking when more than one catalog returned W.L. June 2012
 ;         Assume since IDL V6.4 W.L. Aug 2013
 ;         Update HTTP syntax for /CANADA    W. L.  Feb 2014
+;         Add CFA keyword, remove /CANADA keyword  W.L. Oct 2014
 ;-
   On_error,2
   compile_opt idl2
   if N_params() LT 2 then begin
        print,'Syntax - info = QueryVizier(catalog, targetname_or_coord, dis,'
-       print,'         [/ALLCOLUMNS, /SILENT, /VERBOSE, /CANADA, CONSTRAINT= ]'
+       print,'         [/ALLCOLUMNS, /SILENT, /VERBOSE, /CFA, CONSTRAINT= ]'
        print,'                       '
        print,'  Coordinates (if supplied) should be J2000 RA (degrees) and Dec'
        print,'  dis -- search radius or box in arcminutes'
        if N_elements(info) GT 0 then return,info else return, -1
   endif
 
- if keyword_set(canada) then root = "http://vizier.hia.nrc.ca/viz-bin/" $
+ if keyword_set(CFA) then root = "http://vizier.hia.nrc.ca/viz-bin/" $
                        else  root = "http://webviz.u-strasbg.fr/viz-bin/" 
  silent = keyword_set(silent)
  
