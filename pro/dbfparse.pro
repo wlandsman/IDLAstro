@@ -30,7 +30,7 @@ pro dbfparse, spar, items, stype, values
 ;     Check for valid numeric values before assuming a date string
 ;     W. Landsman                    July, 1993
 ;     Accept four digit years when in ccyy/doy format W. Landsman   October 1998
-;     Don't do DATE/Time test for string items  W. Landsman   July 2006
+;     Don't do DATE/Time test for string items  W. Landsman   July 2006 
 ;-
 ;--------------------------------------------------------------
  On_error,2
