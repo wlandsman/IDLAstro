@@ -122,6 +122,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Apr 2012  Require vector numbers be greater than 0
 ;       W. Landsman Apr 2014  Don't convert Long64 numbers to double
 ;       W. Landsman Nov 2014  Use cgErrorMsg rather than On_error,2
+;       W. Landsman Dec 2014  Return Logical as IDL Boolean in IDL 8.4 or later
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -282,12 +283,19 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
                         test = strmid( test, 0, slash )
                 end else comment = ''
 
-; Find the first word in TEST.  Is it a logical value ('T' or 'F')
+; Find the first word in TEST.  Is it a logical value ('T' or 'F') ?
 
                 test2 = test
                 value = gettok(test2,' ')
-               if ( value EQ 'T' ) then value = 1b else $
-               if ( value EQ 'F' ) then value = 0b else begin
+                true = 1b
+                false = 0b
+                if !VERSION.RELEASE GE 8.4 then begin
+                	true =  boolean(true) 
+                	false = boolean(false)
+               endif 
+
+               if ( value EQ 'T' ) then value = true else $
+               if ( value EQ 'F' ) then value = false else begin
 
 ;  Test to see if a complex number.  It's  a complex number if the value and
 ;  the next word, if any, are both valid values.
