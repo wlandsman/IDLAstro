@@ -30,7 +30,9 @@ pro dbfparse, spar, items, stype, values
 ;     Check for valid numeric values before assuming a date string
 ;     W. Landsman                    July, 1993
 ;     Accept four digit years when in ccyy/doy format W. Landsman   October 1998
-;     Don't do DATE/Time test for string items  W. Landsman   July 2006 
+;     Don't do DATE/Time test for string items  W. Landsman   July 2006
+;     No tolerance search allowed for strings, so allow parenthesis within string
+;         W. Landsman Feb 2015
 ;-
 ;--------------------------------------------------------------
  On_error,2
@@ -95,17 +97,26 @@ while par ne '' do begin
              endwhile
              stype[nitems] = nvals
              end
+             
     ;
     ;  item=value(tolerance) 
+    ;  Updated Feb 2015 to allow parenthesis within string searches 
     ;
     (strpos(next,'=') gt 0): begin      ; equality specified
              items[nitems]=gettok(next,'='); get item name
+             db_item,items[nitems],itnum,ivalnum,idltype
+             if idltype EQ 7 then begin
+               values[nitems,0] = next
+               stype[nitems] = 0
+             endif else begin  
              values[nitems,0]=gettok(next,'('); value for item
              stype[nitems]=0
+  
              if next ne '' then begin   ;tolerance supplied
                 values[nitems,1]=gettok(next,')')
                 stype[nitems] = -5
-             end
+             endif
+             endelse
              end
     ;
     ; minimum supplied?   item>value
