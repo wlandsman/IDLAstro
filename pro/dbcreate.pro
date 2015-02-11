@@ -29,7 +29,7 @@ pro dbcreate,name,newindex,newdb,maxitems,EXTERNAL=EXTERNAL, Maxentry=maxentry
 ;               the file's present format.
 ;       maxitems - maximum number of items in data base.
 ;               If not supplied then the number of items is
-;               limited to 200.
+;               limited to 1000.
 ;
 ; OUTPUTS:
 ;       NONE.
@@ -104,6 +104,7 @@ pro dbcreate,name,newindex,newdb,maxitems,EXTERNAL=EXTERNAL, Maxentry=maxentry
 ;       Fix problem where descriptions of different items could overlap
 ;            E.Shaya/W.L.  Oct. 2012
 ;       Work better when .db files are not in current directory W.L. Oct 2013
+;       Maxitems now defaults to 1000  W.L.   Jan 2015
 ;-
 ;----------------------------------------------------------
  On_error,2                         ;Return to caller
@@ -126,7 +127,7 @@ if !priv LT 2 then  $
 zparcheck, 'DBCREATE', name, 1, 7, 0, 'Database Name'
 if N_params() LT 2 then newindex = 0
 if N_params() LT 3 then newdb = 0
-if N_params() LT 4 then maxitems = 200
+if N_params() LT 4 then maxitems = 1000
 if N_elements(maxentry) EQ 0 then maxentry = 1
 filename = strlowcase(strtrim(name,2))
 if strlen(filename) GT 19 then message,/INF, $
@@ -433,7 +434,7 @@ if extern then begin
         byteorder,tmp,/htons 
         irec[171,0] = byte(tmp,0,8,nitems)
 	
-	tmp = long(irec[179:186,*],0,2,nitems)
+	    tmp = long(irec[179:186,*],0,2,nitems)
         byteorder,tmp,/htonl 
         irec[179,0] = byte(tmp,0,8,nitems)
 
