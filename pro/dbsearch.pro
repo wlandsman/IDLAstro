@@ -34,6 +34,7 @@ pro dbsearch,type,svals,values,good, FULLSTRING = fullstring, COUNT = count
 ;       Add compound operators, slightly faster WL November 2009
 ;       D. Lindler  Aug 2013, added strtrim on values for a string search
 ;       Fix problem with "less than" string searches WL November 2014
+;       November 2014 fix actually broke things, reverting  WL January 2015
 ;-
 ;-----------------------------------------------------------
  On_error,2
@@ -67,28 +68,28 @@ if datatype EQ 7 then begin
 	    valid = strtrim(values,2) EQ strtrim(sv0,2) else $
 	    valid = strpos(values,strtrim(sv0,2)) GE 0   ;substring search
         -1: valid = values GE sv0                        ;greater than
-        -2: valid = values LE sv0                        ;less than
-	-3: valid = (values GE sv0) and (values LE sv1)  ;in range
-	-4: valid = strtrim(values) NE ''       ;non zero (i.e. not null)
+        -2: valid = values LE sv1                        ;less than
+	    -3: valid = (values GE sv0) and (values LE sv1)  ;in range
+	    -4: valid = strtrim(values) NE ''       ;non zero (i.e. not null)
         -5: message, $                                  ;Tolerance value
                ' Tolerance specification for strings is not valid'
          else:  begin
                 sv = strtrim(sv,2)
-		sv = sv[uniq(sv,sort(sv))]     ;Remove duplicates
-		type = N_elements(sv)
+		        sv = sv[uniq(sv,sort(sv))]     ;Remove duplicates
+		        type = N_elements(sv)
                 valid = bytarr(nv)
 
-		if keyword_set(FULLSTRING) then begin
-		values = strtrim(values,2)
-                for ii = 0l,type-1 do valid OR= (values EQ sv[ii]) 
+		        if keyword_set(FULLSTRING) then begin
+		           values = strtrim(values,2)
+                   for ii = 0l,type-1 do valid OR= (values EQ sv[ii]) 
 
                 endif else begin
 
                 for ii=0L,type-1 do begin               ;within set of substring
-		valid OR= (strpos(values,sv[ii]) GE 0)		
+             		valid OR= (strpos(values,sv[ii]) GE 0)		
                 endfor
 
-		endelse
+		        endelse
                 end
 	endcase
 	good = where(valid, count)
@@ -97,6 +98,7 @@ end
 ;
 ;---------------------------------------------------------------------
 ;		ALL OTHER DATA TYPES
+
 case type of
  
 	 0: good = where( values EQ sv0, count )               ;value=sv0
@@ -105,9 +107,9 @@ case type of
 	-3: begin				;sv0<value<sv1
 	    if sv1 lt sv0 then begin
 	        temp=sv0
-		sv0=sv1
-		sv1=temp
-	    end
+		    sv0=sv1
+		    sv1=temp
+	    endif
 	    good=where((values GE sv0) and (values LE sv1), count)
 	    end 	
 	-5: begin				;sv1 is tolerance
