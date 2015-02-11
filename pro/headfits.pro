@@ -75,21 +75,14 @@ function HEADFITS, filename, EXTEN = exten, Compress = compress, $
 ;
 ; PROCEDURES CALLED
 ;       FXPOSIT(), MRD_HREAD
-;       The version of fxposit.pro must be post- May 2009.
 ; MODIFICATION HISTORY:
-;       adapted by Frank Varosi from READFITS by Jim Wofford, January, 24 1989
-;       Keyword EXTEN added, K.Venkatakrishna, May 1992
-;       Make sure first 8 characters are 'SIMPLE'  W. Landsman October 1993
-;       Check PCOUNT and GCOUNT   W. Landsman    December 1994
-;       Major rewrite, work for Unix gzip files,   W. Landsman  April 1996
-;       Added COMPRESS keyword  W. Landsman   April 2000
-;       Added ERRMSG keyword    W. Landsman   July 2000
-;       Added /SILENT keyword   W. Landsman    December 2000
+;       Adapted by Frank Varosi from READFITS by Jim Wofford, January, 24 1989
 ;       Option to read a unit number rather than file name W.L    October 2001
 ;       Test output status of MRD_HREAD call October 2003 W. Landsman
 ;       Allow extension to be specified by name Dec 2006 W. Landsman
 ;       No need to uncompress FPACK compressed files  May 2009 W. Landsman
-;       Use V6.0 notation   W.L.   Feb. 2011  
+;       Use V6.0 notation   W.L.   Feb. 2011
+;       Do not check for EOF() since MRD_HREAD does this  Nov 2014 W. Landsman  
 ;-
  On_error,2
  compile_opt idl2
@@ -112,13 +105,6 @@ function HEADFITS, filename, EXTEN = exten, Compress = compress, $
           if printerr then  $
 	         message,'ERROR - ' + errmsg,/CON 
        return,-1
-     endif
-     if eof(unit) then begin
-        free_lun,unit
-        message = 'Extension past EOF'
-        if ~printerr then errmsg = message else $
-               message,'ERROR - ' + message,/CON 
-        return,-1
      endif
   endelse
   
