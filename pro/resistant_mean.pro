@@ -73,6 +73,8 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
 ;                     W. Landsman  July 2012
 ;       Added NaN keyword to MEAN() call N. Crouzet/WL  April 2013
 ;       Allow a row/column to be all NaN values N. Crouzet/WL  April 2013
+;       Use of DIMENSION keyword yielded wrong answer for non-square arrays
+;                       D. Cottingham  December 2014
 ;-
 
  On_Error,2
@@ -113,10 +115,10 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
    ;;;
    ijkL=0L
   
-   for i=0L,od[0]-1L do begin
-   for j=0L,od[1]-1L do begin
-   for k=0L,od[2]-1L do begin
    for L=0L,od[3]-1L do begin
+   for k=0L,od[2]-1L do begin
+   for j=0L,od[1]-1L do begin
+   for i=0L,od[0]-1L do begin
      thisCut = CUT[iwCUT[ijkL]]
      case dim of
      1: RESISTANT_Mean,Y[*,i,j,k,L],thisCUT,M,S,N,double=double,/Silent
@@ -135,9 +137,6 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
    endfor
    endfor
    endfor
-   mean  = transpose(mean)
-   sigma = transpose(sigma)
-   num_rej = transpose(num_rej)
    return
  endif
 
