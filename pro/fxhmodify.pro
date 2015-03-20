@@ -99,8 +99,10 @@ PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
 ;               Fix problem in BLKSHIFT call if primary header  extended
 ;       Version 3.2 W. Landsman 14 November 204 
 ;               Allow for need for 64bit number of bytes
+;       Version 4, William Thompson, GSFC, 22-Dec-2014
+;               Modified test for keyword EXTEND to only issue warning.
 ;; Version     :
-;       Version 3.2, 14 Nov 2007
+;       Version 4, 22-Dec-2014
 ;-
 ;
         COMPILE_OPT IDL2
@@ -176,17 +178,11 @@ PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
 ;
         IF N_ELEMENTS(EXTENSION) EQ 1 THEN BEGIN
 ;
-;  Make sure that the file does contain extensions.
+;  Make sure that the file does contain extensions.  However, only issue a
+;  warning if EXTEND keyword not set.
 ;
-                IF NOT FXPAR(HEADER,'EXTEND') THEN BEGIN
-                        FREE_LUN, UNIT
-                        MESSAGE = 'File ' + FILENAME +  $
-                                ' does not contain extensions'
-                        IF N_ELEMENTS(ERRMSG) NE 0 THEN BEGIN
-                                ERRMSG = MESSAGE
-                                RETURN
-                        END ELSE MESSAGE, MESSAGE
-                ENDIF
+                IF ~FXPAR(HEADER,'EXTEND') THEN MESSAGE, /CONTINUE, $
+                    'Keyword EXTEND not set in file ' + FILENAME
 ;
 ;  Get the number of bytes taken up by the data.
 ;

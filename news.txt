@@ -1,3 +1,18 @@
+06-Feb-2015: SXPAR() - Return logicals as IDL boolean in V8.4 or later
+
+05-Feb-2015: DBFPARSE - Allow parenthesis within string searches.
+
+29-Jan-2015: DBSEARCH - Nov 2014 fix for "less than" string values was spurious, reverting
+
+             REPSTR() - Use .REPLACE() method for IDL 8.4 or later
+
+19-Jan-2015: DBCREATE- Default maximum # of items is  now 1000 rather than 200
+
+23-Dec-2014: FXHMODIFY - Only issue a warning if keyword EXTEND is missing
+
+04-Dec-2014: RESISTANT_MEAN - Fix problem with use of DIMENSION keyword with
+non-square arrays
+
 10-Nov-2014: FITS_OPEN - Allow compressed file names to include spaces
 
 02-Nov-2014: DBSEARCH - Fix problem with string "less than" searches

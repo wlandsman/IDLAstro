@@ -1,7 +1,7 @@
 ;;
 ;; IDLWAVE catalog for library Astrolib
 ;; Automatically Generated -- do not edit.
-;; Created by idlwave_catalog on Wed Sep  3 13:24:00 2014
+;; Created by idlwave_catalog on Tue Feb 10 14:55:21 2015
 ;;
 (setq idlwave-library-catalog-libname "Astrolib")
 (setq idlwave-library-catalog-routines
@@ -380,7 +380,7 @@
    ("one_ray" pro nil (lib "one_ray.pro" nil "Astrolib") "%s, xcen, ycen, len, angle, terminus" (nil ("_EXTRA") ("data") ("nodraw") ("normal")))
    ("oploterror" pro nil (lib "oploterror.pro" nil "Astrolib") "%s, x, y, xerr, yerr" (nil ("_EXTRA") ("ADDCMD") ("ERRCOLOR") ("ERRSTYLE") ("ERRTHICK") ("HATLENGTH") ("HIBAR") ("LOBAR") ("NOCLIP") ("NOHAT") ("NSKIP") ("Nsum") ("THICK") ("WINDOW")))
    ("ordinal" fun nil (lib "ordinal.pro" nil "Astrolib") "Result = %s(num)" (nil))
-   ("partvelvec" pro nil (lib "partvelvec.pro" nil "Astrolib") "%s, velx, vely, posx, posy, x, y" (nil ("_EXTRA") ("COLOR") ("FRACTION") ("LENGTH") ("OVER") ("VECCOLORS") ("WINDOW")))
+   ("partvelvec" pro nil (lib "partvelvec.pro" nil "Astrolib") "%s, velx, vely, posx, posy, x, y" (nil ("_EXTRA") ("COLOR") ("FRACTION") ("LENGTH") ("NOCLIP") ("OVER") ("VECCOLORS") ("WINDOW")))
    ("PCA" pro nil (lib "pca.pro" nil "Astrolib") "%s, data, eigenval, eigenvect, percentages, proj_obj, proj_atr" (nil ("COVARIANCE") ("MATRIX") ("SILENT") ("SSQ") ("TEXTOUT")))
    ("pent" fun nil (lib "pent.pro" nil "Astrolib") "Result = %s(p, t, x, m, n)" (nil))
    ("pixcolor" pro nil (lib "pixcolor.pro" nil "Astrolib") "%s, pix_value, color" (nil))
@@ -420,7 +420,7 @@
    ("QueryDSS" pro nil (lib "querydss.pro" nil "Astrolib") "%s, target, Image, Header" (nil ("ESO") ("IMSIZE") ("NED") ("OUTFILE") ("STSCI") ("SURVEY") ("VERBOSE")))
    ("Querygsc" fun nil (lib "querygsc.pro" nil "Astrolib") "Result = %s(target, dis)" (nil ("BOX") ("HOURS") ("magrange") ("VERBOSE")))
    ("QuerySimbad" pro nil (lib "querysimbad.pro" nil "Astrolib") "%s, name, ra, de, id" (nil ("CADC") ("CFA") ("ERRMSG") ("Found") ("Hmag") ("Jmag") ("Kmag") ("NED") ("parallax") ("Print") ("Server") ("SILENT") ("Verbose") ("Vmag")))
-   ("Queryvizier" fun nil (lib "queryvizier.pro" nil "Astrolib") "Result = %s(catalog, target, dis)" (nil ("ALLCOLUMNS") ("CANADA") ("CONSTRAINT") ("SILENT") ("VERBOSE")))
+   ("Queryvizier" fun nil (lib "queryvizier.pro" nil "Astrolib") "Result = %s(catalog, target, dis)" (nil ("ALLCOLUMNS") ("CANADA") ("CFA") ("CONSTRAINT") ("SILENT") ("VERBOSE")))
    ("radec" pro nil (lib "radec.pro" nil "Astrolib") "%s, ra, dec, ihr, imin, xsec, ideg, imn, xsc" (nil ("hours")))
    ("randomchi" fun nil (lib "randomchi.pro" nil "Astrolib") "Result = %s(seed, dof, nrand)" (nil))
    ("randomdir" fun nil (lib "randomdir.pro" nil "Astrolib") "Result = %s(seed, alpha, nrand)" (nil))

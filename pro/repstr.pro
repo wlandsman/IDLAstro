@@ -1,20 +1,22 @@
 function repstr,obj,in,out
 ;+
 ; NAME:
-;	REPSTR
+;   REPSTR
 ; PURPOSE:
-;	Replace all occurences of one substring by another.
+;   Replace all occurences of one substring by another.
 ; EXPLANATION:
-;	Meant to emulate the string substitution capabilities of text editors
+;   Meant to emulate the string substitution capabilities of text editors
 ;
-;       For a more sophisticated routine that allows regular expressions look
-;       at MG_STRREPLACE() 
-;       http://docs.idldev.com/idllib/strings/mg_streplace.html
+;   Obsolete since introduction of the REPLACE method for string variables 
+;   introduced in IDL 8.4
+;
+;	For a more sophisticated routine that allows regular expressions look
+;	at MG_STRREPLACE() http://docs.idldev.com/idllib/strings/mg_streplace.html
 ; CALLING SEQUENCE:
 ;	result = repstr( obj, in, out )
 ;
 ; INPUT PARAMETERS:
-;	obj    = object string for editing, scalar or array
+;   obj    = object string for editing, scalar or array
 ;	in     = substring of 'obj' to be replaced, scalar 
 ;
 ; OPTIONAL INPUT PARMETER:
@@ -36,15 +38,16 @@ function repstr,obj,in,out
 ; MODIFICATION HISTORY:
 ;	Written by Robert S. Hill, ST Systems Corp., 12 April 1989.
 ;	Accept vector object strings, W. Landsman   HSTX,   April, 1996
-;       Convert loop to LONG, vectorize STRLEN call W. Landsman June 2002
-;       Correct bug in optimization, case where STRLEN(OBJ) EQ
+;   Convert loop to LONG, vectorize STRLEN call W. Landsman June 2002
+;   Correct bug in optimization, case where STRLEN(OBJ) EQ
 ;         STRLEN(IN), C. Markwardt, Jan 2003
-;       Fixed problem when multiple replacements extend the string length
+;   Fixed problem when multiple replacements extend the string length
 ;                 D. Finkbeiner, W. Landsman  April 2003
-;       Allow third parameter to be optional again W. Landsman  August 2003
-;       Remove limitation of 9999 characters, C. Markwardt Dec 2003
-;       Test for empty "in" string (causing infinite loop) W. Landsman Jan 2010
-;       Streamline code W Landsman Dec 2011
+;   Allow third parameter to be optional again W. Landsman  August 2003
+;   Remove limitation of 9999 characters, C. Markwardt Dec 2003
+;   Test for empty "in" string (causing infinite loop) W. Landsman Jan 2010
+;   Streamline code W Landsman Dec 2011
+;   Use string .replace method in IDL 8.4 or later  W. Landsman Feb 2015
 ;-
  On_error,2
  compile_opt idl2
@@ -54,6 +57,7 @@ function repstr,obj,in,out
 	return, obj
  endif
 
+ if !VERSION.RELEASE GE '8.4' then return,obj.replace(in,out)
  if N_elements(out) EQ 0 then out = ''
  l1 = strlen(in)
  if l1 EQ 0 then message,'ERROR - empty input string not allowed'
