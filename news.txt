@@ -1,3 +1,10 @@
+14-May-2015: SXPAR() - Now has IFound output keyword to report matching 
+                  indices when using a keyword* name input
+
+27-Apr-2015: AD2XY, XY2AD - no longer check that CDELT[0] differs from 1
+
+25-Mar-2015: FITS_INFO - Use 64 bit long to deal with huge FITS files
+
 06-Feb-2015: SXPAR() - Return logicals as IDL boolean in V8.4 or later
 
 05-Feb-2015: DBFPARSE - Allow parenthesis within string searches.

@@ -91,6 +91,7 @@ pro xy2ad, x, y, astr, a, d
 ;       structure, J. P. Leahy July 2013
 ;       Evalue TPV distortion (SCAMP) if present W. Landsman   Jan 2014
 ;       Support IRAF TNX porjection  M. Sullivan U. of Southamptom  Mar 2014
+;       No longer check that CDELT[0] NE 1  W. Landsman Apr 2015
 ;- 
  common Broyden_coeff, pv1, pv2       ;Needed for TPV transformation
  compile_opt idl2
@@ -109,12 +110,10 @@ pro xy2ad, x, y, astr, a, d
  
  cd = astr.cd
  crpix = astr.crpix
- cdelt = astr.cdelt
- if cdelt[0] NE 1.0 then begin 
-         cd[0,0] *= cdelt[0] & cd[0,1] *= cdelt[0]
-         cd[1,1] *= cdelt[1] & cd[1,0] *= cdelt[1]
-  endif
-
+ cdelt = astr.cdelt 
+         
+  cd[0,0] *= cdelt[0] & cd[0,1] *= cdelt[0]
+  cd[1,1] *= cdelt[1] & cd[1,0] *= cdelt[1]
 
  xdif = x - (crpix[0]-1)            
  ydif = y - (crpix[1]-1)

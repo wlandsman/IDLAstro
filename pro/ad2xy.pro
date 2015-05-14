@@ -95,6 +95,7 @@ pro ad2xy, a, d, astr, x, y
 ;              W. Landsman           Dec 2013
 ;     Evaluate TPV distortion (SCAMP) if present  W. Landsman  Jan 2014
 ;     Support IRAF TNX projection M. Sullivan U. of Southhamptom  Mar 2014
+;     No longer check that CDELT[0] differs from 1 W. Landsman Apr 2015
 ;     
 ;-
 
@@ -168,12 +169,9 @@ pro ad2xy, a, d, astr, x, y
   cd = astr.cd
   cdelt = astr.cdelt
 
-
-  if cdelt[0] NE 1.0 then begin
-         cd[0,0] *= cdelt[0] & cd[0,1] *= cdelt[0]
-         cd[1,1] *= cdelt[1] & cd[1,0] *= cdelt[1]
-     endif
- 
+  cd[0,0] *= cdelt[0] & cd[0,1] *= cdelt[0]
+  cd[1,1] *= cdelt[1] & cd[1,0] *= cdelt[1]
+     
  if reverse then begin
      temp = TEMPORARY(xsi) &  xsi = TEMPORARY(eta) & eta = TEMPORARY(temp)
  endif
@@ -208,6 +206,7 @@ pro ad2xy, a, d, astr, x, y
        ENDIF
 
  crpix = astr.crpix - 1
+ 
  cdinv = invert(cd)
  x = ( cdinv[0,0]*xsi + cdinv[0,1]*eta  )
  y = ( cdinv[1,0]*TEMPORARY(xsi) + cdinv[1,1]*TEMPORARY(eta)  )
