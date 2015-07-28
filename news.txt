@@ -1,3 +1,6 @@
+28-Jul-2015: MWRFITS - Fixed bug when checking logical columns that include nulls
+             GLACTC_PM - Fixed occasional bug when computing sign of proper motion
+             
 14-May-2015: SXPAR() - Now has IFound output keyword to report matching 
                   indices when using a keyword* name input
 

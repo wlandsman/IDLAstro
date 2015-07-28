@@ -79,6 +79,7 @@ pro glactc_pm,ra,dec,mu_ra,mu_dec,year,gl,gb,mu_gl,mu_gb,j, $
 ;       Written                Ed Shaya, U of MD,  Oct 2009.
 ;       Adapted from GLACTC  to make proper motion transformations, 
 ;       Correct occasional sign error in galactic longitude E. Shaya  Nov 2011
+;       Correct occasional sign error for year not set to 1950  W. Landsman,F. Mazzi July 2015
 ;-
 IF n_PARAMS() LT 6 THEN BEGIN
 	PRINT,'Syntax - glactc_pm,ra,dec,mu_ra,mu_dec,year,gl,gb,mu_gl,mu_gb, j, [/DEGREE, /FK4, /mustar]'
@@ -172,7 +173,7 @@ CASE j OF
 	glactc,raIndeg,decs0,year,gl,gb,2,/degree,Supergalactic=Supergalactic
 	mu_gl_delta = 1d-2*mu_gl/ABS(mu_gl)
 	mu_gb_delta = 1d-2*mu_gb/ABS(mu_gl)
-	glactc, ra2, dec2, 1950d0, gl+mu_gl_delta, gb+mu_gb_delta, 2,$
+	glactc, ra2, dec2, year, gl+mu_gl_delta, gb+mu_gb_delta, 2,$
 		/degree,Supergalactic=Supergalactic
 	IF (ra2 LT raIndeg) THEN mu_ra = -ABS(mu_ra)
 
