@@ -226,7 +226,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
   line = hdr[nfound]
   svalue = strtrim( strmid(line,9,71),2)
   if histnam then $
-        value = strtrim(strmid(line,8,71),2) else for i = 0,matches-1 do begin
+       value = strtrim(strmid(line,8,72),2) else for i = 0,matches-1 do begin
       if ( strmid(svalue[i],0,1) EQ "'" ) then begin   ;Is it a string?
                   test = strmid( svalue[i],1,strlen( svalue[i] )-1)
                   next_char = 0
