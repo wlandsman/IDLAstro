@@ -129,6 +129,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Nov 2014  Use cgErrorMsg rather than On_error,2
 ;       W. Landsman Dec 2014  Return Logical as IDL Boolean in IDL 8.4 or later
 ;       W. Landsman May 2015  Added IFound output keyword
+;       J. Slavin Aug 2015 Allow for 72 character par values (fixed from 71)
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -226,7 +227,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
   line = hdr[nfound]
   svalue = strtrim( strmid(line,9,71),2)
   if histnam then $
-        value = strtrim(strmid(line,8,71),2) else for i = 0,matches-1 do begin
+       value = strtrim(strmid(line,8,72),2) else for i = 0,matches-1 do begin
       if ( strmid(svalue[i],0,1) EQ "'" ) then begin   ;Is it a string?
                   test = strmid( svalue[i],1,strlen( svalue[i] )-1)
                   next_char = 0
