@@ -283,12 +283,15 @@
 ;       Version 1.12 W. Landsman  2014-04-23
 ;       Version 1.12a W.Landsman/M. Fossati 2014-10-14
 ;               Fix LONG overflow for very large files
+;       Version 1.12b I. Evans 2015-07-27
+;               Fix value check for byte('T'), byte('F'), or 0b for logical
+;               columns with null values
 ;-
 
 ; What is the current version of this program?
 function mwr_version
      compile_opt idl2,hidden
-    return, '1.12a'
+    return, '1.12b'
 end
     
 
@@ -737,11 +740,11 @@ pro mwr_tablehdr, lun, input, header, vtypes,     $
        
        if islogical[i]  then begin        
           if (type_ele EQ 1) then begin
-          gg = (input.(i) EQ 0b) or (input.(i) EQ 84b) or (input.(i) EQ 0b) 
+          gg = (input.(i) EQ 84b) or (input.(i) EQ 70b) or (input.(i) EQ 0b) 
 	       if ~array_equal(gg,1b) then begin 
 	       islogical[i] = 0b
 	       message,/CON, 'Warning - ' + $ 
-	  "Allowed Logical Column byte values are byte('T'),byte('F'), or 0b"
+	  "Allowed Logical Column byte values are byte('T'), byte('F'), or 0b"
 	   endif
 	endif else if (type_ele EQ 7) then begin   	  	 
            gg =  (input.(i) eq 'T') or (input.(i) eq 'F')
