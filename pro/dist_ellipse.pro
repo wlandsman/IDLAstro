@@ -11,7 +11,7 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ;       elliptical aperture photometry.
 ;
 ; CALLING SEQUENCE:
-;       DIST_ELLIPSE, IM, N, XC, YC, RATIO, POS_ANG, /DOUBLE
+;       DIST_ELLIPSE, IM, N, XC, YC, RATIO, [ POS_ANG] , /DOUBLE
 ;
 ; INPUTS:
 ;       N = either  a scalar specifying the size of the N x N square output
@@ -24,9 +24,10 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ;               standard meaning.
 ;
 ; OPTIONAL INPUTS:
-;       POS_ANG - Position angle of the major axis, measured counter-clockwise
+;       POS_ANG - Position angle of the major axis in degrees, measured counter-clockwise
 ;               from the Y axis.  For an image in standard orientation 
 ;               (North up, East left) this is the astronomical position angle.
+;               Default is 0 degrees.
 ;
 ; OPTIONAL INPUT KEYWORD:
 ;       /DOUBLE - If this keyword is set and nonzero, the output array will
@@ -62,13 +63,13 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ;       Written    W. Landsman             April, 1991
 ;       Somewhat faster algorithm          August, 1992
 ;       Allow rectangular output array     June, 1994
-;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Added /DOUBLE keyword   W. Landsman   July 2000
+;       Make POS_ANG optional, as documented  W. Landsman Aug 2015
 ;-
  On_error,2                             ;Return to caller
 
- if N_params() LT 6 then begin
-    print,'Syntax - DIST_ELLIPSE, im, n, xc, yc, ratio, pos_ang, /DOUBLE'
+ if N_params() LT 5 then begin
+    print,'Syntax - DIST_ELLIPSE, im, n, xc, yc, ratio, [pos_ang], /DOUBLE'
     print,'   im - output elliptical mask image array'
     print,'   n -  size of output image mask, scalar or 2 element vector'
     print,'   xc,yc - coordinates of ellipse center, scalars'
@@ -80,9 +81,10 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
  if N_elements(ratio) NE 1 then message, $
      'ERROR - Axial ratio (fifth parameter) must be a scalar value'
 
- if N_elements(pos_ang) NE 1 then message, $
+ if N_elements(pos_ang) GT 1 then message, $
      'ERROR - Position angle (sixth parameter) must be a scalar value'
 
+ if N_elements(pos_ang) EQ 0 then pos_ang = 0
  ang = pos_ang /!RADEG                      ;Convert to radians
  cosang = cos(ang)
  sinang = sin(ang)
