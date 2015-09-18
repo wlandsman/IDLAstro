@@ -67,12 +67,13 @@ pro hextract, oldim, oldhd, newim, newhd, x0, x1, y0, y1, SILENT = silent, $
 ;       Work for dimensions larger than 32767   W.L., M.Symeonidis Mar 2007
 ;       Added ALT keyword  W.L. April 2007
 ;       Use V6.0 notation W.L.  October 2012
+;       Fix for SFL projection W.L.   September 2015
 ;- 
  On_error, 2
  compile_opt idl2
  npar = N_params()
 
- if (npar EQ 3) or (npar LT 2) then begin       ;Check # of parameters
+ if (npar EQ 3) || (npar LT 2) then begin       ;Check # of parameters
     print,'Syntax - HEXTRACT, oldim, oldhd, [ newim, newhd, x0, x1, y0, y1]'
     print,'   or    HEXTRACT, oldim, oldhd, x0, x1, y0, y1, [/SILENT, ERRMSG=]'
     return
@@ -99,8 +100,8 @@ pro hextract, oldim, oldhd, newim, newhd, x0, x1, y0, y1, SILENT = silent, $
 
  if ( npar EQ 6 ) then begin                 ;Alternative calling sequence ?
 
-     if ( N_elements(newim) EQ 1 ) and ( N_elements(newhd) EQ 1 ) and $
-        ( N_elements(x0) EQ 1 ) and ( N_elements(x1) EQ 1 ) then begin
+     if ( N_elements(newim) EQ 1 ) && ( N_elements(newhd) EQ 1 ) && $
+        ( N_elements(x0) EQ 1 ) && ( N_elements(x1) EQ 1 ) then begin
               y0 = x0   &  y1 = x1
               x0 = newim   &   x1 = newhd
               Update = 1
@@ -179,14 +180,19 @@ pro hextract, oldim, oldhd, newim, newhd, x0, x1, y0, y1, SILENT = silent, $
 
   if N_elements(alt) EQ 0 then alt = ''
   extast, newhd, astr, noparams, ALT = alt
+
   if noparams GE 0 then begin
-
-  sxaddpar, newhd, 'CRPIX1'+alt, astr.crpix[0]-x0
-  sxaddpar, newhd, 'CRPIX2'+alt, astr.crpix[1]-y0
-
+;Handle SFL projection separately in case it was originally GLS  
+  if astr.projection EQ 'SFL' then begin     
+       crpix = sxpar(newhd,'CRPIX*')       
+       sxaddpar,newhd,'CRPIX1'+alt,crpix[0]-x0
+       sxaddpar,newhd,'CRPIX2'+alt,crpix[1]-y0
+  endif else begin     
+       sxaddpar, newhd, 'CRPIX1'+alt, astr.crpix[0]-x0
+       sxaddpar, newhd, 'CRPIX2'+alt, astr.crpix[1]-y0
+  endelse 
 
  endif 
- 
  if Update then begin
 
       oldhd = newhd

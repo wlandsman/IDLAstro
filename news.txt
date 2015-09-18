@@ -1,3 +1,9 @@
+10-Sep-2015: HEXTRACT - Fix problem with GLS projection
+             REPSTR() - Use CALL_METHOD() so that it compiles in IDL 7.1 and earlier
+             DIST_ELLIPSE - Make POS_ANG optional as documented
+             
+06-Aug-2015: SXPAR() - 72 character fields were being trimmed to 71 characters
+
 28-Jul-2015: MWRFITS - Fixed bug when checking logical columns that include nulls
              GLACTC_PM - Fixed occasional bug when computing sign of proper motion
              

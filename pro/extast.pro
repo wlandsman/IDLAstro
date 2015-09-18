@@ -153,6 +153,7 @@ pro extast,hdr,astr,noparams, alt=alt
 ;      v2.3 1 Dec 13 Add warning if distortions from SCAMP astrometry present
 ;      v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2014
 ;      v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
+;      v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
 ;-
  On_error, 0
  compile_opt idl2
@@ -338,6 +339,9 @@ GET_CD_MATRIX:
         if N_cdelt1 GT 0 then cdelt[0]  = lvalue[l[N_cdelt1-1]]
          l = where(keyword EQ 'CDELT'+latc+ alt,  N_cdelt2) 
         if N_cdelt2 GT 0 then cdelt[1]  = lvalue[l[N_cdelt2-1]]
+        det = cd[0,0]*cd[1,1] - cd[0,1]*cd[1,0]
+        if det LT 0 then sgn = -1 else sgn = 1
+        crota  = atan(  sgn*cd[0,1],  sgn*cd[0,0] ) 
         noparams = 3
  endif else begin 
 
