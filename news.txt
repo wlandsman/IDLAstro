@@ -1,3 +1,7 @@
+18-Sep-2015: QUERYGSC - Updated for new server format
+
+12-Sep-2015: EXTAST - Make sure CROTA defined for GLS projection
+
 10-Sep-2015: HEXTRACT - Fix problem with GLS projection
              REPSTR() - Use CALL_METHOD() so that it compiles in IDL 7.1 and earlier
              DIST_ELLIPSE - Make POS_ANG optional as documented
