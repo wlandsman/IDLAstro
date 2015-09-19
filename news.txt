@@ -1,4 +1,5 @@
 18-Sep-2015: QUERYGSC - Updated for new server format
+             FTDELCOL - Columns can now be specified by number as advertised
 
 12-Sep-2015: EXTAST - Make sure CROTA defined for GLS projection
 
