@@ -52,7 +52,7 @@
 ;       FORMAT  = Specifies FORTRAN-like format for parameter, e.g. "F7.3".  A
 ;                 scalar string should be used.  For complex numbers the format
 ;                 should be defined so that it can be applied separately to the
-;                 real and imaginary parts.      If not supplied, then the IDL
+;                 real and imaginary parts.  If not supplied, then the IDL
 ;                 default formatting is used, except that double precision is
 ;                 given a format of G19.12.
 ;
@@ -64,6 +64,21 @@
 ;
 ;      /NOLOGICAL = If set, then the values 'T' and 'F' are not interpreted as
 ;                logical values, and are simply added without interpretation.
+;
+;       /NULL   = If set, then keywords with values which are undefined, or
+;                 which have non-finite values (such as NaN, Not-a-Number) are
+;                 stored in the header without a value, such as
+;
+;                       MYKEYWD =                      /My comment
+;
+;       MISSING = A value which signals that data with this value should be
+;                 considered missing.  For example, the statement
+;
+;                       FXADDPAR, HEADER, 'MYKEYWD', -999, MISSING=-999
+;
+;                 would result in the valueless line described above for the
+;                 /NULL keyword.  Setting MISSING to a value implies /NULL.
+;                 Cannot be used with string or complex values.
 ;
 ;	ERRMSG	 = If defined and passed, then any error messages will be
 ;		   returned to the user in this parameter rather than
@@ -137,8 +152,11 @@
 ;       Version 6, 02-Aug-2007, WTT, bug fix for OGIP long lines
 ;       Version 6.1, 10-Feb-2009, W. Landsman, increase default format precision
 ;       Version 6.2  30-Sep-2009, W. Landsman, added /NOLOGICAL keyword
+;       Version 7, 13-Aug-2015, William Thompson, allow null values
+;               Add keywords /NULL, MISSING.  Catch non-finite values (e.g. NaN)
+;       Version 7.1, 22-Sep-2015, W. Thompson, No slash if null & no comment
 ; Version     : 
-;       Version 6.2, 30-Sep-2009
+;       Version 7.1, 22-Sep-2015
 ;-
 ;
 
@@ -226,7 +244,7 @@ END
 
 PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
               AFTER=AFTER, FORMAT=FORMAT, NOCONTINUE = NOCONTINUE, $
-              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL
+              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL
 
         ON_ERROR,2                              ;Return to caller
 ;
@@ -271,15 +289,33 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;
         S = SIZE(VALUE)         ;get type of value parameter
         STYPE = S[S[0]+1]
+        SAVE_AS_NULL = 0
         IF S[0] NE 0 THEN BEGIN
-                MESSAGE = 'Keyword Value (third parameter) must be scalar'
-                GOTO, HANDLE_ERROR
+            MESSAGE = 'Keyword Value (third parameter) must be scalar'
+            GOTO, HANDLE_ERROR
         END ELSE IF STYPE EQ 0 THEN BEGIN
+            IF (N_ELEMENTS(MISSING) EQ 1) OR KEYWORD_SET(NULL) THEN $
+              SAVE_AS_NULL = 1 ELSE BEGIN
                 MESSAGE = 'Keyword Value (third parameter) is not defined'
                 GOTO, HANDLE_ERROR
+            ENDELSE
         END ELSE IF STYPE EQ 8 THEN BEGIN
-                MESSAGE = 'Keyword Value (third parameter) cannot be structure'
-                GOTO, HANDLE_ERROR
+            MESSAGE = 'Keyword Value (third parameter) cannot be structure'
+            GOTO, HANDLE_ERROR
+        ENDIF
+;
+;  Check to see if the parameter should be saved as a null value.
+;
+        IF (STYPE NE 6) AND (STYPE NE 7) AND (STYPE NE 9) THEN BEGIN
+            IF N_ELEMENTS(MISSING) EQ 1 THEN $
+              IF VALUE EQ MISSING THEN SAVE_AS_NULL = 1
+            IF NOT SAVE_AS_NULL THEN IF NOT FINITE(VALUE) THEN BEGIN
+                IF ((N_ELEMENTS(MISSING) EQ 1) OR KEYWORD_SET(NULL)) THEN $
+                  SAVE_AS_NULL = 1 ELSE BEGIN
+                    MESSAGE = 'Keyword Value (third parameter) is not finite'
+                    GOTO, HANDLE_ERROR
+                ENDELSE
+            ENDIF
         ENDIF
 ;
 ;  Extract first 8 characters of each line of header, and locate END line
@@ -628,13 +664,15 @@ REPLACE:
 ;  If complex, then format the real and imaginary parts, and add the comment
 ;  beginning in column 51.
 ;
-        END ELSE IF TYPE[1] EQ 6 THEN BEGIN
+        END ELSE IF (TYPE[1] EQ 6) OR (TYPE[1] EQ 9) THEN BEGIN
+                IF TYPE[1] EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
+                VI = IMAGINARY(VALUE)
                 IF N_ELEMENTS(FORMAT) EQ 1 THEN BEGIN   ;use format keyword
-                        VR = STRING(FLOAT(VALUE),    '('+STRUPCASE(FORMAT)+')')
-                        VI = STRING(IMAGINARY(VALUE),'('+STRUPCASE(FORMAT)+')')
+                        VR = STRING(VR, '('+STRUPCASE(FORMAT)+')')
+                        VI = STRING(VI, '('+STRUPCASE(FORMAT)+')')
                  END ELSE BEGIN
-                        VR = STRTRIM(FLOAT(VALUE),2)
-                        VI = STRTRIM(IMAGINARY(VALUE),2)
+                        VR = STRTRIM(VR, 2)
+                        VI = STRTRIM(VI, 2)
                 ENDELSE
                 SR = STRLEN(VR)  &  STRPUT,H,VR,(30-SR)>10
                 SI = STRLEN(VI)  &  STRPUT,H,VI,(50-SI)>30
@@ -646,6 +684,7 @@ REPLACE:
 ;  keyword, or the default for that datatype.
 ;
         END ELSE BEGIN
+            IF NOT SAVE_AS_NULL THEN BEGIN
                 IF (N_ELEMENTS(FORMAT) EQ 1) THEN $ ;use format keyword
                         V = STRING(VALUE,'('+STRUPCASE(FORMAT)+')' ) ELSE BEGIN
 			IF TYPE[1] EQ 5 THEN $
@@ -654,12 +693,16 @@ REPLACE:
 			ENDELSE
                 S = STRLEN(V)                 ;right justify
                 STRPUT,H,V,(30-S)>10          ;insert
+            ENDIF
         ENDELSE
 ;
-;  Add the comment, and store the completed line in the header.
+;  Add the comment, and store the completed line in the header.  Don't
+;  add the slash if the value is null and there is no comment.
 ;
-        STRPUT,H,' /',30        ;add ' /'
-        STRPUT,H,COMMENT,32     ;add comment
+        IF (NOT SAVE_AS_NULL) OR (STRLEN(STRTRIM(COMMENT)) GT 0) THEN BEGIN
+            STRPUT,H,' /',30    ;add ' /'
+            STRPUT,H,COMMENT,32 ;add comment
+        ENDIF
         HEADER[I]=H             ;save line
 ;
         ERRMSG = ''

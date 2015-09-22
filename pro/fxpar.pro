@@ -1,7 +1,7 @@
         FUNCTION FXPAR, HDR, NAME, ABORT, COUNT=MATCHES, COMMENT=COMMENTS, $
                         START=START, PRECHECK=PRECHECK, POSTCHECK=POSTCHECK, $
-                                          NOCONTINUE = NOCONTINUE, $
-                        DATATYPE=DATATYPE
+                        NOCONTINUE = NOCONTINUE, DATATYPE=DATATYPE, $
+                        NULL=K_NULL, NAN=NAN, MISSING=MISSING
 ;+
 ; NAME: 
 ;        FXPAR()
@@ -30,6 +30,12 @@
 ;       returned as type FLOAT.    If an integer is too large to be stored as
 ;       type LONG, then it is returned as DOUBLE.
 ;
+;       If a keyword is in the header and has no value, then the default
+;       missing value is returned as explained below.  This can be
+;       distinguished from the case where the keyword is not found by the fact
+;       that COUNT=0 in that case, while existing keywords without a value will
+;       be returned with COUNT=1 or more.
+;
 ; CALLING SEQUENCE: 
 ;       Result = FXPAR( HDR, NAME  [, ABORT, COUNT=, COMMENT=, /NOCONTINUE ] )
 ;
@@ -51,6 +57,18 @@
 ;                 printed if the keyword parameter is not found.  If not
 ;                 supplied, FXPAR will return with a negative !err if a keyword
 ;                 is not found.
+; OUTPUT: 
+;       The returned value of the function is the value(s) associated with the
+;       requested keyword in the header array.
+;
+;       If the parameter is complex, double precision, floating point, long or
+;       string, then the result is of that type.  Apostrophes are stripped from
+;       strings.  If the parameter is logical, 1 is returned for T, and 0 is
+;       returned for F.
+;
+;       If NAME was of form 'keyword*' then a vector of values are returned.
+;
+; OPTIONAL INPUT KEYWORDS: 
 ;       DATATYPE = A scalar value, indicating the type of vector
 ;                  data.  All keywords will be cast to this type.
 ;                  Default: based on first keyword.
@@ -76,26 +94,28 @@
 ;                       START = 0L
 ;                       P1 = FXPAR('P1', START=START)
 ;                       P2 = FXPAR('P2', START=START)
+;
 ;       PRECHECK = If START is specified, then PRECHECK is the number
 ;                  of keywords preceding START to be searched.
 ;                  Default: 5
 ;       POSTCHECK = If START is specified, then POSTCHECK is the number
 ;                   of keywords after START to be searched.
 ;                   Default: 20
-; OUTPUT: 
-;       The returned value of the function is the value(s) associated with the
-;       requested keyword in the header array.
-;
-;       If the parameter is complex, double precision, floating point, long or
-;       string, then the result is of that type.  Apostrophes are stripped from
-;       strings.  If the parameter is logical, 1 is returned for T, and 0 is
-;       returned for F.
-;
-;       If NAME was of form 'keyword*' then a vector of values are returned.
-;
-; OPTIONAL INPUT KEYWORDS: 
 ;       /NOCONTINUE = If set, then continuation lines will not be read, even
 ;                 if present in the header
+;       MISSING = By default, this routine returns 0 when keyword values are
+;                 not found.  This can be overridden by using the MISSING
+;                 keyword, e.g. MISSING=-1.
+;       /NAN    = If set, then return Not-a-Number (!values.f_nan) for missing
+;                 values.  Ignored if keyword MISSING is present.
+;       /NULL   = If set, then return !NULL (undefined) for missing values.
+;                 Ignored if MISSING of /NAN is present, or if earlier than IDL
+;                 version 8.0.  If multiple values would be returned, then
+;                 MISSING= or /NAN should be used instead of /NULL, making sure
+;                 that the datatype is consistent with the non-missing values,
+;                 e.g. MISSING='' for strings, MISSING=-1 for integers, or
+;                 MISSING=-1.0 or /NAN for floating point.  /NAN should not be
+;                 used if the datatype would otherwise be integer.
 ; OPTIONAL OUTPUT KEYWORD:
 ;       COUNT   = Optional keyword to return a value equal to the number of
 ;                 parameters found by FXPAR.
@@ -148,6 +168,8 @@
 ;               Keywords of form "name_0" could confuse vector extractions
 ;       Version 11 W. Landsman, GSFC 24 Apr 2014
 ;               Don't convert LONG64 numbers to to double precision
+;       Version 12, William Thompson, 13-Aug-2014
+;               Add keywords MISSING, /NAN, and /NULL
 ;-
 ;------------------------------------------------------------------------------
 ;
@@ -158,9 +180,19 @@
             RETURN, -1
         ENDIF
 ;
+;  Determine the default value for missing data.
+;
+        CASE 1 OF 
+            N_ELEMENTS(MISSING) EQ 1: MISSING_VALUE = MISSING
+            KEYWORD_SET(NAN): MISSING_VALUE = !VALUES.F_NAN
+            KEYWORD_SET(K_NULL) AND !VERSION.RELEASE GE '8.': $
+              DUMMY = EXECUTE('MISSING_VALUE = !NULL')
+            ELSE: MISSING_VALUE = 0
+        ENDCASE
+        VALUE = MISSING_VALUE
+;
 ;  Determine the abort condition.
 ;
-        VALUE = 0
         IF N_PARAMS() LE 2 THEN BEGIN
             ABORT_RETURN = 0
             ABORT = 'FITS Header'
@@ -251,6 +283,7 @@
 ;  special cases, then done.
 ;
         IF MATCHES GT 0 THEN BEGIN
+            VALUE = MISSING_VALUE
             LINE = HDR[NFOUND]
             SVALUE = STRTRIM( STRMID(LINE,9,71),2)
             IF (NAM EQ 'HISTORY ') OR (NAM EQ 'COMMENT ') OR    $
@@ -321,13 +354,20 @@ NEXT_APOST:
 
 ;
 ;  If not a string, then separate the parameter field from the comment field.
+;  If there is no value field, then use the default "missing" value.
 ;
                 ENDIF ELSE BEGIN
+                    VALUE = MISSING_VALUE
                     TEST = SVALUE[I]
+                    IF TEST EQ '' THEN BEGIN
+                        COMMENT = ''
+                        GOTO, GOT_VALUE
+                    ENDIF
                     SLASH = STRPOS(TEST, "/")
-                    IF SLASH GT 0 THEN BEGIN
+                    IF SLASH GE 0 THEN BEGIN
                         COMMENT = STRMID(TEST, SLASH+1, STRLEN(TEST)-SLASH-1)
-                        TEST = STRMID(TEST, 0, SLASH)
+                        IF SLASH GT 0 THEN TEST = STRMID(TEST, 0, SLASH) ELSE $
+                            GOTO, GOT_VALUE
                     END ELSE COMMENT = ''
 ;
 ;  Find the first word in TEST.  Is it a logical value ('T' or 'F')?

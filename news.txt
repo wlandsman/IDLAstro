@@ -1,3 +1,5 @@
+22-Sep-2015: FXPAR(), FXADDPAR - Now work with null values in a FITS header
+
 18-Sep-2015: QUERYGSC - Updated for new server format
              FTDELCOL - Columns can now be specified by number as advertised
 
