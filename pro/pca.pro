@@ -59,7 +59,7 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      This procedure performs Principal Components Analysis (Karhunen-Loeve
 ;      Transform) according to the method described in "Multivariate Data 
 ;      Analysis" by Murtagh & Heck [Reidel : Dordrecht 1987], pp. 33-48.
-;      See  http://astro.u-strasbg.fr/~fmurtagh/mda-sw/
+;      See  http://www.classification-society.org/csna/mda-sw/pca.f
 ;
 ;      Keywords /COVARIANCE and /SSQ are mutually exclusive.
 ;

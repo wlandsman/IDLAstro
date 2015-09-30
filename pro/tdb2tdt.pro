@@ -133,7 +133,7 @@
 ; REFERENCES:
 ;
 ;   Princeton TEMPO Program
-;      http://pulsar.princeton.edu/tempo/
+;      http://tempo.sourceforge.net/tempo_idx.html
 ;
 ;   FBL Test Data Set
 ;      ftp://maia.usno.navy.mil/conventions/chapter11/fbl.results

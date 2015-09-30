@@ -1,3 +1,5 @@
+30-Sep-2015: SXPAR(), SXADDPAR - Now work with null values in a FITS header
+
 22-Sep-2015: FXPAR(), FXADDPAR - Now work with null values in a FITS header
 
 18-Sep-2015: QUERYGSC - Updated for new server format

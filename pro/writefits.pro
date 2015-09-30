@@ -43,7 +43,7 @@ pro writefits, filename, data, header, heap, Append = Append,  $
 ;                option is incompatible with the /APPEND option.
 ;      /Checksum - If set, then the CHECKSUM keywords to monitor data integrity
 ;                 will be included in the FITS header.    For more info, see
-;                  http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/checksum.html
+;                 http://fits.gsfc.nasa.gov/registry/checksum.html
 ;                 By default, checksum keywords will updated if they are already
 ;                 in the FITS header.
 ;       NaNvalue - Value in the data array which represents missing pixels.

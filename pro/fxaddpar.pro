@@ -6,7 +6,7 @@
 ; Explanation : 
 ;       This version of FXADDPAR will write string values longer than 68 
 ;       characters using the FITS continuation convention described at 
-;       http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
+;       http://fits.gsfc.nasa.gov/registry/continue_keyword.html
 ; Use         : 
 ;       FXADDPAR, HEADER, NAME, VALUE, COMMENT
 ; Inputs      : 
