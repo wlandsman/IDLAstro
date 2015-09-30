@@ -1,5 +1,6 @@
 Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
-                 savecomment = savecom, after=after , format=format, pdu = pdu
+                 savecomment = savecom, after=after , format=format, pdu = pdu, $
+                 missing = missing, null = null
 ;+
 ; NAME:
 ;       SXADDPAR
@@ -8,8 +9,8 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;
 ; CALLING SEQUENCE:
 ;       SXADDPAR, Header, Name, Value, [ Comment,  Location, /SaveComment, 
-;                               BEFORE =, AFTER = , FORMAT= , /PDU]
-;
+;                               BEFORE =, AFTER = , FORMAT= , /PDU
+;                               /SAVECOMMENT, Missing=, /Null
 ; INPUTS:
 ;       Header = String array containing FITS or STSDAS header.    The
 ;               length of each element must be 80 characters.    If not 
@@ -53,7 +54,20 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;               should be defined so that it can be applied separately to the
 ;               real and imaginary parts.  If not supplied then the default is
 ;               'G19.12' for double precision, and 'G14.7' for floating point.
+;       /NULL   = If set, then keywords with values which are undefined, or
+;                 which have non-finite values (such as NaN, Not-a-Number) are
+;                 stored in the header without a value, such as
 ;
+;                       MYKEYWD =                      /My comment
+;
+;       MISSING = A value which signals that data with this value should be
+;                 considered missing.  For example, the statement
+;
+;                       FXADDPAR, HEADER, 'MYKEYWD', -999, MISSING=-999
+;
+;                 would result in the valueless line described above for the
+;                 /NULL keyword.  Setting MISSING to a value implies /NULL.
+;                 Cannot be used with string or complex values.
 ;       /PDU    = specifies keyword is to be added to the primary data unit
 ;               header. If it already exists, it's current value is updated in
 ;               the current position and it is not moved.
@@ -115,12 +129,14 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;       Oct 2005 Jan 2004 change made SXADDPAR fail for empty strings W.L.
 ;       May 2011 Fix problem with slashes in string values W.L. 
 ;       Aug 2013 Only use keyword_set for binary keywords W. L. 
+;       Sep 2015 Added NULL and MISSING keywords W.L>
 ;       
 ;-
  compile_opt idl2
  if N_params() LT 3 then begin             ;Need at least 3 parameters
       print,'Syntax - Sxaddpar, Header, Name,  Value, [Comment, Postion'
-      print,'                      BEFORE = ,AFTER = , FORMAT =, /SAVECOMMENT]'
+      print,'                      BEFORE = ,AFTER = , FORMAT =, /SAVECOMMENT'
+      print,'                      MISSING =, /NULL'
       return
  endif
 
@@ -156,7 +172,25 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 
         nn = string(replicate(32b,8))   ;8 char name
         strput,nn,strupcase(name) ;insert name
-
+;
+;  Check to see if the parameter should be saved as a null value.
+;
+        stype = size(value,/type)
+        save_as_null = 0
+        if stype EQ 0 then $
+            if (n_elements(missing) eq 1) || keyword_set(null) then $
+              save_as_null = 1 else $
+                message = 'keyword value (third parameter) is not defined'
+        if (stype NE 6) && (stype NE 7) && (stype NE 9) then begin
+            if N_elements(missing) eq 1 then $
+              if value eq missing then save_as_null = 1
+              if ~save_as_null then if ~finite(value) then begin
+                if ((n_elements(missing) eq 1) || keyword_set(null)) then $
+                  save_as_null = 1 else $
+                    message = 'keyword value (third parameter) is not finite'
+            endif
+        endif
+;
 ;  Extract first 8 characters of each line of header, and locate END line
 
  keywrd = strmid(header,0,8)                 ;Header keywords
@@ -279,7 +313,7 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
           iloc =  where(keywrd eq loc,nloc)
           if nloc gt 0 then begin
              i = iloc[0]
-             if keyword_set(after) and loc ne 'HISTORY ' then i = i+1 < iend 
+             if keyword_set(after) && (loc ne 'HISTORY ') then i = i+1 < iend 
              if i gt 0 then header=[header[0:i-1],blank,header[i:n-1]] $
                         else header=[blank,header[0:n-1]]
              goto, REPLACE  
@@ -335,18 +369,22 @@ REPLACE:
         END
 
  else:  begin
+        if ~save_as_null then begin
         if (N_elements(format) eq 1) then $            ;use format keyword
             v = string(value, FORMAT='('+strupcase(format)+')' ) else $
             v = strtrim(strupcase(value),2)      
                                       ;convert to string, default format
         s = strlen(v)                 ;right justify
         strput,h,v,(30-s)>10          ;insert
+        endif
         end
  endcase
 
- strput,h,' /',30       ;add ' /'
- strput, h, ncomment, 32 ;add comment
- header[i] = h          ;save line
-
+ if (~save_as_null) || (strlen(strtrim(comment)) GT 0) then begin
+   strput,h,' /',30       ;add ' /'
+   strput, h, ncomment, 32 ;add comment
+ endif  
+   header[i] = h          ;save line
+ 
  return
  end
