@@ -14,7 +14,8 @@ pro ftdelcol,h,tab,name
 ;
 ; INPUTS:
 ;	name - Either (1) a string giving the name of the column to delete
-;		or (2) a scalar giving the column number to delete
+;		or (2) a scalar giving the column number to delete (starting with 1)
+;       Only 1 column can be deleted at a time
 ;
 ; EXAMPLE:
 ;	Suppose it has been determined that the F7.2 format used for a field
@@ -29,8 +30,9 @@ pro ftdelcol,h,tab,name
 ; REVISION HISTORY:                                           
 ;	Written   W. Landsman        STX Co.     August, 1988
 ;	Adapted for IDL Version 2, J. Isensee, July, 1990
-;	Converted to IDL V5.0   W. Landsman   September 1997
-;       Updated call to new FTINFO   W. Landsman  May 2000
+;   Updated call to new FTINFO   W. Landsman  May 2000
+;   Allow specification of column number in addition to field name
+;       M. Nolan/W. Landsman  Sep 2015
 ;- 
 ; On_error,2
 
@@ -45,16 +47,20 @@ pro ftdelcol,h,tab,name
 
  ftinfo, h, ft_str     ;Get starting column and width (in bytes)
  sz = size(name)
- if ((sz[0] ne 0) or (sz[1] EQ 0)) then $
+ if ((sz[0] ne 0) || (sz[1] EQ 0)) then $
       message,'Invalid field specification, it must be a scalar'
 
  if sz[1] EQ 7 then begin        ;If a string, get the field number
-    ttype = strtrim(ft_str.ttype,2)
+    ttype = strupcase( strtrim(ft_str.ttype,2))
     field = where(ttype EQ strupcase(strtrim(name,2)), Npos) + 1
     if Npos EQ 0 then message, $ 
-        'Specified field ' + strupcase(strtrim(field,2)) + ' not in table'
- endif
- 
+        'Specified field ' + strupcase(strtrim(name,2)) + ' not in FITS table'
+ endif else begin         ;Column number supplied
+    field = long(name)
+    if (field LT 1 || field GT n_elements(ft_str.ttype)) then message, $
+         'Column number must be between 1 and ' + strtrim(n_elements(ft_str.ttype),2)
+ endelse
+    
 
 ; Eliminate relevant columns from TAB
 
@@ -76,8 +82,8 @@ pro ftdelcol,h,tab,name
  j = 0
  key = strupcase(strmid(h,0,5))
  for i= 0,nh-1 do begin    ;Loop over each element in header
- if (key[i] eq 'TTYPE') OR (key[i] eq 'TFORM') or (key[i] eq 'TUNIT') or $
-    (key[i] eq 'TNULL') OR (key[i] eq 'TBCOL') then begin
+ if (key[i] eq 'TTYPE') || (key[i] eq 'TFORM') || (key[i] eq 'TUNIT') || $
+    (key[i] eq 'TNULL') || (key[i] eq 'TBCOL') then begin
     row = h[i]                    
     ifield = fix(strtrim(strmid(row,5,3)))    
     if ifield GT field then begin    ;Subsequent field?
@@ -90,18 +96,19 @@ pro ftdelcol,h,tab,name
          strput,row,v,30-s                  ;Right justify
       endif
    endif 
-   if ifield ne field then hnew[j] = row else j=j-1
+   if ifield ne field then hnew[j] = row else j--
 
  endif else hnew[j] = h[i]      
 
- j = j+1
+ j++
  endfor   
 
  sxaddpar,hnew,'TFIELDS',tfields-1 ;Reduce number of fields by 1
  sxaddpar,hnew,'NAXIS1',ncol-width ;Reduce num. of columns by WIDTH
 
  h = hnew[0:j-1]
- message,'Field '+strupcase(name)+' has been deleted from the FITS table',/INF
+ message,'Field '+ strtrim(strupcase(name),2) + $
+         ' has been deleted from the FITS table',/INF
 
  return  
  end

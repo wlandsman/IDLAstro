@@ -5,12 +5,14 @@ function Bsort, Array, Asort, INFO=info, REVERSE = rev
 ; PURPOSE:
 ;       Function to sort data into ascending order, like a simple bubble sort.
 ; EXPLANATION:
-;       Original subscript order is maintained when values are equal (FIFO).
+;       Original subscript order is maintained when values are equal (stable sort).
 ;       (This differs from the IDL SORT routine alone, which may rearrange 
 ;       order for equal values)
 ;
-;       A faster algorithm (radix sort) for numeric data is available  at 
-;       http://idldatapoint.com/2012/04/19/an-lsd-radix-sort-algorithm-in-idl/
+;       A faster algorithm (radix sort) for numeric data is described at 
+;       http://www.exelisvis.com/Learn/Blogs/IDLDataPointDetail/TabId/902/ArtMID/2926/ArticleID/13017/An-LSD-radix-sort-algorithm-in-IDL.aspx
+;       and available at
+;       https://github.com/mgalloy/mglib/blob/master/src/analysis/mg_sort.pro
 ; CALLING SEQUENCE:  
 ;       result = bsort( array, [ asort, /INFO, /REVERSE ] )
 ;
@@ -70,7 +72,7 @@ function Bsort, Array, Asort, INFO=info, REVERSE = rev
                 if (Neq GT 1) then begin              ;find clumps of equality
 
                         wclump = where( (shift( weq, -1 ) - weq) GT 1, Nclump )
-                        Nclump = Nclump + 1
+                        Nclump++
 
                   endif else Nclump = 1
 

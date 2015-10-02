@@ -1,5 +1,6 @@
 function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
-                IFound = number, NoContinue = NoContinue, SILENT = silent
+                IFound = number, NoContinue = NoContinue, SILENT = silent, $
+                NULL = K_Null, NAN = NaN, MISSING = Missing
 ;+
 ; NAME:
 ;      SXPAR
@@ -32,6 +33,19 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;                 if present in the header
 ;       /SILENT - Set this keyword to suppress warning messages about duplicate
 ;                 keywords in the FITS header.
+;       MISSING = By default, this routine returns 0 when keyword values are
+;                 not found.  This can be overridden by using the MISSING
+;                 keyword, e.g. MISSING=-1.
+;       /NAN    = If set, then return Not-a-Number (!values.f_nan) for missing
+;                 values.  Ignored if keyword MISSING is present.
+;       /NULL   = If set, then return !NULL (undefined) for missing values.
+;                 Ignored if MISSING of /NAN is present, or if earlier than IDL
+;                 version 8.0.  If multiple values would be returned, then
+;                 MISSING= or /NAN should be used instead of /NULL, making sure
+;                 that the datatype is consistent with the non-missing values,
+;                 e.g. MISSING='' for strings, MISSING=-1 for integers, or
+;                 MISSING=-1.0 or /NAN for floating point.  /NAN should not be
+;                 used if the datatype would otherwise be integer.
 ;
 ; OPTIONAL OUTPUT KEYWORDS:
 ;       COUNT - Optional keyword to return a value equal to the number of 
@@ -130,18 +144,30 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Dec 2014  Return Logical as IDL Boolean in IDL 8.4 or later
 ;       W. Landsman May 2015  Added IFound output keyword
 ;       J. Slavin Aug 2015 Allow for 72 character par values (fixed from 71)
+;       W. Landsman Sep 2015  Added Missing, /NULL and /NaN keywords 
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
 
  if N_params() LT 2 then begin
      print,'Syntax -  result =  sxpar( hdr, name, [abort])'
-     print,'   Input Keywords:    /NOCONTINUE, /SILENT'
+     print,'   Input Keywords:    /NOCONTINUE, /SILENT, MISSING=, /NAN, /NULL'
      print,'   Output Keywords:   COUNT=,  COMMENT= '
      return, -1
  endif 
  
- 
+ ;
+;  Determine the default value for missing data.
+;
+        CASE 1 OF 
+            N_ELEMENTS(MISSING) EQ 1: MISSING_VALUE = MISSING
+            KEYWORD_SET(NAN): MISSING_VALUE = !VALUES.F_NAN
+            KEYWORD_SET(K_NULL) AND !VERSION.RELEASE GE '8.': $
+              DUMMY = EXECUTE('MISSING_VALUE = !NULL')
+            ELSE: MISSING_VALUE = 0
+        ENDCASE
+        VALUE = MISSING_VALUE
+;
  
  VALUE = 0
  if N_params() LE 2 then begin
@@ -283,13 +309,18 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ; Process non-string value  
 
           endif else begin
-
-                test = svalue[i]
+               value = missing_value
+               test = svalue[i]
+               if test EQ '' then begin
+                        comment = ''
+                        GOTO, got_value
+                endif
                 slash = strpos( test, "/" )
-                if slash GT 0 then begin
+                if slash GE 0 then begin
                         comment = strmid( test, slash+1, strlen(test)-slash-1 )
-                        test = strmid( test, 0, slash )
-                end else comment = ''
+                        if slash GT 0 then test = strmid(test, 0, slash) else $
+                            GOTO, got_value
+                endif else comment = ''
 
 ; Find the first word in TEST.  Is it a logical value ('T' or 'F') ?
 

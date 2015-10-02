@@ -1,3 +1,4 @@
+
 function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
    VERBOSE=verbose, BOX = box
 ;+
@@ -9,7 +10,7 @@ function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
 ; 
 ; EXPLANATION:
 ;   Uses the IDL SOCKET command to query the GSC 2.3.2 database over the Web.
-;   The number and names of the structure tags was changed in April 2014    
+;   The number and names of the structure tags was changed in September 2015
 ;
 ;   Alternatively, (and more reliably) one can query the GSC 2.3.2 catalog using
 ;   queryvizier.pro and the VIZIER database, e.g.  
@@ -50,12 +51,15 @@ function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
 ;          48 tags in this structure  -- for further information see
 ;          http://gsss.stsci.edu/Catalogs/GSC/GSC2/gsc23/gsc23_release_notes.htm
 ;
+
+;          .GSC2ID - GSC2 name
+;          .GSC1ID - GSC1 name
 ;          .HSTID - GSC 2.3 name for HST operations
 ;          .RA,.DEC - Position in degrees (double precision).   RA is given in
 ;                   hours if the /HOURS keyword is set.
-;          .GSC1ID - GSC1 name
-;          .RAERR, .DECERR - uncertainty (in arcseconds) in the RA and Dec
 ;          .EPOCH - mean epoch of the observation
+;          .RAEPSILON, .DECEPSION - uncertainty (in arcseconds) in the RA and 
+;                   Dec
 ;          .FPGMAG, .FPGERR, .FPGMAGCODE - mag, error, code in photographic F
 ;          .JPGMAG, .JPGERR, .JPGMAGCODE - mag, error code, photographic J
 ;          .VPGMAG, .VPGERR, .VPGMAGCODE - V mag, error, code
@@ -69,18 +73,15 @@ function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
 ;          .HMAG, .HERR, .HMAGCODE - magnitude, error, code
 ;          .KMAG, .KERR, .KMAGCODE - magnitude, error, code
 ;          .CLASS - classification (0-5): 0-star, 1-galaxy, 2-blend, 
+;          .SEMIMAJORAXIS - semi-major axis in pixels
+;          .POSITIONANGLE - Position angle of extended objects in degrees
 ;                         3-nonstar, 4-unclassified, 5-defect
 ;          .SOURCESTATUS -10 digit field  used to encode more detailed information 
 ;              about the properties of the catalog object.   For more info, see
 ;http://www-gsss.stsci.edu/Catalogs/GSC/GSC2/gsc23/gsc23_release_notes.htm#ClassificationCodes
-;          .SEMIMAJORAXIS - semi-major axis in pixels
-;          .POSITIONANGLE - Position angle of extended objects in degrees
-;          .ECCENTRICITY - eccentricity of extended objects
-;          .STATUS -10 digit field  used to encode more detailed information 
-;              about the properties of the catalog object.   For more info, see
-;http://www-gsss.stsci.edu/Catalogs/GSC/GSC2/gsc23/gsc23_release_notes.htm#ClassificationCodes
 ;           .VARIABLEFLAG, MULTIPLEFLAG - Variability andd multiplicity flags
-;           .DISTANCE - Distance to search center in arcminutes
+;            COMPASSGSC2ID - Unique ID in the Compass database 
+;            http://gsss.stsci.edu/zzzOldWebSite/compass/CompassHome.htm
 ; EXAMPLE: 
 ;          Plot a histogram of the photographic J magnitudes of all GSC 2.3.2 
 ;          stars within 10 arcminutes of the center of the globular cluster M13 
@@ -100,6 +101,7 @@ function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
 ;         Web server now also returns infrared data  W.L. Feb 2010
 ;         Fixed case where dec neg. and deg or min 0 Pat Fry Jul 2010
 ;         Updated for new server format W. Landsman  April 2014
+;         Updated for new server format W. Landsman  September 2015
 ;
 ;-
   compile_opt idl2
@@ -150,22 +152,33 @@ function Querygsc, target, dis,magrange = magrange, HOURS = hours, $
   if strmid(t[0],0,5) NE 'Usage' and nstar GT 0 THEN BEGIN
   headers = strsplit(t[1],',',/extract)
   
-  info = create_struct(Name='gsc',headers, '',0.0d,0.0d,'',0.0,0.0,0.0d, $
-   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, $   ;Mags
-   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   $   ;Code    
-   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, $   ;Err
-   0,  $   ;Class 
-   '',  $   ;Sourcestatus
-   0, 0, 0, $   ;semimajoraxis, positionangle, eccentricity
-   0, 0, $  ;variable, Multiple flag
-   0.0d )   ;Distance 
+  info = create_struct(Name='gsc',headers, 0LL,'','','', $
+   0.0d,0.0d, 0.0,0.0,0.0, $
+     0.0, 0.0, 0, $   ;Fpgmag,Err,code
+   0.0, 0.0, 0, $   ;Jpgmag,Err,code
+    0.0, 0.0, 0, $   ;Vmag,Err,code
+       0.0, 0.0, 0, $   ;Nmag,Err,code 
+  0.0, 0.0, 0, $   ;Umag,Err,code
+    0.0, 0.0, 0, $   ;Bmag,Err,code
+  0.0, 0.0, 0, $   ;Rmag,Err,code
+    0.0, 0.0, 0, $   ;Imag,Err,code
+  0.0, 0.0, 0, $   ;Jmag,Err,code
+   0.0, 0.0, 0, $   ;Hmag,Err,code
+   0.0, 0.0, 0, $   ;Kmag,Err,code
+   0,  $   ;Classification 
+   0.,  $   ;Size
+   0., 0., 0LL, $   eccentricity, positionangle, objectflags
+   0, 0 , $ ;variable, Multiple flag
+   0LL, '' )
+ 
+
 
   info = replicate(info,nstar)
 
   for i=0,nstar-1 do begin
-      temp = strsplit(t[i+2],',',/extract)
+      temp = strtrim(strsplit(t[i+2],',',/extract),2)
        for j=0,N_elements(temp)-1 do begin 
-       info[i].(j) = temp[j]
+       info[i].(j) = temp[j]      
        endfor
   endfor
    ENDIF ELSE BEGIN 
