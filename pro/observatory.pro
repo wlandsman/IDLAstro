@@ -67,6 +67,7 @@ pro observatory,obsname,obs_struct, print = print
 ;  'BAO': Beijing XingLong Observatory
 ;  'keck': W. M. Keck Observatory
 ;  'ekar': Mt. Ekar 182 cm. Telescope
+;  'loiano': Bologna Astronomical Observatory, Loiano - Italy
 ;  'apo': Apache Point Observatory
 ;  'lowell': Lowell Observatory
 ;  'vbo': Vainu Bappu Observatory
@@ -105,8 +106,9 @@ pro observatory,obsname,obs_struct, print = print
  
 obs=[ 'kpno','ctio','eso','lick','mmto','cfht','lapalma','mso','sso','aao', $
   'mcdonald','lco','mtbigelow','dao','spm','tona','Palomar','mdm','NOV','bmo',$
-  'BAO','keck','ekar','apo','lowell','vbo','flwo','oro','lna','saao','casleo', $
-  'bosque','rozhen','irtf','bgsuo','ca','holi','lmo','fmo','whitin','mgio']
+   'BAO','keck','ekar','loiano','apo','lowell','vbo','flwo','oro','lna','saao',$
+   'casleo','bosque','rozhen','irtf','bgsuo','ca','holi','lmo','fmo','whitin',$
+   'mgio']
 
  if N_elements(obsname) EQ 1 then if obsname eq '' then obsname = obs
  nobs = N_elements(obsname)
@@ -278,6 +280,13 @@ case strlowcase(obsname[i]) of
 	latitude = [45,50,54.92]
 	altitude = 1413.69
 	tz = -1
+        end
+ "loiano": begin
+        name = "Bologna Astronomical Observatory, Loiano - Italy"
+        longitude = [348,39,58]
+        latitude = [44,15,33]
+        altitude = 785.
+        tz = -1
         end
  "apo":  begin
 	name = "Apache Point Observatory"
