@@ -8,7 +8,7 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ;
 ; EXPLANATION:
 ;       The 32bit checksum is adopted in the FITS Checksum convention
-;       http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/checksum.html
+;       http://fits.gsfc.nasa.gov/registry/checksum.html
 ;
 ; CALLING SEQUENCE:
 ;       CHECKSUM32, array, checksum, [/FROM_IEEE, /NoSAVE]
@@ -32,15 +32,12 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ;           the /NoSave keyword to save time if the input array is not needed 
 ;           in further computations. 
 ; METHOD:
-;       Uses TOTAL() to sum the array into a double precision variable.  The
+;       Uses TOTAL() to sum the array into an unsigned integer variable.  The
 ;       overflow bits beyond 2^32 are then shifted back to the least significant
-;       bits.    Due to the limited precision of a DOUBLE variable, the summing
-;       is done in chunks determined by MACHAR(). Adapted from FORTRAN code in
+;       bits.    The summing is done in chunks of 2^31 numbers to avoid loss
+;      of precision.    Adapted from FORTRAN code in
 ;      heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/checksum/node30.html
 ;
-;      Could probably be done in a cleverer way (similar to the C
-;      implementation) but then the array-oriented TOTAL() function could not 
-;      be used.
 ; RESTRICTIONS:
 ;       (1) Not valid for object or pointer data types
 ; EXAMPLE:
@@ -83,10 +80,9 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
            uarray =  byte( array ,0,N) 
  endelse
  	    
-; Get maximum number of base 2 digits available in double precision, and 
-; compute maximum number of longword values that can be coadded without losing
-; any precision.    Since we will sum unsigned longwords, the original array
-; must be byteswapped as longwords.
+; Get maximum number of base 2 digits available in an unsigned long array, 
+; without losing any precision.    Since we will sum unsigned longwords, the 
+; original  array must be byteswapped as longwords.
 
  maxnum = long64(2)^31       
  Niter =  (N-1)/maxnum
@@ -109,7 +105,7 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
            if nbyte EQ 0 then nbyte = maxnum
    endif else nbyte = maxnum
 
-   checksum = checksum + total(ulong(  uarray,maxnum*i,nbyte/4), /integer)
+   checksum += total(ulong(  uarray,maxnum*i,nbyte/4), /integer)
 ; Fold any overflow bits beyond 32 back into the word.
 
    hibits = long(checksum/word32)
