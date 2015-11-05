@@ -181,7 +181,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
   ngood = 0L                 ;Number of good lines
   if N_elements(compress) EQ 0 then $
         compress = strmid(name,2,3,/reverse) EQ '.gz'
-  nlines = FILE_LINES( name, COMPRESS=compress )
+  nlines = FILE_LINES( name, COMPRESS=compress[0] )
   
 
   if keyword_set(DEBUG) then $
@@ -273,7 +273,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
   idltype = idltype[goodcol]
   check_numeric = (idltype NE 7)
   check_comment = N_elements(comment) GT 0
-  openr, lun, name, /get_lun, compress=compress
+  openr, lun, name, /get_lun, compress=compress[0]
 
   temp = ' '
   skip_lun,lun,skipline, /lines
