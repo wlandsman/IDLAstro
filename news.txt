@@ -1,4 +1,4 @@
-9-Sep-2015:  READCOL - Assume file is compressed if its name ends in '.gz'
+9-Oct-2015:  READCOL - Assume file is compressed if its name ends in '.gz'
 
 30-Sep-2015: SXPAR(), SXADDPAR - Now work with null values in a FITS header
 
