@@ -27,7 +27,7 @@ function frebin,image,nsout,nlout,total=total
 ; OPTIONAL KEYWORD INPUTS:
 ;   /total - if set, the output pixels will be the sum of pixels within
 ;          the appropriate box of the input image.  Otherwise they will
-;          be the average.    Use of the /TOTAL keyword conserves surface flux.
+;          be the average.    Use of the /TOTAL keyword conserves total counts.
 ; 
 ; OUTPUTS:
 ;    The resized image is returned as the function result.    If the input
@@ -39,7 +39,7 @@ function frebin,image,nsout,nlout,total=total
 ;     
 ; EXAMPLE:
 ;     Suppose one has an 800 x 800 image array, im, that must be expanded to
-;     a size 850 x 900 while conserving surface flux:
+;     a size 850 x 900 while conserving the total counts:
 ;
 ;     IDL> im1 = frebin(im,850,900,/total) 
 ;
