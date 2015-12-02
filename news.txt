@@ -1,3 +1,6 @@
+24-Nov-2015: HREBIN - Now has /TOTAL keyword to preserve total counts or surface
+                    flux (e.g. counts/(arc sec)^2)
+
 9-Oct-2015:  READCOL - Assume file is compressed if its name ends in '.gz'
 
 30-Sep-2015: SXPAR(), SXADDPAR - Now work with null values in a FITS header

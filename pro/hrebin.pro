@@ -1,4 +1,4 @@
- pro hrebin, oldim, oldhd, newim, newhd, newx, newy, $
+ pro hrebin, oldim, oldhd, newim, newhd, newx, newy, TOTAL = total, $
             SAMPLE=sample, OUTSIZE = outsize, ERRMSG = errmsg, ALT=alt
 ;+
 ; NAME:
@@ -8,7 +8,8 @@
 ; EXPLANATION:
 ;    If the output size is an exact multiple of the input size then REBIN is 
 ;    used, else FREBIN is used.   User can either overwrite the input array,
-;    or write to new variables.
+;    or write to new variables.     By default, the counts/pixel is preserved,
+;    though one can preserve the total counts or surface flux by setting /TOTAL
 ;
 ; CALLING SEQUENCE:
 ;    HREBIN, oldhd        ;Special calling sequence to just update header
@@ -32,19 +33,25 @@
 ;            updated header.
 ;
 ; OPTIONAL INPUT KEYWORDS:
+;    ALT - Single character 'A' through 'Z' or ' ' specifying which astrometry
+;          system to modify in the FITS header.    The default is to use the
+;          primary astrometry of ALT = ' '.    See Greisen and Calabretta (2002)
+;          for information about alternate astrometry keywords.
+;
+;    OUTSIZE - Two element integer vector which can be used instead of the
+;             NEWX and NEWY parameters to specify the output image dimensions
+;
 ;    /SAMPLE - Expansion or contraction is done using REBIN which uses 
 ;              bilinear interpolation when magnifying and boxaveraging when 
 ;              minifying.   If the SAMPLE keyword is supplied and non-zero, 
 ;              then nearest neighbor sampling is used in both cases.   Keyword
 ;              has no effect when output size is not a multiple of input size.
 ;
-;    OUTSIZE - Two element integer vector which can be used instead of the
-;             NEWX and NEWY parameters to specify the output image dimensions
+;    /TOTAL - If set then the output image will have the same total number of counts
+;             as the input image.     Because HREBIN also updates the astrometry,
+;             use of the TOTAL keyword also preserves counts per surface area, e.g.
+;             counts/(arc sec)@    
 ;
-;    ALT - Single character 'A' through 'Z' or ' ' specifying which astrometry
-;          system to modify in the FITS header.    The default is to use the
-;          primary astrometry of ALT = ' '.    See Greisen and Calabretta (2002)
-;          for information about alternate astrometry keywords.
 ; OPTIONAL KEYWORD OUTPUT:
 ;       ERRMSG - If this keyword is supplied, then any error mesasges will be
 ;               returned to the user in this parameter rather than depending on
@@ -85,6 +92,7 @@
 ;     Don't update BSCALE/BZERO for unsigned integer W.Landsman Mar 2008
 ;     Use post-V6.0 notation   W. Landsman  Nov 2011
 ;     Write CRPIX values as double precision if necessary W. Landsman Oct. 2012
+;     Always call FREBIN, added TOTAL keyword  Nov 2015
 ;- 
  On_error,2
  compile_opt idl2
@@ -138,21 +146,13 @@
  
  endif
 
-;  If an image array supplied then apply the REBIN  or FREBIN functions
-; If output size is a multiple of input size then use REBIN else use FREBIN
-
-  exact = (~(xsize mod newx)  || ~(newx mod xsize)) && $
-          (~(ysize mod newy)  || ~(newy mod ysize)  )
+;  Modified Nov 2015 to alway call FREBIN.     FREBIN() will call the IDL REBIN()
+;  function if we are changing dimensions by an exact multiple.
 
  if npar GT 1 then begin
- if exact then begin
-   if npar GT 2 then newim = rebin( oldim, newx, newy, SAMPLE=sample) $
-                else oldim = rebin( oldim, newx, newy, SAMPLE=sample)
  
- endif else begin
-   if npar GT 2 then newim = frebin( oldim, newx, newy) $
-                else oldim = frebin( oldim, newx, newy)
- endelse 
+   if npar GT 2 then newim = frebin( oldim, newx, newy,total=total) $
+                else oldim = frebin( oldim, newx, newy,total=total) 
    endif
 
 
@@ -195,6 +195,8 @@
 ; effects are introduced, which require a different calculation of the updated
 ; CRPIX1 and CRPIX2 values.
 
+exact = (~(xsize mod newx) || ~(newx mod xsize)) &&  $
+        (~(ysize mod newy) || ~(newy mod ysize)) 
  if (exact) && (~keyword_set(SAMPLE)) && (xratio GT 1) then $
       crpix1 = (crpix[0]-1.0)*xratio + 1.0                  else $
       crpix1 = (crpix[0]-0.5)*xratio + 0.5
@@ -232,7 +234,7 @@
 ;Can no longer use the simple CROTA2 convention, change to PC keywords
 	 sxaddpar,newhd,'PC1_1'+alt, cd[0,0]
 	 sxaddpar, newhd,'PC2_2'+alt, cd[1,1]
-         sxdelpar, newhd, ['CROTA2','CROTA1']
+     sxdelpar, newhd, ['CROTA2','CROTA1']
         endif	
         sxaddpar, newhd, 'PC1_2'+alt, cd[0,1]/lambda
         sxaddpar, newhd, 'PC2_1'+alt, cd[1,0]*lambda
@@ -252,6 +254,7 @@
 ; Adjust BZERO and BSCALE for new pixel size, unless these values are used
 ; to define unsigned integer data types.  
 
+ if ~keyword_set(TOTAL) then begin
  bscale = sxpar( oldhd, 'BSCALE')
  bzero = sxpar( oldhd, 'BZERO')
  unsgn = (tname EQ 'UINT') || (tname EQ 'ULONG') 
@@ -262,6 +265,7 @@
  if (bzero NE 0) then sxaddpar, newhd, 'BZERO', bzero/pix_ratio, $
        ' Additive Constant for Calibration'
  endif 
+ endif
  
   pixelsiz = sxpar( oldhd,'PIXELSIZ' , Count = N_pixelsiz)
  if N_pixelsiz GT 0 then sxaddpar, newhd, 'PIXELSIZ', pixelsiz/xratio
