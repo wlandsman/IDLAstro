@@ -146,6 +146,8 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       Support IRAF TNX projection  M. Sullivan U. of Southamptom March 2014
 ;       PV1_3, PV1_4 keywords take precedence over LONPOLE, LATPOLE keywords
 ;                   WL, August 2014
+;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
+;          TPV projection   WL  December 2015
 ;-
 
  compile_opt idl2
