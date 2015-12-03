@@ -385,7 +385,7 @@ RD_CEN:
 
 ; 
     if N_elements(longpole) EQ 1 then begin
-        astr.pv1[3] = longpole
+        if astr.distort.name NE 'TPV' then astr.pv1[3] = longpole
         test = sxpar(hdr,'LONPOLE',count=N_lonpole)
         if N_lonpole EQ 1 then $
             sxaddpar, hdr, 'LONPOLE' +alt ,double(longpole), $
@@ -393,7 +393,7 @@ RD_CEN:
     endif 
  
     if N_elements(latpole) EQ 1 then begin
-       astr.pv1[4] = latpole
+       if astr.distort.name NE 'TPV' then astr.pv1[4] = latpole
        test = sxpar(hdr,'LATPOLE',count=N_latpole)
         if N_latpole EQ 1 then $
          sxaddpar, hdr, 'LATPOLE' +alt ,double(latpole), $
@@ -432,7 +432,7 @@ RD_CEN:
           ' Modified Julian day of observations', 'HISTORY', /SaveC
         IF astr.dateobs NE 'UNKNOWN' THEN SXADDPAR, hdr, 'DATE-OBS', $
           astr.dateobs, ' Date of observations', 'HISTORY', /SaveC
-        IF astr.radecsys NE '' THEN SXADDPAR, hdr, 'RADESYS'+alt, $
+        IF astr.radecsys NE '' THEN SXADDPAR, hdr, 'RADECSYS'+alt, $
           astr.radecsys,' Reference frame', 'HISTORY', /SaveC
     ENDIF
     
