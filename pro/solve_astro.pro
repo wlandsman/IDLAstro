@@ -10,10 +10,10 @@
 ;    solution. Optional sigma clipping on the fit. Similar in
 ;    principle to IRAF's ccmap.
 ; CALLING SEQUENCE:
-;    SOLVE_ASTRO, ra_degrees, dec_degrees, xpixel, ypixel,
+;    astr  = SOLVE_ASTRO( ra_degrees, dec_degrees, xpixel, ypixel,
 ;    [XIORDER=, ETAORDER=, XTERMS= DISTORT=, CRVAL= NITER=, REJECT=,
 ;    XIRMS=, ETARMS= SUCCESS=,VERBOSE= NORTERMS= NREJ=, N_TPVTERMS=,
-;    XIRESID=, ETARESID=, WFIT= ]
+;    XIRESID=, ETARESID=, WFIT= ])
 ; INPUT ARGUMENT:
 ;    ra_degrees  - the right ascensions in degrees of the matched objects
 ;    dec_degrees - the declinations in degrees
