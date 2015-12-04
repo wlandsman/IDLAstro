@@ -177,17 +177,17 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;
         stype = size(value,/type)
         save_as_null = 0
-        if stype EQ 0 then $
+        if stype EQ 0 then begin        
             if (n_elements(missing) eq 1) || keyword_set(null) then $
               save_as_null = 1 else $
-                message = 'keyword value (third parameter) is not defined'
-        if (stype NE 6) && (stype NE 7) && (stype NE 9) then begin
+                message,'Keyword value (third parameter) is not defined'
+        endif else if (stype NE 6) && (stype NE 7) && (stype NE 9) then begin
             if N_elements(missing) eq 1 then $
               if value eq missing then save_as_null = 1
               if ~save_as_null then if ~finite(value) then begin
                 if ((n_elements(missing) eq 1) || keyword_set(null)) then $
                   save_as_null = 1 else $
-                    message = 'keyword value (third parameter) is not finite'
+                    message,'Keyword value (third parameter) is not finite'
             endif
         endif
 ;
