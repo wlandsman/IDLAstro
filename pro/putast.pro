@@ -385,9 +385,12 @@ RD_CEN:
      hist = ' World Coordinate System parameters written'
   endif
 
-; 
+; We don't want to update PV keywords if they are being used for TPV projection
+     pv_update = ~tag_exist(astr,'DISTORT') ||  $
+                  (tag_exist(astr,'DISTORT') &&  astr.distort.name NE 'TPV')
+
     if N_elements(longpole) EQ 1 then begin
-        if astr.distort.name NE 'TPV' then astr.pv1[3] = longpole
+        if pv_update then astr.pv1[3] = longpole
         test = sxpar(hdr,'LONPOLE',count=N_lonpole)
         if N_lonpole EQ 1 then $
             sxaddpar, hdr, 'LONPOLE' +alt ,double(longpole), $
@@ -395,7 +398,7 @@ RD_CEN:
     endif 
  
     if N_elements(latpole) EQ 1 then begin
-       if astr.distort.name NE 'TPV' then astr.pv1[4] = latpole
+       if pv_update then astr.pv1[4] = latpole
        test = sxpar(hdr,'LATPOLE',count=N_latpole)
         if N_latpole EQ 1 then $
          sxaddpar, hdr, 'LATPOLE' +alt ,double(latpole), $
