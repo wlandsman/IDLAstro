@@ -21,7 +21,7 @@ pro mmm, sky_vector, skymod, sigma , skew, HIGHBAD = highbad, DEBUG = debug, $
 ;               is unaltered by this program.
 ;
 ; OPTIONAL OUTPUTS:
-;       skymod - Scalar giving estimated mode of the sky values
+;       skymod - Scalar giving estimated mode of the sky values (float)
 ;       SIGMA -  Scalar giving standard deviation of the peak in the sky
 ;               histogram.  If for some reason it is impossible to derive
 ;               skymod, then SIGMA = -1.0
@@ -94,6 +94,7 @@ pro mmm, sky_vector, skymod, sigma , skew, HIGHBAD = highbad, DEBUG = debug, $
 ;       Make sure that MESSAGE never aborts  W. Landsman   January 2008
 ;       Add mxiter keyword and change default to 50  W. Landsman August 2011
 ;       Added MINSKY keyword W.L. December 2011
+;       Always return floating point sky mode  W.L.  December 2015
 ;-
  compile_opt idl2
  On_error,2               ;Return to caller
@@ -152,7 +153,7 @@ pro mmm, sky_vector, skymod, sigma , skew, HIGHBAD = highbad, DEBUG = debug, $
 ; Compute mean and sigma (from the first pass).
 
  skymed = 0.5*sky[(minimm+maximm+1)/2] + 0.5*sky[(minimm+maximm)/2 + 1] ;median 
- skymn = sum/(maximm-minimm)                            ;mean       
+ skymn = float(sum/(maximm-minimm))                            ;mean       
  sigma = sqrt(sumsq/(maximm-minimm)-skymn^2)             ;sigma          
  skymn = skymn + skymid         ;Add median which was subtracted off earlier 
 
@@ -252,7 +253,7 @@ START_LOOP:
        return		 		 
    endif 
 
-   skymn = sum/nsky       
+   skymn = float(sum/nsky)       
    sigma = float( sqrt( (sumsq/nsky - skymn^2)>0 ))
     skymn = skymn + skymid 
                 

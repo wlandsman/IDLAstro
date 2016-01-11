@@ -92,7 +92,7 @@
 ;     Don't update BSCALE/BZERO for unsigned integer W.Landsman Mar 2008
 ;     Use post-V6.0 notation   W. Landsman  Nov 2011
 ;     Write CRPIX values as double precision if necessary W. Landsman Oct. 2012
-;     Always call FREBIN, added TOTAL keyword  Nov 2015
+;     Always call FREBIN, added TOTAL keyword W. Landsman Nov 2015
 ;- 
  On_error,2
  compile_opt idl2

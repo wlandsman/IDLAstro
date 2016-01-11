@@ -1,3 +1,6 @@
+03-Dec-2015: PUTAST - RADECSYS was misspelled, also fix possible clash between 
+                    TPV distortion and use of LONGPOLE/LATPOLE
+
 24-Nov-2015: HREBIN - Now has /TOTAL keyword to preserve total counts or surface
                     flux (e.g. counts/(arc sec)^2)
 
