@@ -225,6 +225,8 @@
 ;       3.6    Jul 2013  J. P. Leahy added XPH projection, apply polar offsets
 ;                        only for cylindrical & conic projections. 
 ;       3.6.1  Dec 2013  W. Landsman Polar offsets done in radians
+;       3.6.2  Jan 2016  W. Landsman Lat and Long can have different size so long 
+;                        as they have the same number of elements
 ;-
 
 PRO wcssph2xy,longitude,latitude,x,y,map_type, ctype=ctype,$
@@ -258,10 +260,8 @@ compile_opt idl2, hidden
 
  n_long = N_elements( longitude )
  n_lat  = N_elements( latitude )
- sz_long = SIZE(longitude,/DIMENSIONS)
- sz_lat  = SIZE(latitude, /DIMENSIONS)
-; check to see that the data arrays have the same size
- if ~ARRAY_EQUAL(sz_long, sz_lat) then begin
+ ; check to see that the data arrays have the same size
+ if n_long NE n_lat then begin
      message,$
        'LONGITUDE and LATITUDE must have the same number of elements.'
  endif
@@ -288,7 +288,7 @@ endif else if (n_params() eq 4) then  wcs_check_ctype, ctype, projection_type
 ; projection_type is set to 'DEF' or if projection_type is not set at this
 ; point.  As suggested in 'Representations of Celestial Coordinates in FITS'
 ; the default type is set to CAR (Plate Caree) the simplest of all projections.
- if ((n_elements(projection_type) eq 0) or $
+ if ((n_elements(projection_type) eq 0) || $
      (projection_type eq 'DEF') ) then begin
            projection_type='CAR'
         message, /INFORMATIONAL, $
@@ -520,7 +520,7 @@ case strupcase(projection_type) of
                                                       tan(xi_b)*tan(xi_temp))
       i = 0
       repeat i = i + 1 $
-      until ((radius[i + 1] le radius[i]) or (i eq n_elements(radius) - 2))
+      until ((radius[i + 1] le radius[i]) || (i eq n_elements(radius) - 2))
       if (i lt (n_elements(radius)- 2)) then min_lat = 90 - 2*radeg*xi_temp[i] $
       else min_lat = -90
       if (min(theta) lt min_lat[0]/radeg) then begin
@@ -572,7 +572,7 @@ case strupcase(projection_type) of
   'CEA':begin
     if N_elements(PV2_1) EQ 0  then message,$
       'CEA map projection requires that PV2_1 keyword be set.'
-    if ((PV2_1 le 0) or (PV2_1 gt 1)) then message,$
+    if ((PV2_1 le 0) || (PV2_1 gt 1)) then message,$
       'CEA map projection requires 0 < PV2_1 <= 1'
     x = radeg*phi
     y = radeg*sin(theta)/PV2_1
@@ -703,7 +703,7 @@ case strupcase(projection_type) of
     if (N_elements(PV2) LT 1) then message,$
       'BON map projection requires that PV2_1 keyword be set.'
     pv2_1 = pv2[0]
-    if ((PV2_1 lt -90) or (PV2_1 gt 90)) then message,$
+    if ((PV2_1 lt -90) || (PV2_1 gt 90)) then message,$
       'PV2_1 must satisfy -90 <= PV2_1 <= 90 for BON map projection'
     if (PV2_1 eq 0) then message,$
       'PV2_1 = 0 for BON map projection is better done with SFL map projection'
