@@ -1,3 +1,5 @@
+08-Feb-2016: MODFITS - Make it optional to supply FITS header, as advertised
+
 21-Jan-2016: WCSSPH2XY - long and lat must have same number of elements, but not necessarily dimensions
 
 11-Dec-2015: MMM - Always return floating point sky mode

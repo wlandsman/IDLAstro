@@ -51,7 +51,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;             file TEST.FITS.
 ;
 ;              IDL> h = headfits('test.fits')      ;Read primary header
-;              IDL> sxaddpar,h,'DATE','2001-03-23' ;Modify value of DATE 
+;              IDL> sxaddpar,h,'DATE','2015-03-23' ;Modify value of DATE 
 ;              IDL> modfits,'test.fits',0,h        ;Update header only
 ;
 ;       (2) Replace the values of the primary image array in 'test.fits' with 
@@ -110,7 +110,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;           updated is supplied as a structure (e.g. from MRDFITS). 
 ; PROCEDURES USED:
 ;       Functions:   N_BYTES(), SXPAR()
-;       Procedures:  BLKSHIFT, CHECK_FITS, FITS_OPEN, FITS_READ
+;       Procedures:  BLKSHIFT, CHECK_FITS, FITS_OPEN, FITS_READ. SETDEFAULTVALUE
 ;
 ; MODIFICATION HISTORY:
 ;       Written,    Wayne Landsman          December, 1994
@@ -140,6 +140,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;       Use V6.0 notation, add /NOZERO to BLKSHIFT W.L. Feb 2011
 ;       Don't try to update Checksums when structure supplied W.L. April 2011
 ;       Allow structure with only 1 element  W.L.  Feb 2012
+;       Don't require that a FITS header is supplied W.L.  Feb 2016
 ;-
   On_error,2                    ;Return to user
   compile_opt idl2
@@ -188,10 +189,10 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
                  goto, BAD_EXIT
              endif
    endif else begin
-         if nheader GT 0 then $
+         if nheader GT 1 then $
              if strmid( header[0], 0, 8)  NE 'XTENSION' then begin 
               message = $
-             'ERROR - Input header does not contain required XTENSION keyword'
+             'Input header does not contain required XTENSION keyword'
               goto, BAD_EXIT
               endif
    endelse
@@ -253,13 +254,12 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
         block = (newbytes-1)/2880 - (Noldheader-1)/2880
         if block NE 0 then begin  
             BLKSHIFT, io.unit, start_d, block*2880L, /NOZERO
-            start_d = start_d + block*2880L
-	    io.start_data[exten_no:*] = io.start_data[exten_no:*] + block*2880L
-            io.nbytes = io.nbytes + block*2880L
+            start_d += block*2880L
+	    io.start_data[exten_no:*] += block*2880L
+            io.nbytes += block*2880L
             if exten_no NE io.nextend then begin
-                    start_h = start_h + block*2880L
-		    io.start_header[exten_no+1:*] = block*2880L + $
-		        io.start_header[exten_no+1:*]
+                    start_h += block*2880L
+		    io.start_header[exten_no+1:*] += block*2880L
 	     endif		
         endif
         point_lun, unit, io.start_header[exten_no]      ;Position header start  
@@ -278,11 +278,9 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
         block = (newbytes-1)/2880 - (nbytes-1)/2880
         if (block NE 0) && (exten_no NE io.nextend) then begin
               BLKSHIFT, io.unit, start_h, block*2880L,/NOZERO
-	      io.nbytes = io.nbytes + block*2880L
-	      io.start_header[exten_no+1:*] = block*2880L + $
-		        io.start_header[exten_no+1:*]
-	      io.start_data[exten_no+1:*] = block*2880L + $
-		        io.start_data[exten_no+1:*]
+	      io.nbytes += block*2880L
+	      io.start_header[exten_no+1:*] += block*2880L
+	      io.start_data[exten_no+1:*] += block*2880L 
         endif
       
         if (nheader EQ 0) && (dtype NE 'STRUCT') then begin
