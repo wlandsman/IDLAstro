@@ -286,12 +286,14 @@
 ;       Version 1.12b I. Evans 2015-07-27
 ;               Fix value check for byte('T'), byte('F'), or 0b for logical
 ;               columns with null values
+;       Version 1.13 W. Landsman 2016-02-24
+;               Abort if a structure supplied with more than 999 tags 
 ;-
 
 ; What is the current version of this program?
 function mwr_version
      compile_opt idl2,hidden
-    return, '1.12b'
+    return, '1.13'
 end
     
 
@@ -519,6 +521,7 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
         xsep = ", '"+separator+"', "
     
     endfor
+    
 
     if  keyword_set(terminator) then begin
         sz = size(terminator);
@@ -545,6 +548,7 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
 
 
     ; Write the TTYPE keywords.
+    
     if ~keyword_set(no_types) then begin
         for i=1, n_elements(ttypes)-1 do begin
             key = 'TTYPE'+ strcompress(string(i),/remo)
@@ -555,7 +559,6 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
            endelse
            chk_and_upd, header, key, value
         endfor
-
         if (~keyword_set(no_comment)) then $
 	    sxaddhist, [' ',' *** Column names ***',' '],header, $
 	        /comment,location='TTYPE1'
@@ -1106,7 +1109,7 @@ function mwr_writeheap, lun, vtypes
     
 end
 
-; Write the brinary table.
+; Write the binary table.
 pro mwr_tabledat, lun, input, header, vtypes
      compile_opt idl2,hidden
     ;
@@ -1615,8 +1618,8 @@ pro mwrfits, xinput, file, header,              $
     ; Check required keywords.
     compile_opt idl2
     status = -1                     ;Status changes to 0 upon completion
-    if (keyword_set(Version)) then begin
-        print, "MWRFITS V"+mwr_version()+":  Aprils 23, 2014"
+    if keyword_set(Version) then begin
+        print, "MWRFITS V"+mwr_version()+":  February 24, 2016"
     endif
 
     if n_elements(file) eq 0 then begin
@@ -1633,6 +1636,12 @@ pro mwrfits, xinput, file, header,              $
         return
     endif
 
+    if size(xinput,/TNAME) EQ 'STRUCT' then $
+        if N_tags(xinput) GT 999 then begin
+        message,'ERROR - Input structure contains ' + strtrim(N_tags(xinput),2) + ' tags',/CON
+        message,'ERROR - FITS files are limited to 999 columns',/CON
+        return
+    endif     
 
     ; Save the data into an array/structure that we can modify.
  
