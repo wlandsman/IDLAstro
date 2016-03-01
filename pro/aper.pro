@@ -155,6 +155,7 @@ pro aper,image,xc,yc,mags,errap,sky,skyerr,phpadu,apr,skyradii,badpix, $
 ;       Fix floating equality test for bad magnitudes W.L./J.van Eyken Jul 2009
 ;       Added MINSKY keyword W.L. Dec 2011
 ;       Don't ever modify input skyrad variable  W. Landsman Aug 2013
+;       Avoid integer overflow for very big images W. Landsman/R. Gutermuth   Mar 2016
 ;-
  COMPILE_OPT IDL2
  On_error,2
@@ -285,11 +286,11 @@ DONE:
 
 ;  Compute the limits of the submatrix.   Do all stars in vector notation.
 
- lx = fix(xc-skyrad[1]) > 0           ;Lower limit X direction
- ux = fix(xc+skyrad[1]) < (ncol-1)    ;Upper limit X direction
+ lx = long(xc-skyrad[1]) > 0           ;Lower limit X direction
+ ux = long(xc+skyrad[1]) < (ncol-1)    ;Upper limit X direction
  nx = ux-lx+1                         ;Number of pixels X direction
- ly = fix(yc-skyrad[1]) > 0           ;Lower limit Y direction
- uy = fix(yc+skyrad[1]) < (nrow-1);   ;Upper limit Y direction
+ ly = long(yc-skyrad[1]) > 0           ;Lower limit Y direction
+ uy = long(yc+skyrad[1]) < (nrow-1);   ;Upper limit Y direction
  ny = uy-ly +1                        ;Number of pixels Y direction
  dx = xc-lx                         ;X coordinate of star's centroid in subarray
  dy = yc-ly                         ;Y coordinate of star's centroid in subarray

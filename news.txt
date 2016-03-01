@@ -1,3 +1,7 @@
+01-Mar-2016: APER - Avoid integer overflow for very large images
+
+24-Feb-2016: MWRFITS - Abort if a structure with more than 999 tags supplied
+
 08-Feb-2016: MODFITS - Make it optional to supply FITS header, as advertised
 
 21-Jan-2016: WCSSPH2XY - long and lat must have same number of elements, but not necessarily dimensions
