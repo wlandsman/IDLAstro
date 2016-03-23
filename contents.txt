@@ -1,4 +1,4 @@
-        Contents of IDL Astronomy User's Library             Jul 2014
+        Contents of IDL Astronomy User's Library             Mar 2016
         (also see http://idlastro.gsfc.nasa.gov/contents.html)
 
 Astronomical Utilities    in pro/astro
@@ -528,6 +528,7 @@ DETABIFY() - Replace tabs in a character string by equivalent number of spaces
 EXPAND_TILDE() - Expand tilde in UNIX directory names
 F_FORMAT() - Find the "best" F format to display an array of REAL*4 numbers.
 FDECOMP - Decompose a file name (Disk + Directory + Name + Extension + Version)
+FILE_LAUNCH - Launch a file using default application of the operating system
 FINDPRO - Find all occurrences of a procedure in one's !PATH
 FIND_ALL_DIR - Find all directories under a specified directory
 FIND_WITH_DEF - Search for files with default path and extension
