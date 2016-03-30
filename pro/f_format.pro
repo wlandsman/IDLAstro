@@ -39,6 +39,7 @@ function f_format, minval, maxval, factor, length
 ;	Deal with factors < 1. *and* a large range    October 1992
 ;	Now returns In format rather than Fn.0    February, 1994
 ;	Converted to IDL V5.0   W. Landsman   September 1997
+;       Fix display problem for large negative numbers   W. Landsman   Mar 2016
 ;-
  On_error,2
 
@@ -82,8 +83,8 @@ function f_format, minval, maxval, factor, length
 
  dif = abs( mxlog - mnlog )
  if ( dif GE length-3 ) then begin
-
-     factor =  factor*10.^(mxlog-(length-3))    
+     mxlen = max([mnlog,mxlog])
+     factor =  factor*10.^(mxlen-(length-3))    
      abs = 0
 
  endif else begin
@@ -97,8 +98,8 @@ function f_format, minval, maxval, factor, length
      expon = min( [mxlog, mnlog] ) 
      if expon EQ 0 then expon = 1         ;Avoid infinite loop
      factor = factor*10.^(expon)
-     mxval = mxval - expon
-     mnval = mnval - expon
+     mxval -= expon
+     mnval -= expon
      goto, TEST 
  endelse 
  endelse
