@@ -9,6 +9,9 @@ pro mkhdr, header, im, naxisx, IMAGE = image, EXTEND = extend
 ;       appropriate to the supplied array.  Otherwise, the user can specify 
 ;       the dimensions and datatype.
 ;
+;       To update an *existing* FITS header with a new image array, instead 
+;       use check_FITS, /Update 
+;
 ; CALLING SEQUENCE:
 ;       MKHDR, header                   ;Prompt for image size and type
 ;               or
