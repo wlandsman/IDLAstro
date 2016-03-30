@@ -1,3 +1,5 @@
+30-Mar-2016: F_FORMAT() - fix problem with display of large negative numbers
+
 23-Mar-2016: FILE_LAUNCH - Launch a file using default application of the operating system
 
 10-Mar-2016: TPV_EVAL - Fixed bug in 4th order term, added 5th, 6th and 7th order terms
