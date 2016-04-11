@@ -11,6 +11,9 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;    Results can be directed to the screen, a file, or output variables
 ;    See notes below for comparison with the intrinsic IDL function PCOMP.
 ;
+;    Harris Geospatial has a video/blog post  on using pca.pro at 
+;    http://tinyurl.com/h6ky6qy
+;
 ; CALLING SEQUENCE:
 ;    PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, 
 ;             [MATRIX =, TEXTOUT = ,/COVARIANCE, /SSQ, /SILENT ]
@@ -72,7 +75,7 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      1/(N_OBJ-1) to agree with other calculations when /COVAR is set.
 ;
 ;      PCA uses the non-standard system variables !TEXTOUT and !TEXTUNIT.
-;      These can be added to one's session using the procedure ASTROLIB.
+;      These are automatically added if not originally present.
 ;
 ;      The intrinsic IDL function PCOMP  duplicates most
 ;      most of the functionality of PCA, but uses different conventions and
