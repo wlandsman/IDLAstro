@@ -26,7 +26,7 @@ pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
 ; OPTIONAL OUTPUTS:
 ;       dimen - vector containing actual array dimensions
 ;       idltype- data type of the FITS array as specified in the IDL SIZE
-;               function (1 for BYTE, 2 for INTEGER*2, 3 for INTEGER*4, etc.)
+;               function (1 for BYTE, 2 for 16 bit integer, 3 for 32 bit integer, etc.)
 ;
 ; OPTIONAL KEYWORD INPUTS:
 ;       /NOTYPE - If this keyword is set, then only agreement of the array

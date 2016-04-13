@@ -436,10 +436,10 @@ read_data:
 
         case BITPIX of
            8:   IDL_type = 1          ; Byte
-          16:   IDL_type = 2          ; Integer*2
-          32:   IDL_type = 3          ; Integer*4
-         -32:   IDL_type = 4          ; Real*4
-         -64:   IDL_type = 5          ; Real*8
+          16:   IDL_type = 2          ; 16 bit unsigned integer
+          32:   IDL_type = 3          ; 32 bit unsigned integer
+         -32:   IDL_type = 4          ; Float
+         -64:   IDL_type = 5          ; Double
         else:   begin
                 message = 'ERROR - Illegal value of BITPIX (= ' +  $
                                strtrim(bitpix,2) + ') in FITS header'

@@ -33,18 +33,18 @@ function N_bytes,a
  nel = N_elements(a)
  case dtype of
         1: nb = 1                            ;Byte
-        2: nb = 2                            ;Integer*2
-        3: nb = 4                            ;Integer*4
-        4: nb = 4                            ;Real*4
-        5: nb = 8                            ;Real*8
+        2: nb = 2                            ;16 bit signed integer
+        3: nb = 4                            ;32 bit signed integer
+        4: nb = 4                            ;Float
+        5: nb = 8                            ;Double
         6: nb = 8                            ;Complex
         7: nb = max(strlen(a))               ;String                      
         8: nb = N_tags(a,/length)            ;Structure
         9: nb = 16                           ;Double Complex
-       12: nb = 2                            ;Unsigned Integer*2
-       13: nb = 4                            ;Unsigned Integer*4
-       14: nb = 8                            ;64 bit integer
-       15: nb = 8                            ;Unsigned 64 bit integer
+       12: nb = 2                            ;Unsigned 16 bit Integer
+       13: nb = 4                            ;Unsigned 32 bit Integer
+       14: nb = 8                            ;64 bit signed integer
+       15: nb = 8                            ;64 bit unsigned integer
      else: message,'ERROR - Object or Pointer data types not valid'
  endcase
 
