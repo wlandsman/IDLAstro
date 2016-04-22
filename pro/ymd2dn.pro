@@ -3,54 +3,40 @@
 ; NAME:
 ;       YMD2DN
 ; PURPOSE:
-;       Convert from year, month, day to day number of year.
-; CATEGORY:
+;       Convert from year and day number of year to month and day of month.
 ; CALLING SEQUENCE:
-;       dy = ymd2dn(yr,m,d)
+;       YMD2DN,yr,m,d,dy
 ; INPUTS:
-;       yr = year (like 1988).      scalar or vector
-;       m = month number (like 11 = Nov).   scalar or vector
-;       d = day of month (like 5).        scalar or vector
-; KEYWORD PARAMETERS:
-; OUTPUTS:
-;       dy = day number in year (like 310).  out
-; COMMON BLOCKS:
-; NOTES:
-; MODIFICATION HISTORY:
-;       Written by R. Sterner, 20 June, 1985.
-;       Johns Hopkins University Applied Physics Laboratory.
-;       RES 18 Sep, 1989 --- converted to SUN
-;       R. Sterner, 1997 Feb 3 --- Made work for arrays.
+;       yr = 4 digit year (like 1988), integer scalar
+;       m = month number (1-12, e.g. 11 = Nov)
+;       d = day of month (like 5).
 ;
-; Copyright (C) 1985, Johns Hopkins University/Applied Physics Laboratory
-; This software may be used, copied, or redistributed as long as it is not
-; sold and this copyright notice is reproduced on each copy made.  This
-; routine is provided as is without any express or implied warranties
-; whatsoever.  Other limitations apply as described in the file disclaimer.txt.
-;	Converted to IDL V5.0   W. Landsman  2-Jan-1998
+; OUTPUTS:
+;       dy = day number in year (like 310)
+;
+; MODIFICATION HISTORY:
+;       Adapted from ydn2md, Ole Streicher, 2015
 ;-
 ;-------------------------------------------------------------
- 
-	function ymd2dn,yr,m,d, help=hlp
- 
-	if (n_params(0) lt 3) or keyword_set(hlp) then begin
-	  print,' Convert from year, month, day to day number of year.'
-	  print,' dy = ymd2dn(yr,m,d)'
-	  print,'   yr = year (like 1988).               in'
-	  print,'   m = month number (like 11 = Nov).    in'
-	  print,'   d = day of month (like 5).           in'
-	  print,'   dy = day number in year (like 310).  out'
-	  return, -1
-	endif
- 
-	;----  Days before start of each month (non-leap year)  -----
-	idays = [0,31,59,90,120,151,181,212,243,273,304,334,366]
- 
-	;----  Correct for leap year if month ge 3  -------------
-	lpyr = (((yr mod 4) eq 0) and ((yr mod 100) ne 0)) $
-            or ((yr mod 400) eq 0) and (m ge 3)
- 
-	dy = d + idays[m-1] + lpyr
-	return, dy
- 
-	end
+
+PRO YMD2DN,YR,M,D,DY, help=hlp
+  IF (N_PARAMS() LT 4) or keyword_set(hlp) THEN BEGIN
+     PRINT,' Convert from year, month and day of month to '+$
+           'day of the year.'
+     PRINT,' ymd2dn,yr,m,d,dy'
+     PRINT,'   yr = year (like 1988), scalar input'
+     PRINT,'   m = month number (like 11 = Nov).    input'
+     PRINT,'   d = day of month (like 5).           input'
+     PRINT,'   dy = day number in year (like 310), out'
+     RETURN
+  ENDIF
+
+  ; Days before start of each month.
+  YDAYS = [0,31,59,90,120,151,181,212,243,273,304,334,366]
+
+  LEAP =  (((YR MOD 4) EQ 0) AND ((YR MOD 100) NE 0)) OR $
+          ((YR MOD 400) EQ 0)
+
+  DY = YDAYS[M-1] + (LEAP  AND M GT 2) + D
+  RETURN
+END
