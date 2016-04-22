@@ -83,7 +83,7 @@ if keyword_set(InString) then begin
    Coords = InString
 endif else begin
    Coords = ""
-   print,form =  "$(1X,A,$)", + PromptString + " {RETURN to exit} "
+   print,form =  "(1X,A,$)", + PromptString + " {RETURN to exit} "
    read, Coords
 endelse
 
