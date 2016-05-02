@@ -22,8 +22,7 @@ pro dbindex,items
 ;       (2) Only 18 items can be indexed at one time.   If the database has
 ;       more than 18 items, then two separate calls to DBINDEX are needed.
 ; PROCEDURES CALLED:
-;       DBINDEX_BLK, DB_INFO(), DB_ITEM, DB_ITEM_INFO(), IEEE_TO_HOST, 
-;       IS_IEEE_BIG()
+;       DBINDEX_BLK, DB_INFO(), DB_ITEM, DB_ITEM_INFO(), IS_IEEE_BIG()
 ; HISTORY:
 ;       version 2  D. Lindler  Nov 1987 (new db format)
 ;       W. Landsman    added optional items parameter Feb 1989 
@@ -93,7 +92,7 @@ pro dbindex,items
 
  reclong = assoc(unit,lonarr(2),0)
  h = reclong[0]  ;first two longwords
- if bswap then ieee_to_host,h
+ if bswap then swap_endian_inplace,h,/swap_if_little
  maxentries = h[1]      ;max allowed entries
 ; If necessary, enlarge the size of the .dbx file.    All indexed items must
 ; then be reindexed.
@@ -111,7 +110,7 @@ pro dbindex,items
  if nindex2 LT nindex then goto, NOGOOD   
  reclong = assoc(unit,lonarr(7,nindex2),8)
  header = reclong[0]            ;index header
- if bswap then ieee_to_host,header
+ if bswap then swap_endian_inplace,header,/swap_if_little
  hitem = header[0,*]            ;indexed item numbers
  hindex = header[1,*]           ;index type
  htype = header[2,*]            ;idl data type

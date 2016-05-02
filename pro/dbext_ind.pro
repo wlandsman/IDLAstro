@@ -25,6 +25,7 @@ pro dbext_ind,list,item,dbno,values
 ;       Use 64bit integer index for large databases W. Landsman  February 2001
 ;       Fix sublisting of multiple valued index items W. Landsman  March 2001
 ;       Check whether any supplied entries are valid W. Landsman Jan 2009
+;       Remove IEEE_TO_HOST    W. Landsman  Apr 2016
 ;-
 On_error,2
 compile_opt idl2
@@ -77,10 +78,10 @@ if index_type EQ 3 then $
  external = db_info('EXTERNAL',dbno)     ;External (IEEE) data format?
  p=assoc(unit,lonarr(2))
  h=p[0]
- if external then ieee_to_host,h
+ if external then swap_endian_inplace,h,/swap_if_little
  p = assoc(unit,lonarr(7,h[0]),8)
  header = p[0]
- if external then ieee_to_host,header
+ if external then swap_endian_inplace,header,/swap_if_little
  items = header[0,*]
  pos = where(items EQ itnum, Nindex) & pos=pos[0]
  if Nindex LT 1 then $
@@ -111,7 +112,7 @@ if dtype NE 7 then begin
 ; Modified, April 92 to delay conversion to string until the last step WBL
 ;
 values = p[0]
-if external then ieee_to_host,values
+if external then swap_endian_inplace,values,/swap_if_little
 ;
 ; if subset list specified perform extraction
 ;
@@ -132,7 +133,7 @@ if ndim NE 0 then begin
                         values[0,bad] = replicate( 32b, nbytes )
                    endelse
            end else begin
-                  if (dtype EQ 7) or (numvals GT 1) then  $
+                  if (dtype EQ 7) || (numvals GT 1) then  $
                             values = values[*, list-minl] $
                       else  values = values[ list-minl ]
         end
