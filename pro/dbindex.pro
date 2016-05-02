@@ -40,6 +40,7 @@ pro dbindex,items
 ;             update    W. Landsman Dec 2006
 ;       Assume since V6.1    W. Landsman   June 2009
 ;       Allow sorted string items   W. Landsman   October 2009
+;       Use Swap_Endian_Inplace instead of IEEE_TO_HOST W. Landsman April 2016
 ;-                                         
 ;*****************************************************************
  On_error,2                ;Return to caller
