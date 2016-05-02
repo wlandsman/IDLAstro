@@ -22,14 +22,14 @@
 ;	HOUR_OR_DEG,MIN,SEC -- Scalars giving sexagesimal quantity in 
 ;		in order from largest to smallest.    
 ;                         or
-;       HRMNSC_STRING - String giving sexagesmal quantity separated by
+;   HRMNSC_STRING - String giving sexagesmal quantity separated by
 ;               spaces or colons e.g. "10 23 34" or "-3:23:45.2"
 ;               Any negative values should begin with a minus sign.
 ; OUTPUTS:
 ;	Function value returned = double real scalar, decimal equivalent of
-;	input sexigesimal quantity.  A minus sign on any nonzero element
-;	of the input vector causes all the elements to be taken as
-;	< 0.
+;	input sexigesimal quantity.  For numeric input, a minus sign on any 
+;   nonzero element of the input vector causes all the elements to be taken 
+;   as < 0.
 ;
 ; EXAMPLES:
 ;       IDL> print,ten(0,-23,34)
