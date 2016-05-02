@@ -150,14 +150,17 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
        'ERROR - Input array must contain distinct values'
   if N_elements(boxplot) EQ 0 then boxplot=1     
 
+ dtype = size(arr,/type)
+ floatp = (dtype EQ 4) || (dtype EQ 5)
+
  ;Determining how to calculate bin size:
  if ~keyword_set(BIN) then begin
        bin = (max(arr)-min(arr))/sqrt(N_elements(arr))
+       if ~floatp then bin = bin > 1
  endif else begin
     bin = float(abs(bin))
  endelse
-     dtype = size(arr,/type)
-     floatp = (dtype EQ 4) || (dtype EQ 5)
+
  
 
 ; Compute the histogram and abscissa.    
