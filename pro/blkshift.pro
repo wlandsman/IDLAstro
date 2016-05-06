@@ -2,10 +2,6 @@
 ; NAME:
 ;   BLKSHIFT
 ;
-; AUTHOR:
-;   Craig B. Markwardt, NASA/GSFC Code 662, Greenbelt, MD 20770
-;   craigm@lheamail.gsfc.nasa.gov
-;
 ; PURPOSE:
 ;   Shift a block of data to a new position in a file (possibly overlapping)
 ;
@@ -76,6 +72,10 @@
 ;                lead to more transfer operations.
 ;                Default: 32768 (bytes)
 ;
+; ORIGINAL AUTHOR:
+;   Craig B. Markwardt, NASA/GSFC Code 662, Greenbelt, MD 20770
+;   craig.markwardt@nasa.gov
+;
 ; MODIFICATION HISTORY:
 ;
 ;   Written, CM, Apr 2000
@@ -88,13 +88,6 @@
 ;   Assume since V5.6, TRUNCATE_LUN available  W. Landsman Sep 2006
 ;   MacOS can point beyond EOF    W. Landsman   Aug 2009
 ;   Use V6.0 notation  W. Landsman Aprl 2014
-;
-;-
-; Copyright (C) 2000, 2002, Craig Markwardt
-; This software is provided as is without any warranty whatsoever.
-; Permission to use, copy and distribute unmodified copies for
-; non-commercial purposes, and to modify and use for personal or
-; internal use, is granted.  All other rights are reserved.
 ;-
 PRO BLKSHIFT, UNIT, POS0, DELTA0, NOZERO=NOZERO0, ERRMSG=ERRMSG, $
               BUFFERSIZE=BUFFERSIZE0, TO=TO0

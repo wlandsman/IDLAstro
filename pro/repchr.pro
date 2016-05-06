@@ -1,57 +1,60 @@
-;-------------------------------------------------------------
 ;+
 ; NAME:
-;       REPCHR
+;       REPCHR()
 ; PURPOSE:
-;       Replace all occurrences of one character with another in a text string.
-; CATEGORY:
-; CALLING SEQUENCE:
-;       new = repchr(old, c1, [c2])
-; INPUTS:
-;       old = original text string.          in
-;       c1 = character to replace.           in
-;       c2 = character to replace it with.   in
-;            default is space.
-; KEYWORD PARAMETERS:
-; OUTPUTS:
-;       new = edited string.                 out
-; COMMON BLOCKS:
-; NOTES:
-; MODIFICATION HISTORY:
-;       R. Sterner.  28 Oct, 1986.
-;       Johns Hopkins Applied Physics Lab.
-;       RES 1 Sep, 1989 --- converted to SUN.
-;       R. Sterner, 27 Jan, 1993 --- dropped reference to array.
+;       Replace all occurrences of one character with another in a string.
 ;
-; Copyright (C) 1986, Johns Hopkins University/Applied Physics Laboratory
-; This software may be used, copied, or redistributed as long as it is not
-; sold and this copyright notice is reproduced on each copy made.  This
-; routine is provided as is without any express or implied warranties
-; whatsoever.  Other limitations apply as described in the file disclaimer.txt.
-;	Converted to IDL V5.0   W. Landsman   September 1997
+; CALLING SEQUENCE:
+;       New_String = repchr( In_string, OldChar, [NewChar])
+; INPUTS:
+;       in_string = original text string, scalar or array
+;       OldChar = character to replace.     If the OldChar contains
+;            more than 1 character, only the first character is used.
+; OPTIONAL INPUT:
+;       newchar = single character to replace it with.
+;                The default is a single space
+; OUTPUTS:
+;       new_string = same as in_string, but with all occurrences of old
+;               replaced  by newchar
+; EXAMPLE:
+;       in_string = ['lettuce, tomato, grape']
+;       print, repchr( in_string, ',')   ;replace comma with space
+;            'lettuce tomato grape'
+; NOTES: 
+;       Use REPSTR() to replace words rather than a single character
+;
+;	    For a more sophisticated routine that allows regular expressions look
+;	    at MG_STRREPLACE() http://docs.idldev.com/idllib/strings/mg_streplace.html
+;
+;       Since IDL 8.4 one can use the .REPLACE() method for string variables
+;
+;       Note that REPCHR() is the fastest (though least versatile) of these routines, 
+;       because the length of the string never changes, allowing direct manipulation of 
+;       byte values.
+; MODIFICATION HISTORY:
+;       Written W. Landsman   April 2016
+;       Adapted from similar code by  R. Sterner JHUAPL Oct, 1986
 ;-
-;-------------------------------------------------------------
+
+
+	function repchr, In_String, OldChar, NewChar
  
-	FUNCTION REPCHR, OLD, C1, C2, help=hlp
- 
-	if (n_params(0) lt 2) or keyword_set(help) then begin
+	if N_params() LT 2 then begin
 	  print,' Replace all occurrences of one character with another '+$
 	    'in a text string.'
-	  print,' new = repchr(old, c1, [c2])'
-	  print,'   old = original text string.          in'
-	  print,'   c1 = character to replace.           in'
-	  print,'   c2 = character to replace it with.   in'
-	  print,'        default is space.'
-	  print,'   new = edited string.                 out'
+	  print,' new_string = repchr(In_String, OldChar, [NewChar])'
 	  return, -1
 	endif
  
-	B = BYTE(OLD)			   ; convert string to a byte array.
-	CB1 = BYTE(C1)			   ; convert char 1 to byte.
-	W = WHERE(B EQ CB1[0])		   ; find occurrences of char 1.
-	IF W[0] EQ -1 THEN RETURN, OLD	   ; if none, return old string.
-	IF N_PARAMS(0) LT 3 THEN C2 = ' '  ; default char 2 is space.
-	CB2 = BYTE(C2)			   ; convert char 2 to byte.
-	B[W] = CB2[0]			   ; replace char 1 by char 2.
-	RETURN, STRING(B)		   ; return new string.
+	bString = byte(In_String)			   ; convert string to a byte array.
+	b_OldChar = byte(OldChar)			   ; convert OldChar to byte.
+
+	g = where(bString EQ b_OldChar[0],Ng)  ; find occurrences of char 1.
+	IF Ng EQ 0 then return,In_string	   ; if none, return input string.
+
+    if N_elements(NewChar) EQ 0 then NewChar = ' '   ;Default new char is a space
+    b_NewChar = byte(NewChar)              ;Convert NewChar to byte
+	bstring[g] = b_NewChar[0]			   ; replace oldchar by newchar.
+
+	return, STRING(bString)		   ; return new string.
 	END

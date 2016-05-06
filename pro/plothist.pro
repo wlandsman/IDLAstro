@@ -26,16 +26,22 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;              ( = lindgen( N_elements(h)) * bin + min(arr) )
 ;      yhist - Y vector used in making the plot  (= histogram(arr/bin))
 ;
+; OPTIONAL INPUT-OUTPUT KEYWORD:
+;      BIN -  The size of each bin of the histogram, scalar (not necessarily
+;             integral).  If not present (or zero), then the default is to 
+;             automatically determine the binning size as the square root of 
+;             the number of samples
+;             If undefined on input, then upon return BIN will contain the 
+;             automatically computing bin factor.
 ; OPTIONAL INPUT KEYWORDS:
-;      /AUTOBIN - Automatically determines bin size of the histogram as the
-;                 square root of the number of samples. Only valid when BIN
-;                 is not set.
+;      /AUTOBIN - (OBSOLETE) Formerly would automatically determines bin size 
+;                 of the histogram as the square root of the number of samples. 
+;                 This is now the default so the keyword is no longer needed.
+;                 Use the  BIN keyword to manually set the bin size.
 ;      AXISCOLOR - Color (string or number) of the plotting axes.  
-;      BIN -  The size of each bin of the histogram,  scalar (not necessarily
-;             integral).  If not present (or zero), the bin size is set to 1.
-;      /BOXPLOT - If set, then each histogram data value will be plotted
+;      BOXPLOT - If set (default), then each histogram data value is plotted
 ;             "box style" with vertical lines drawn from Y=0 at each end of 
-;              the bin width
+;              the bin width.   Set BOXPLOT=0 to suppress this.
 ;      COLOR - Color (number or string) of the plotted data.    See CGCOLOR
 ;              for a list of available color names. 
 ;      /HALFBIN - Set this keyword to a nonzero value to shift the binning by
@@ -44,6 +50,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;              is to set the HALFBIN keyword for integer data, and not for
 ;              non-integer data.     
 ;      /NAN - If set, then check for the occurence of IEEE not-a-number values
+;             This is the default for floating point or Double data
 ;      /NOPLOT - If set, will not plot the result.  Useful if intention is to
 ;             only get the xhist and yhist outputs.
 ;      /OVERPLOT - If set, will overplot the data on the current plot.  User
@@ -55,23 +62,22 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;      /ROTATE - if set, the plot is rotated onto it's side, meaning the bars 
 ;             extend from left to right.  Xaxis corresponds to the count within 
 ;             in each bin.      Useful for placing a histogram plot
-;             at the side of a scatter plot, as shown at the bottom of
-;               http://www.dur.ac.uk/j.r.mullaney/pages/software.php
+;             at the side of a scatter plot.
 ;       WINDOW - Set this keyword to plot to a resizeable graphics window
 ;
 ;
-; The following keywords take effect only if the FILL keyword is set:
+; The following keywords will automatically set the  FILL keyword:
 ;      FCOLOR - color (string or number) to use for filling the histogram
 ;      /FLINE - if set, will use lines rather than solid color for fill (see
-;              the LINE_FILL keyword in the cgcolorfill routine)
+;              the LINE_FILL keyword in the POLYFILL routine)
 ;      FORIENTATION - angle of lines for fill (see the ORIENTATION keyword
-;              in the cgcolorfill routine)
+;              in the POLYFILL routine)
 ;      FPATTERN - the pattern to use for the fill (see the PATTERN keyword
-;              in the cgcolorfill routine)
+;              in the POLYFILL routine)
 ;      FSPACING - the spacing of the lines to use in the fill (see the SPACING
-;              keyword in the cgcolorfill routine)
+;              keyword in the POLYFILL routine)
 ;      FTHICK - the thickness of the lines to use in the fill (see the THICK
-;              keyword in the cgcolorfill routine)
+;              keyword in the POLYFILL routine)
 ;
 ; Any input keyword that can be supplied to the cgPLOT procedure (e.g. XRANGE,
 ;    AXISCOLOR, LINESTYLE, /XLOG, /YLOG) can also be supplied to PLOTHIST.
@@ -79,15 +85,15 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ; EXAMPLE:
 ;       (1) Create a vector of random 1000 values derived from a Gaussian of 
 ;       mean 0, and sigma of 1.    Plot the histogram of these values with a 
-;       binsize of 0.1, and use a box plotting style.
+;       binsize of 0.1, and use a blue colored box fill.
 ;
 ;       IDL> a = randomn(seed,1000)
-;       IDL> plothist,a, bin = 0.1, /boxplot
+;       IDL> plothist,a, bin = 0.1,fcolor='blue'
 ;
-;       (2) As before, but fill the plot with diagonal lines at a 45 degree 
-;           angle
+;       (2) As before, but use autobinning and fill the plot with diagonal lines at 
+;           a 45 degree angle
 ;
-;       IDL> plothist,a, bin=0.1, /fill, /fline, forient=45
+;       IDL> plothist,a, /fline, forient=45
 ;
 ; NOTES:
 ;       David Fanning has written a similar program CGHISTOPLOT with more graphics
@@ -115,9 +121,10 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Fix problems when /XLOG is set A. Kimball/WL April 2013
 ;        Fix FILL to work when axis is inverted (xcrange[0] >
 ;          xcrange[1]) T.Ellsworth-Bowers July 2014
+;        Make /NaN,/AUTOBIN and BOXPLOT the default  W. Landsman   April 2016
 ;-
 ;			Check parameters.
- On_error,2
+
  compile_opt idl2
 
  if N_params() LT 1 then begin   
@@ -129,34 +136,41 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 	return
  endif
 
+ Catch, theError
+ if theError NE 0 then begin 
+     Catch,/Cancel
+ ;    void = cgErrorMsg(/quiet)
+     return
+ endif
+
  if N_elements( arr ) LT 2 then message, $
       'ERROR - Input array must contain at least 2 elements'
  arrmin = min( arr, MAX = arrmax)
  if ( arrmin EQ arrmax ) then message, $
        'ERROR - Input array must contain distinct values'
+  if N_elements(boxplot) EQ 0 then boxplot=1     
+
+ dtype = size(arr,/type)
+ floatp = (dtype EQ 4) || (dtype EQ 5)
 
  ;Determining how to calculate bin size:
  if ~keyword_set(BIN) then begin
-    if keyword_set(AUTOBIN) then begin
        bin = (max(arr)-min(arr))/sqrt(N_elements(arr))
-    endif else begin
-       bin = 1.0
-    endelse
+       if ~floatp then bin = bin > 1
  endif else begin
     bin = float(abs(bin))
  endelse
 
+ 
+
 ; Compute the histogram and abscissa.    
 ; Determine if a half bin shift is 
 ; desired (default for integer data)     
- if N_elements(halfbin) EQ 0 then begin 
-    dtype = size(arr,/type)
-    halfbin = (dtype NE 4) and (dtype NE 5) ;Non-integer data?
- endif 
+ if N_elements(halfbin) EQ 0 then halfbin = ~floatp         ;integer data?
  
- halfbin = keyword_set(halfbin)
  
- if keyword_set(NAN) then begin
+ if N_elements(NaN) EQ 0 then NaN = 1
+ if floatp && NaN then begin
       good = where(finite(arr), ngoods )
       if ngoods eq 0 then $
               message, 'ERROR - Input array contains no finite values'
@@ -191,6 +205,9 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
  yst_set = keyword_set(ystyle)?1:0
 ;JRM;;;;;
  
+ if N_elements(fill) EQ 0 then $
+    fill  = keyword_set(fcolor) || keyword_set(fline)
+    
  if keyword_set(over) then begin ;if overplotting, was original plot a log?
       if N_elements(ylog) EQ 0 then ylog = !Y.type
       if N_elements(xlog) EQ 0 then xlog = !X.type
