@@ -154,6 +154,7 @@ pro extast,hdr,astr,noparams, alt=alt
 ;      v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2014
 ;      v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
 ;      v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
+;      v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
 ;-
  On_error, 0
  compile_opt idl2
@@ -354,6 +355,9 @@ GET_CD_MATRIX:
         if N_cd21 GT 0 then cd[1,0]  = lvalue[l[N_cd21-1]]
         l = where(keyword EQ 'CD'+latc+'_'+latc + alt,  N_cd22) 
         if N_cd22 GT 0 then cd[1,1]  = lvalue[l[N_cd22-1]]
+        det = cd[0,0]*cd[1,1] - cd[0,1]*cd[1,0]
+        if det LT 0 then sgn = -1 else sgn = 1
+        crota  = atan(  sgn*cd[0,1],  sgn*cd[0,0] ) 
         noparams = 2
     endif else begin
 
