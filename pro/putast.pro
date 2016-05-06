@@ -384,11 +384,12 @@ RD_CEN:
      sxaddpar, hdr, 'CRVAL'+ax[1]+alt, double(crval[1]), comm[1], 'HISTORY'
      hist = ' World Coordinate System parameters written'
   endif
-
+  
 ; We don't want to update PV keywords if they are being used for TPV projection
+     if N_elements(astr) GT 0 then begin
      pv_update = ~tag_exist(astr,'DISTORT') ||  $
                   (tag_exist(astr,'DISTORT') &&  astr.distort.name NE 'TPV')
-
+    endif else pv_update = 0
     if N_elements(longpole) EQ 1 then begin
         if pv_update then astr.pv1[3] = longpole
         test = sxpar(hdr,'LONPOLE',count=N_lonpole)
