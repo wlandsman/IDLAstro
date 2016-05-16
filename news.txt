@@ -1,4 +1,6 @@
 
+02-May-2016: PLOTHIST - When computing size for integers make sure it is at least 1
+
 19-Apr-2016: PLOTHIST -  Make /NaN,/AUTOBIN and BOXPLOT the default
 
 11-Apr-2016: WRITEFITS - Added /SILENT keyword

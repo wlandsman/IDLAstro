@@ -22,8 +22,13 @@ PRO HPRECESS, HDR, YEARF
 ;       and precessed to the new equinox.  The EPOCH or EQUINOX keyword in 
 ;       the header is  updated.  A HISTORY record is added
 ;
-; RESTRICTIONS:
-;       The FK5 reference frame is assumed for both equinoxes.
+; RESTRICTIONS:       
+;       The reference frame is assumed to be FK5 or ICRS (which are extremely close)
+;       and precess.pro is used to perform the precession.
+;       Exceptions: If the input header is equinox 1950 and the output is equinox 2000
+;       then jprecess is used to precess from B1950 to J2000.   If the input
+;       header is equinox 2000 and the output is equinox 1950 then bprecess is
+;       used to precess from J2000 to B1950). 
 ;
 ; PROCEDURES USED:
 ;       EXTAST, GET_EQUINOX(), SXADDPAR, SXADDHIST, PRECESS, PRECESS_CD
