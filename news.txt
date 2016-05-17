@@ -1,3 +1,4 @@
+17-May-2016: HASTROM - Test for Degree > 4 usage in POLYWARP
 
 02-May-2016: PLOTHIST - When computing size for integers make sure it is at least 1
 

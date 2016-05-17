@@ -43,7 +43,8 @@ pro hastrom,oldim,oldhd,newim,newhd,refhd,MISSING=missing, INTERP = interp, $
 ;               1 (linear transformation) unless polynomial ('SIP') distortion 
 ;               parameters are present in either the input or reference FITS
 ;               header.    In that case, the default degree is equal to the
-;               degree of the distortion polynomial.
+;               degree of the distortion polynomial.     Currently, HASTROM 
+;               will force a value of degree of less than 4 (see notes)
 ;       INTERP - Scalar, one of 0, 1, or 2 determining type of interpolation
 ;               0 nearest neighbor, 1 (default) bilinear interpolation, 
 ;               2 cubic interpolation.
@@ -71,7 +72,12 @@ pro hastrom,oldim,oldhd,newim,newhd,refhd,MISSING=missing, INTERP = interp, $
 ;       (2) The astrometry in OLDHD will be precessed to match the equinox
 ;                given in REFHD.
 ;       (3) If an ST Guidestar image is used for the reference header, then the
-;                output header will be converted to standard astrometry.  
+;                output header will be converted to standard astrometry. 
+;       (4) We found (in May 2016) numerical instability in POLYWARP when 
+;             Degree is set to a value of 5 or larger.    Therefore DEGREE will
+;             be forced to a value of 4 or less (along with a warning).      Note 
+;             that in POLYWARP a DEGREE of 5 actually includes 10th order terms 
+;             like x^5*y^5
 ; EXAMPLE:
 ;       Suppose one has an image array, IM, and an associated FITS header H.
 ;       One desires to warp the image array so that it is aligned with another
@@ -102,6 +108,7 @@ pro hastrom,oldim,oldhd,newim,newhd,refhd,MISSING=missing, INTERP = interp, $
 ;       shift with POLY_2D      W. Landsman   Aug 2006
 ;       Return ERRMSG if no overlap between images  W. Landsman  Nov 2007
 ;       Use V6.0 notation  W. Landsman  Jan 2012
+;       Test for Degree > 4 usage in Polywarp  W. Landsman   May 2016
 ;       
 ;-
  compile_opt idl2
@@ -236,11 +243,19 @@ save_err = arg_present(errmsg)     ;Does user want error msgs returned?
       endif	 
       return
  endif
-
+ 
+ if degree GT 4 then message,/INF, $
+    'Warning - POLYWARP Polynomial degree set to 4'
 
   if interp EQ 0 $ ;Get coefficients
-    then polywarp, x+.5, y+.5, xref, yref, degree, kx, ky $
-    else polywarp, x, y, xref, yref, degree, kx, ky 
+    then polywarp, x+.5, y+.5, xref, yref, degree<4, kx, ky, status = status $
+    else polywarp, x, y, xref, yref, degree<4, kx, ky ,status=status
+    case status of 
+    0: 
+    1: message,NoPrint=Silent,/INF,'Warning: Singular matrix in version in PolyWarp'
+    2: message,NoPrint=Silent,/INF,'Warning: Small Pivot element in Polywarp'
+    3: message,'Invalid Status value returned from Polywarp'
+    endcase
   
  
  if N_elements(missing) NE 1 then begin        ;Do the warping
@@ -260,7 +275,7 @@ save_err = arg_present(errmsg)     ;Does user want error msgs returned?
           MISSING=missing, CUBIC = cubic)
 
  endelse
-
+ 
  sxaddpar, newhd, 'NAXIS1', xsize_ref
  sxaddpar, newhd, 'NAXIS2', ysize_ref
 
@@ -277,7 +292,7 @@ save_err = arg_present(errmsg)     ;Does user want error msgs returned?
  sxaddhist,label+ ' Original Image Size X: ' + strtrim(xsize_old,2) + $
                    ' Y: '  + strtrim(ysize_old,2), newhd
  sxaddhist,'HASTROM: Polynomial Degree used for image warping: ' + $
-            strtrim(degree,2), newhd
+            strtrim(degree<4,2), newhd
  if cubic NE 0 then sterp = 'CUBIC = ' + strtrim(cubic,2) else $
      sterp = (['Nearest Neighbor','Linear','Cubic'])[interp]
  sxaddhist,'HASTROM: ' + sterp + ' interpolation',newhd
