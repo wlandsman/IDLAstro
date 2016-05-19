@@ -130,8 +130,9 @@
 ;		Catch I/O errors
 ;       Version 15, W. Landsman GSFC 10 Dec 2009
 ;                Fix Dimension keyword, remove  IEEE_TO_HOST
+;       Version 16, William Thompson, 18-May-2016, change POINTER to ULONG
 ; Version     :
-;       Version 15, 10 Dec 2009
+;       Version 16, 18-May-2016
 ;-
 ;
 @fxbintable
@@ -264,7 +265,7 @@ CHECK_ROW:
 ;  pointer to the variable length array.  Change the pointing.
 ;
 	IF MAXVAL[ICOL,ILUN] GT 0 THEN BEGIN
-		POINTER = LONARR(2)
+		POINTER = ULONARR(2)
 		READU,UNIT,POINTER
 		BYTEORDER, POINTER, /NTOHL
 		DIMS = POINTER[0]
