@@ -24,7 +24,7 @@ function dbxval,entry,idltype,nvalues,sbyte,nbytes,bswap=bswap
 ;       function value is value of the specified item in entry
 ;
 ; KEYWORDS:
-;       bswap - If set, then IEEE_TO_HOST is called.
+;       bswap - If set, then SWAP_ENDIAN_INPLACE is called.
 ;
 ; RESTRICTIONS: 
 ;       To increase speed the routine assumes that entry and item are
@@ -39,11 +39,11 @@ function dbxval,entry,idltype,nvalues,sbyte,nbytes,bswap=bswap
 ;       Version 2.1, 22 Feb 1997, JK Feggans, 
 ;                               avoid reform for strings arrays.
 ;       Version 2.2     Use overwrite with REFORM(),  W. Landsman,  May 1997
-;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Work for multiple-valued strings   W. Landsman   October 2000
 ;       Add new 64bit & unsigned integer datatypes W.Landsman   July 2001
 ;       Version 3, 2-May-2003, JK Feggans/Sigma, W.T. Thompson
 ;           Added BSWAP keyword to avoid floating errors on some platforms.
+;       Version 3.1 Remove IEEE_TO_HOST  W. Landsman   May 2016
 ;-
 ;----------------------------------------------------------------
 ;
@@ -64,7 +64,7 @@ case idltype of                 ;case of data type
  15: val = ulong64(entry[sbyte:sbyte+nvalues*8-1,*],0,nvalues,nentry)
 endcase
 ;
-if keyword_set(bswap) then ieee_to_host,val,idltype=idltype
+if keyword_set(bswap) then swap_endian_inplace,val,/swap_if_little
 
 if ( nvalues EQ 1 and nentry EQ 1) then return,val[0] else $
         if idltype eq 7 then return,val else return,reform(val,/overwrite)
