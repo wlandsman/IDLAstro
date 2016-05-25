@@ -46,9 +46,10 @@
 ;		Change N_DIMS from short to long integer.
 ; Version     : 
 ;	Version 3, 22 May 1996
-;	Converted to IDL V5.0   W. Landsman   September 1997
-;       Make NAXIS1, NAXIS2, HEAP, DHEAP, BYTOFF 64-bit integers to deal with large files,
+;   Make NAXIS1, NAXIS2, HEAP, DHEAP, BYTOFF 64-bit integers to deal with large files,
 ;         E. Hivon Mar 2008
+;   Also make NHEADER a 64 bit integer   W. Landsman  May 2016
+;   
 ;-
 ;
 @fxbintable
@@ -66,7 +67,7 @@
 		STATE	= 0
 		HEAD	= ''
 		MHEADER	= 0L
-		NHEADER = 0L
+		NHEADER = 0LL
 		NAXIS1  = 0LL
 		NAXIS2  = 0LL
 		TFIELDS = 0L
