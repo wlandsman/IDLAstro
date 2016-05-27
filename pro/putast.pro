@@ -148,8 +148,8 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;                   WL, August 2014
 ;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
 ;          TPV projection   WL  December 2015
+;	    Corrected for case when Equinox is NaN in structure. J. Murthy May 2016
 ;-
-
  compile_opt idl2
  npar = N_params()
 
@@ -219,7 +219,8 @@ RD_CEN:
         astr2 = TAG_EXIST(astr,'AXES')
         IF astr2 THEN BEGIN ; version 2 astrometry structure
            ax = STRTRIM(STRING(astr.axes),2)
-           IF N_ELEMENTS(equinox) EQ 0 THEN equinox = astr.equinox
+           IF N_ELEMENTS(equinox) EQ 0 THEN $
+              if (finite(astr.equinox)) then equinox = astr.equinox
         ENDIF
    endif else  begin
         cd = astr
