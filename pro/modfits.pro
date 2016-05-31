@@ -72,7 +72,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;           FITS file.    Explicitly open with FITS_OPEN to save compute time.
 ;
 ;               fits_open,'test.fits',io,/update    ;Faster to explicity open
-;               for i = 1,nextend do begin          ;Loop over extensions
+;               for i = 1,io.nextend do begin          ;Loop over extensions
 ;                   fits_read,io,0,h,/header_only,exten_no=i,/No_PDU ;Get header     
 ;                   date= sxpar(h,'OBSDATE')         ;Save keyword value
 ;                   sxaddpar,h,'OBS-DATE',date,after='OBSDATE' 
@@ -175,7 +175,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
    fcbsupplied = size(filename,/TNAME) EQ 'STRUCT'
 
    if (nheader GT 1) && (ndata GT 1) && (dtype NE 'STRUCT') then begin
-        check_fits, data, header, /FITS, ERRMSG = MESSAGE
+        check_fits, data, header, ERRMSG = MESSAGE
         if message NE '' then goto, BAD_EXIT
    endif
 
