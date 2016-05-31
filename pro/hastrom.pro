@@ -109,6 +109,7 @@ pro hastrom,oldim,oldhd,newim,newhd,refhd,MISSING=missing, INTERP = interp, $
 ;       Return ERRMSG if no overlap between images  W. Landsman  Nov 2007
 ;       Use V6.0 notation  W. Landsman  Jan 2012
 ;       Test for Degree > 4 usage in Polywarp  W. Landsman   May 2016
+;       Ensure all grid point computations are Double  W. Landsman May 2016
 ;       
 ;-
  compile_opt idl2
@@ -215,7 +216,7 @@ save_err = arg_present(errmsg)     ;Does user want error msgs returned?
  nxdif = round( xsize_ref / (ngrid-1) ) + 1
  nydif = round( ysize_ref / (ngrid-1) ) + 1
 
- xref = lonarr(ngrid,ngrid) & yref = xref
+ xref = dblarr(ngrid,ngrid) & yref = xref
  xrow = [ lindgen(ngrid-1)*nxdif, xsize_ref-1. ]
  yrow = [ lindgen(ngrid-1)*nydif, ysize_ref-1. ]
 
