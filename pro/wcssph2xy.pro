@@ -185,13 +185,11 @@
 ; PROCEDURES CALLED:
 ;       WCS_ROTATE
 ;
-; AUTHOR:
+; ORIGINAL AUTHOR:
 ;
-;       Rick Balsano
+;       Rick Balsano   LANL   V1.1     8/31/93
 ;
 ; MODIFICATIONS/REVISION LEVEL:
-;
-;       1.1     8/31/93
 ;       2.3     9/15/93  W. Landsman (HSTX) Update quad cube coords, vectorize
 ;                        keywords
 ;       2.4     12/29/93 I. Freedman (HSTX) Eliminated LU decomposition
