@@ -122,6 +122,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Fix FILL to work when axis is inverted (xcrange[0] >
 ;          xcrange[1]) T.Ellsworth-Bowers July 2014
 ;        Make /NaN,/AUTOBIN and BOXPLOT the default  W. Landsman   April 2016
+;        Speed up COLOR processing W. Landsman  July 2016
 ;-
 ;			Check parameters.
 
@@ -324,12 +325,14 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
            color=color,Thick = thick, LINESTYLE = linestyle, ADDCMD=window
     cgplots, xdata[0]<xcrange[1], ycrange[1]<(ydata[1]-bin/2)>ycrange[0], $
            color=color,THICK = thick, LINESTYLE= linestyle, ADDCMD=window
-    FOR i=1, n_elements(xdata)-2 DO BEGIN
+   
+ FOR i=1, n_elements(xdata)-2 DO BEGIN
+       sColor = cgcolor(color)
        cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i]-bin/2)>ycrange[0], $
-              color=color, THICK=thick, LINESTYLE= linestyle, $
+              color=sColor, THICK=thick, LINESTYLE= linestyle, $
 	      /CONTINUE,ADDCMD=window
        cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i+1]-bin/2)>ycrange[0], $
-              color=color, /CONTINUE,THICK=thick, LINESTYLE=linestyle, $
+              color=sColor, /CONTINUE,THICK=thick, LINESTYLE=linestyle, $
 	       ADDCMD=window
     ENDFOR
     cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i]-bin/2)>ycrange[0], $
@@ -347,18 +350,20 @@ if keyword_set(boxplot) then begin
    ;JRM;;;;;;;;;;;
    IF n_elements(rotate) EQ 0 THEN BEGIN
       ycrange = keyword_set(ylog)? 10^!Y.CRANGE : !Y.CRANGE
+      scolor = cgcolor(color)
       FOR j =0 ,N_Elements(xhist)-1 DO BEGIN
          cgPlotS, [xhist[j], xhist[j]]-bin/2, [YCRange[0], yhist[j], Ycrange[1]], $
-                Color=Color,noclip=0, THICK=thick, LINESTYLE = linestyle, $
+                Color=sColor,noclip=0, THICK=thick, LINESTYLE = linestyle, $
 		_Extra=extra,ADDCMD=window
       ENDFOR 
       
    ENDIF ELSE BEGIN
       xcrange = keyword_set(xlog)? 10^!X.CRANGE : !X.CRANGE
+      scolor = cgcolor(color)
       FOR j =0 ,N_Elements(xhist)-1 DO BEGIN
          cgPlotS, [xcrange[0], xhist[j]<xcrange[1]], [yhist[j], $
 	            yhist[j]]-bin/2, ADDCMD=window, THICK=thick, $
-                    LINESTYLE = linestyle, Color=Color, noclip=0
+                    LINESTYLE = linestyle, Color=sColor, noclip=0
       ENDFOR 
    ENDELSE
    ;JRM;;;;;;;;;;;

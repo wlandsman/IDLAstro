@@ -1,3 +1,6 @@
+
+11-Jul-2016: PLOTHIST - Speed up processing of COLOR values
+
 25-May-2016: FXBFINDLUN - Make NHEADER a 64 bit integer for handling a very large FITS file
 
 19-May-2016: FXBREAD, FXBWRITE - Use unsigned pointer to handle very large FITS files
