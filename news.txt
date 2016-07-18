@@ -1,4 +1,6 @@
 
+18-Jul-2016: PLOTHIST - Use Scott's normal reference rule for bin size
+
 11-Jul-2016: PLOTHIST - Speed up processing of COLOR values
 
 25-May-2016: FXBFINDLUN - Make NHEADER a 64 bit integer for handling a very large FITS file
