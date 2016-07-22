@@ -176,10 +176,11 @@
 ;            a=replicate(a, 2);
 ;            mwrfits,a,'test.fits'
 ;
-;       Now add on an image extension:
+;       Now append an image extension:
 ;            a=lonarr(10,10,10)
-;            hdr=("COMMENT  This is a comment line to put in the header", $
-;                 "MYKEY    = "Some desired keyword value")
+;            mkhdr,hdr,a,/image       ;Create minimal image extension FITS header
+;            sxaddhist,["This is a comment line to put in the header", $
+;                 "And another comment"],hdr,/comment
 ;            mwrfits,a,'test.fits',hdr
 ;
 ; RESTRICTIONS:

@@ -1,4 +1,14 @@
 
+18-Jul-2016: PLOTHIST - Use Scott's normal reference rule for bin size
+
+11-Jul-2016: PLOTHIST - Speed up processing of COLOR values
+
+25-May-2016: FXBFINDLUN - Make NHEADER a 64 bit integer for handling a very large FITS file
+
+19-May-2016: FXBREAD, FXBWRITE - Use unsigned pointer to handle very large FITS files
+
+17-May-2016: HASTROM - Test for Degree > 4 usage in POLYWARP
+
 02-May-2016: PLOTHIST - When computing size for integers make sure it is at least 1
 
 19-Apr-2016: PLOTHIST -  Make /NaN,/AUTOBIN and BOXPLOT the default

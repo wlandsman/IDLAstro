@@ -163,13 +163,12 @@
 ; PROCEDURES CALLED:
 ;       WCS_ROTATE
 ;
-; AUTHOR:
+; ORIGINAL AUTHOR:
 ;
-;       Rick Balsano
+;       Rick Balsano  LANL    8/31/93   V1.1
 ;
 ; MODIFICATIONS/REVISION LEVEL:
 ;
-; 1.1    8/31/93
 ; 1.2    9/12/93   W. Landsman Vectorized CRXY, CRVAL, CTYPE
 ; 1.3    29/12/93  I. Freedman Eliminated LU decomposition
 ; 1.4    22/09/94  W. Landsman If scalar input, then scalar output
