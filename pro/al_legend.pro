@@ -282,7 +282,7 @@ pro al_legend, items, BOTTOM_LEGEND=bottom, BOX = box, CENTER_LEGEND=center, $
 ;       =====>> HELP
 ;
 compile_opt idl2
-On_error,2
+;On_error,2
 if keyword_set(help) then begin & doc_library,'al_legend' & return & endif
 ; Should this commnad be added to a resizeable graphics window?
 IF (Keyword_Set(window)) && ((!D.Flags AND 256) NE 0) THEN BEGIN
