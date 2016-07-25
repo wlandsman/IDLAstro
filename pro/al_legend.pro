@@ -567,8 +567,6 @@ for iclr = 0,clear do begin
     usersym,usersym,fill=fill,color=cgcolor(colors[i])
 ;; extra by djseed .. psym=88 means use the already defined usersymbol
  if psym[i] eq 88 then p_sym =8 $
-; else if psym[i] EQ 10 then $
-;         message,'PSYM=10 (histogram mode) not allowed to al_legend.pro' $
  else p_sym= psym[i]
 
   if vectorfont[i] ne '' then begin
