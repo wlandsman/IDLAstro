@@ -143,17 +143,20 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 	return
  endif
 
+
  Catch, theError
  if theError NE 0 then begin 
      Catch,/Cancel
- ;    void = cgErrorMsg(/quiet)
+     void = cgErrorMsg(/quiet)
      return
  endif
 
- if N_elements( arr ) LT 2 then message, $
-      'ERROR - Input array must contain at least 2 elements'
+if N_elements( arr ) LT 2 then message, $
+      'ERROR - Input array must contain at least 2 elements',/noname
+
+ 
  arrmin = min( arr, MAX = arrmax)
- if ( arrmin EQ arrmax ) then message, $
+ if ( arrmin EQ arrmax ) then message, /noname, $
        'ERROR - Input array must contain distinct values'
   if N_elements(boxplot) EQ 0 then boxplot=1     
 

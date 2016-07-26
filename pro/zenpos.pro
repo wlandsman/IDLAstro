@@ -1,4 +1,4 @@
-PRO ZENPOS, date, ra, dec
+PRO ZENPOS, date, ra, dec, latitude=latitude, longitude=longitude, tz=tz
 ;+
 ; NAME:
 ;       ZENPOS
@@ -12,6 +12,11 @@ PRO ZENPOS, date, ra, dec
 ;       Date  The Julian date, in double precision, of the date and time
 ;               for which the zenith position is desired, scalar or vector.
 ;
+; OPTIONAL INPUTS:
+;       LATITUDE    Latitude of the desired location.
+;       LONGITUDE   Longitude of the desired location.
+;       TZ          Time zone (see below).
+;
 ; OUTPUTS:
 ;       Ra    The right ascension in RADIANS of the zenith.
 ;       Dec   The declination in RADIANS of the zenith.
@@ -23,7 +28,8 @@ PRO ZENPOS, date, ra, dec
 ;
 ; PROMPTS:
 ;       ZENPOS will prompt for the following 3 parameters if they are not
-;       defined in the common block SITE (see below)
+;       defined in the common block SITE (see below) or provided as
+;       keywords.  Keywords override information in the common block.
 ;
 ;       LAT,LNG - north latitude and east longitude of the desired location 
 ;               in DEGREES
@@ -40,6 +46,7 @@ PRO ZENPOS, date, ra, dec
 ;       Written by Michael R. Greason, STX, 14 October 1988.
 ;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Update documentation, longitude now *east* of Greenwich W.L. July 2000
+;       Add keywords for non-interactive use  J. Sapp   July 2016
 ;-
  COMMON SITE, lat, lng, tzone
 
@@ -48,6 +55,11 @@ PRO ZENPOS, date, ra, dec
      print,'         dte = Julian Date, Ouput Ra and Dec in radians'
      return
  endif
+
+ ; Override common block parameters with keywords
+ if N_elements(latitude) ne 0 then lat = latitude
+ if N_elements(longitude) ne 0 then lng = longitude
+ if N_elements(tz) ne 0 then tzone = tz
 
  if N_elements(lat) eq 0 then read, $
        'Enter latitude and longitude (in degrees): ',lat,lng

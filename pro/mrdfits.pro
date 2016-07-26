@@ -120,7 +120,7 @@
 ;                to 2).
 ;       /FIXED_VAR- Translate variable length columns into fixed length columns
 ;                and provide a length column for truly varying columns.
-;                This was only behavior prior to V2.5 for MRDFITS and remains
+;                This was the only behavior prior to V2.5 for MRDFITS and remains
 ;                the default (see /POINTER_VAR)
 ;       /FPACK - If set, then assume the FITS file uses FPACK compression 
 ;                (http://heasarc.gsfc.nasa.gov/fitsio/fpack/).     To read
@@ -138,14 +138,11 @@
 ;                is specified MRDFITS will ignore TDIM keywords in
 ;                binary tables.
 ;       /POINTER_VAR- Use pointer arrays for variable length columns.
-;                In addition to changing the format in which
-;                variable length arrays are stored, if the pointer_var
-;                keyword is set to any value other than 1 this also disables
-;                the deletion of variable length columns. (See /FIXED_VAR)
-;                Note that because pointers may be present in the output
-;                structure, the user is responsible for memory management
-;                when deleting or reassigning the structure (e.g. use HEAP_FREE
-;                first).
+;                The pointer tag must be dereferenced in the output structure
+;                to access the variable length column.   Prior to IDL V8.0, the user 
+;                was responsible for memory management when deleting or reassigning 
+;                the structure (e.g. using HEAP_FREE), but memory management of pointer
+;                arrays is now automatic.         
 ;       RANGE  - A scalar or two element vector giving the start
 ;                and end rows to be retrieved.  For ASCII and BINARY
 ;                tables this specifies the row number.  For GROUPed data
@@ -386,7 +383,7 @@
 ;       V2.21  Create unique structure tags when FITS column names differ 
 ;              only in having a different case   R. McMahon/WL   March 2013
 ;       V2.22  Handle 64 bit variable length binary tables WL   April 2014
-;       V2.23  Test version for very large files   
+;       V2.23  Use 64 bit for  very large files  WL  April 2014
 ;-
 PRO mrd_fxpar, hdr, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
 compile_opt idl2, hidden

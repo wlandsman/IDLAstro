@@ -70,8 +70,8 @@
 ;               keyword usersym.   If psym[i] = 88, then use the previously
 ;               defined user symbol.    If 11 <= psym[i] <= 46 then David
 ;               Fanning's function CGSYMCAT() will be used for additional 
-;               symbols.   Note that PSYM=10 (histogram plot mode) is not 
-;               allowed since it cannot be used with the cgPlots command.
+;               symbols.   Note that PSYM=10 (histogram plot mode) sets
+;               poly_fill.
 ;       vectorfont = vector-drawn characters for the sym/line column, e.g.,
 ;               ['!9B!3','!9C!3','!9D!3'] produces an open square, a checkmark,
 ;               and a partial derivative, which might have accompanying items
@@ -108,9 +108,18 @@
 ;       font = scalar font graphics keyword (-1,0 or 1) for text
 ;       linsize = Scale factor for line length (0-1), default = 1
 ;                 Set to 0 to give a dot, 0.5 give half default line length   
+;       line_orientation = Filled line orientation (-180 to 180). Set to
+;                          a value < -180 for solid fill (default).
+;                          See poly_fill.
+;       line_thick = Filled line thickness (D=!P.thick). See poly_fill.
 ;       margin = margin around text measured in characters and lines
 ;       number = number of plot symbols to plot or length of line (D=1)
 ;       spacing = line spacing (D=bit more than character height)
+;       polycolor = Fill color for polygons (D='background').
+;                   See poly_fill.
+;       polyspace = Spacing between filled lines. See poly_fill.
+;       poly_fill = Draw a bar and fill it. Implied by polycolor,
+;                   polyspace, and line_orientation.
 ;       position = data coordinates of the /top (D) /left (D) of the legend
 ;       pspacing = psym spacing (D=3 characters) (when number of symbols is
 ;             greater than 1)
@@ -254,14 +263,17 @@
 ;       Allow to specify symbols by cgSYMCAT() name WL Aug 2012 
 ;       Fixed bug when linsize, /right called simultaneously, Dec 2012, K.Stewart
 ;       Added a check for embedded symbols in the items string array. March 2013. David Fanning
+;       Implement histogram filling.  J. Sapp  Aug 2015.
 ;       
 ;-
 pro al_legend, items, BOTTOM_LEGEND=bottom, BOX = box, CENTER_LEGEND=center, $
     CHARTHICK=charthick, CHARSIZE = charsize, CLEAR = clear, COLORS = colorsi, $
     CORNERS = corners, DATA=data, DELIMITER=delimiter, DEVICE=device, $
     FILL=fill, HELP = help, HORIZONTAL=horizontal,LEFT_LEGEND=left, $
-    LINESTYLE=linestylei, MARGIN=margin, NORMAL=normal, NUMBER=number, $
-    POSITION=position,PSPACING=pspacing, PSYM=psymi, RIGHT_LEGEND=right, $
+    LINESTYLE=linestylei, LINE_ORIENTATION=line_orient, $
+    LINE_THICK=line_thick, MARGIN=margin, NORMAL=normal, NUMBER=number, PATTERN=pattern, $
+    POLYCOLOR=polycolor, POLYSPACE=polyspace, POLY_FILL=poly_fill, POSITION=position, $
+    PSPACING=pspacing, PSYM=psymi, RIGHT_LEGEND=right, $
     SPACING=spacing, SYMSIZE=symsizei, TEXTCOLORS=textcolorsi, THICK=thicki, $
     TOP_LEGEND=top, USERSYM=usersym,  VECTORFONT=vectorfonti, $
     VERTICAL=vertical,OUTLINE_COLOR = outline_color, FONT = font, $
@@ -279,8 +291,10 @@ IF (Keyword_Set(window)) && ((!D.Flags AND 256) NE 0) THEN BEGIN
             CHARTHICK=charthick, CHARSIZE = charsize, CLEAR = clear, COLORS = colorsi, $
             CORNERS = corners, DATA=data, DELIMITER=delimiter, DEVICE=device, $
             FILL=fill, HELP = help, HORIZONTAL=horizontal,LEFT_LEGEND=left, $
-            LINESTYLE=linestylei, MARGIN=margin, NORMAL=normal, NUMBER=number, $
-            POSITION=position,PSPACING=pspacing, PSYM=psymi, RIGHT_LEGEND=right, $
+            LINESTYLE=linestylei, LINE_ORIENTATION=line_orient, $
+            LINE_THICK=line_thick, MARGIN=margin, NORMAL=normal, NUMBER=number, PATTERN=pattern, $
+            POLYCOLOR=polycolor, POLYSPACE=polyspace, POLY_FILL=poly_fill, POSITION=position, $
+            PSPACING=pspacing, PSYM=psymi, RIGHT_LEGEND=right, $
             SPACING=spacing, SYMSIZE=symsizei, TEXTCOLORS=textcolorsi, THICK=thicki, $
             TOP_LEGEND=top, USERSYM=usersym,  VECTORFONT=vectorfonti, $
             VERTICAL=vertical,OUTLINE_COLOR = outline_color, FONT = font, $
@@ -310,6 +324,14 @@ endif else begin
       'First parameter must be a string array.  For help, type al_legend,/help.'
   if ni ne n then message,'Must have number of items equal to '+strn
 endelse
+ 
+ poly_fill = keyword_set(poly_fill) || (n_elements(polycolor) ne 0) || $
+  (n_elements(polyspace) ne 0) || (n_elements(line_orient) ne 0)
+ if (poly_fill && (np eq 0)) then begin
+  psymi = replicate(10, n) ; use "histogram" symbol
+  np = n
+  nlpv >= np
+ endif
 
 items = cgCheckForSymbols(items) ; Check for embedded symbols in the items array.
 symline = (np ne 0) || (nl ne 0)                        ; FLAG TO PLOT SYM/LINE
@@ -338,7 +360,7 @@ symline = (np ne 0) || (nl ne 0)                        ; FLAG TO PLOT SYM/LINE
  1: thick = intarr(n) + thicki
  else: thick = thicki
  endcase
- 
+
  if size(psymi,/TNAME) EQ 'STRING' then begin
     psym = intarr(n)
     for i=0,N_elements(psymi)-1 do psym[i] = cgsymcat(psymi[i])
@@ -389,8 +411,44 @@ if n_elements(horizontal) eq 0 then $              ; D=VERTICAL
  1: textcolors = replicate(textcolorsi,n)
  else: textcolors = textcolorsi
  endcase 
+
+ case N_elements(line_thick) of
+ 0:    line_thick = replicate(!P.thick,n)
+ 1:    line_thick = replicate(line_thick,n)
+ else: ;line_thick = line_thick
+ endcase
+
+ ; line_orient or polyspace imply line filling...otherwise, solid or
+ ; pattern filling
+ if ((N_elements(line_orient) ne 0) || $
+     (N_elements(polyspace) ne 0)) then begin
+
+  case N_elements(line_orient) of
+  0:    line_orient = replicate(0,n)
+  1:    line_orient = replicate(line_orient,n)
+  else: ;line_orient = line_orient
+  endcase
+
+  case N_elements(polyspace) of
+  0:    polyspace = replicate(0.05,n)
+  1:    polyspace = replicate(polyspace,n)
+  else: ;polyspace = polyspace
+  endcase
+
+ endif
+
+ case N_elements(polycolor) of
+ 0:    polycolor = replicate('opposite',n)
+ 1:    polycolor = replicate(polycolor,n)
+ else: ;polycolor = polycolori
+ endcase
+ empty_polycolor = where(polycolor eq '', n_empty)
+ if (n_empty ne 0) then $
+  polycolor[empty_polycolor] = 'background'
+ polycolor = cgcolor(temporary(polycolor))
+
  fill = keyword_set(fill)
-if n_elements(usersym) eq 1 then usersym = 2*[[0,0],[0,1],[1,1],[1,0],[0,0]]-1
+if (n_elements(usersym) eq 1) then usersym = 2*[[0,0],[0,1],[1,1],[1,0],[0,0]]-1
 
 ;
 ;       =====>> INITIALIZE SPACING
@@ -419,7 +477,7 @@ if nlpv gt 0 then begin                         ; SKIP IF TEXT ITEMS ONLY.
 if vertical then begin                          ; CALC OFFSET FOR TEXT START
   for i = 0,n-1 do begin
     if (psym[i] eq 0) and (vectorfont[i] eq '') then num = (number + 1) > 3 else num = number
-    if psym[i] lt 0 then num = number > 2       ; TO SHOW CONNECTING LINE
+    if (psym[i] lt 0) || (psym[i] eq 10) then num = number > 2       ; TO SHOW CONNECTING LINE
     if psym[i] eq 0 then expand = linsize else expand = 2
     thisxt = (expand*pspacing*(num-1)*xspacing)
     if ltor then xt = thisxt > xt else xt = thisxt < xt
@@ -494,23 +552,21 @@ for iclr = 0,clear do begin
   if nlpv eq 0 then goto,TEXT_ONLY              ; FLAG FOR TEXT ONLY
   num = number
   if (psym[i] eq 0) && (vectorfont[i] eq '') then num = (number + 1) > 3 
-  if psym[i] lt 0 then num = number > 2         ; TO SHOW CONNECTING LINE
+  if (psym[i] lt 0) || (psym[i] eq 10) then num = number > 2         ; TO SHOW CONNECTING LINE
   if psym[i] eq 0 then expand = 1 else expand = 2
   xp = x + expand*pspacing*indgen(num)*xspacing
   if (psym[i] gt 0) && (num eq 1) && vertical then xp = x + xt/2.
   yp = y + intarr(num)
   if vectorfont[i] eq '' then yp +=  yoff
-  if psym[i] eq 0 then begin
+  if (psym[i] eq 0) then begin
       if ltor eq 1 then xp = [min(xp),max(xp) -(max(xp)-min(xp))*(1.-linsize)]   
       if ltor ne 1 then xp = [min(xp) +(max(xp)-min(xp))*(1.-linsize),max(xp)]
       yp = [min(yp),max(yp)]                      ; DITTO
   endif
   if (psym[i] eq 8) && (N_elements(usersym) GT 1) then $
-                usersym,usersym,fill=fill,color=colors[i]
+    usersym,usersym,fill=fill,color=cgcolor(colors[i])
 ;; extra by djseed .. psym=88 means use the already defined usersymbol
- if psym[i] eq 88 then p_sym =8 else $
- if psym[i] EQ 10 then $
-         message,'PSYM=10 (histogram mode) not allowed to al_legend.pro' $
+ if psym[i] eq 88 then p_sym =8 $
  else p_sym= psym[i]
 
   if vectorfont[i] ne '' then begin
@@ -520,9 +576,31 @@ for iclr = 0,clear do begin
     xt = xt > width
     xp = xp + width/2.
   endif else begin
-    if symline and (linestyle[i] ge 0) then cgPlots,xp,yp,color=colors[i] $
-      ,/normal,linestyle=linestyle[i],psym=p_sym,symsize=symsize[i], $
-      thick=thick[i]
+    if (p_sym ne 10) then begin
+     if (symline && (linestyle[i] ge 0)) then $
+      cgPlots,xp,yp,color=colors[i], $
+       /normal,linestyle=linestyle[i],psym=p_sym,symsize=symsize[i], $
+       thick=thick[i]
+    endif $
+    else begin
+     xp = [xp[0], xp[0], xp[1], xp[1], xp[0]]
+     if (yp[0] eq yp[1]) then begin
+      yp[0] -= (yspacing / 4.)
+      yp[1] += (yspacing / 4.)
+     endif
+     yp = [yp[0], yp[1], yp[1], yp[0], yp[0]]
+
+     if ((N_elements(line_orient) ne 0) && finite(line_orient[i]) && $
+         (line_orient[i] ge -180) && (polyspace[i] gt 0)) then $
+      cgPolygon, xp, yp, /normal, $
+       /fill, color=colors[i], fcolor=polycolor[i], $
+       orientation=line_orient[i], pattern=pattern, $
+       spacing=polyspace[i], noclip=0, thick=line_thick[i] $
+     else $
+      cgPolygon, xp, yp, /normal, $
+       /fill, color=colors[i], fcolor=polycolor[i], $
+       pattern=pattern, noclip=0, thick=line_thick[i]
+    endelse
   endelse
 
   if vertical then x += xt else if ltor then x = max(xp) else x = min(xp)
