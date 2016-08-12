@@ -126,10 +126,10 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
  if keyword_set(cfa) then base = 'vizier.cfa.harvard.edu/viz-bin' else $
  base = 'cdsweb.u-strasbg.fr/cgi-bin'
     if keyword_set(NED) then begin
- QueryURL = "http://" + base + "/nph-sesame/-o/N?" + $
+ QueryURL = "http://" + base + "/nph-sesame/-o/NF?" + $
                strcompress(object,/remove)
  endif else begin
- QueryURL = "http://" + base + "/nph-sesame/-oI?" + $
+ QueryURL = "http://" + base + "/nph-sesame/-oIF?" + $
                strcompress(object,/remove)
 
   endelse
