@@ -293,7 +293,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
      if strlen(temp) LT ncol then begin ;Need at least 1 chr per output line
         ngood--
         if ~keyword_set(SILENT) then $
-           message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF
+           message,'Skipping Line (strlen) ' + strtrim(skipline+j+1,2),/INF
         goto, BADLINE 
      endif
 
@@ -310,7 +310,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
        :strsplit(strcompress(temp) ,delimiter,/extract, preserve=preserve_null) 
      if N_elements(var) LT nfmt then begin 
         if ~keyword_set(SILENT) then $ 
-           message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF 
+           message,'Skipping Line (n_elements)' + strtrim(skipline+j+1,2),/INF
         ngood--            
         goto, BADLINE           ;Enough columns?
      endif
@@ -330,7 +330,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
            tst = strnumber(var[i],val,hex=hex[i],NAN=nan)   ;Valid number?
            if ~tst  then begin                           ;If not, skip this line
               if ~keyword_set(SILENT) then $ 
-                 message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF 
+                 message,'Skipping Line (check_numeric)' + strtrim(skipline+j+1,2),/INF
               ngood--
               goto, BADLINE 
            endif
