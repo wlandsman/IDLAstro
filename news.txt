@@ -1,3 +1,5 @@
+25-Jul-2016: AL_LEGEND,AL_LEGENDTEST - Implement histogram filling 
+
 24-Jul-2016: ZENPOS - Now has latitude, longitude, time zone keywords for interactive use
 
 18-Jul-2016: PLOTHIST - Use Scott's normal reference rule for bin size
