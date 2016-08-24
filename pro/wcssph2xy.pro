@@ -24,7 +24,7 @@
 ;     longitude - longitude of data, scalar or vector, in degrees
 ;     latitude  - latitude of data, same number of elements as longitude,
 ;                 in degrees
-;     map_type  - optional positional parameter, numeric scalar (0-26)
+;     map_type  - optional positional parameter, numeric scalar (0-29)
 ;               corresponding to a particular map projection.  This is not a
 ;               FITS standard, it is simply put in to allow function similar
 ;               to that of less general map projection procedures (eg AITOFF).
@@ -114,7 +114,7 @@
 ;
 ;       x - x coordinate of data, same number of elements as longitude, in
 ;               degrees; if CRXY is set, then x will be returned offset by
-;               crxy(0).  NOTE: x in all map projections increases to the
+;               crxy[0].  NOTE: x in all map projections increases to the
 ;               left, not the right.
 ;       y - y coordinate of data, same number of elements as longitude, in
 ;               degrees; if CRXY is set, y will be returned offset by crxy[1]

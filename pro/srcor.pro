@@ -100,7 +100,7 @@ ENDIF
 ;   Keywords.
 ;
 IF ~keyword_set(option) THEN option=0
-IF (option lt 0) or (option gt 2) THEN MESSAGE,'Invalid option code.'
+IF (option lt 0) || (option gt 2) THEN MESSAGE,'Invalid option code.'
 
 SphereFlag = keyword_set(Spherical)
 
