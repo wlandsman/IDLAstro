@@ -1,6 +1,5 @@
-function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
-               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent, $
-	       CFA = CFA
+function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
+               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent
 ;+
 ; NAME: 
 ;   QUERYVIZIER
@@ -73,9 +72,6 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;          /ALLCOLUMNS - if set, then all columns for the catalog are returned
 ;                 The default is to return a smaller VIZIER default set. 
 ;
-;          /CANADA - obsolete, the Canadian Vizier site no longer seems 
-;                  supported.
-;
 ;          /CFA - By default, the query is sent to the main VIZIER site in
 ;            Strasbourg, France.   If /CFA is set then the VIZIER site
 ;            at the Harvard Center for Astrophysics (CFA) is used instead.
@@ -128,34 +124,11 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;         IDL> str = queryvizier('I/259/TYC2','NONE',constrain='BTmag=13+/-0.1')
 ;
 ; PROCEDURES USED:
-;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2(), WEBGET()
+;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2()
 ; TO DO:
 ;       (1) Allow specification of output sorting
 ; MODIFICATION HISTORY: 
 ;         Written by W. Landsman  SSAI  October 2003
-;         Give structure name returned by VIZIER not that given by user
-;                    W. Landsman   February 2004 
-;         Don't assume same format for all found sources W. L. March 2004
-;         Added CONSTRAINT keyword for non-positional constraints WL July 2004
-;         Remove use of EXECUTE() statement WL June 2005
-;         Make dis optional as advertised WL August 2005
-;         Update for change in Vizier output format WL February 2006
-;         Fix problem in Feb 2006 update when only 1 object found
-;                     WL/D.Apai        March 2006
-;         Accept 'E' format for floating point. M. Perrin April 2006
-;         Added /ALLCOLUMNS option to return even more data.  M. Perrin, May 2006
-;         Return anonymous structure W. Landsman  May 2006
-;         Removed V6.0 notation to restore V5 compatibility W.Landsman July2006
-;         Accept target='NONE' for all-sky search, allow '+/-' constraints
-;                W. Landsman  October 2006
-;         Use HTTP 1.0 protocol in call to webget.pro
-;         Use vector form of IDL_VALIDNAME if V6.4 or later W.L. Dec 2007
-;         Update Strasbourg Web address for target name W.L. 3 March 2008
-;         Also update Web address for coordinate search W.L. 7 March 2008 
-;         Allow for 'D' specification format  R. Gutermuth/W.L.  June 2008
-;         Allow for possible lower-case returned formats  W.L. July 2008
-;         Use STRCOMPRESS2()to remove blanks around operators in constraint
-;              string  W.L.  August 2008
 ;         Added /SILENT keyword  W.L.  Jan 2009
 ;         Avoid error if output columns but not data returned W.L. Mar 2010
 ;         Ignore vector tags (e.g. SED spectra) W.L.   April 2011
@@ -163,6 +136,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;         Assume since IDL V6.4 W.L. Aug 2013
 ;         Update HTTP syntax for /CANADA    W. L.  Feb 2014
 ;         Add CFA keyword, remove /CANADA keyword  W.L. Oct 2014
+;         Use IDLnetURL instead of Socket   W.L.    October 2014
 ;-
   On_error,2
   compile_opt idl2
@@ -175,8 +149,8 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
        if N_elements(info) GT 0 then return,info else return, -1
   endif
 
- if keyword_set(CFA) then root = "http://vizier.hia.nrc.ca/viz-bin/" $
-                       else  root = "http://webviz.u-strasbg.fr/viz-bin/" 
+ if keyword_set(cfa) then host = "vizier.cfa.harvard.edu" $
+                       else  host = "webviz.u-strasbg.fr" 
  silent = keyword_set(silent)
  
   if N_elements(catalog) EQ 0 then $
@@ -217,25 +191,34 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
                      search = search + '&' + urlconstrain
  endif
  ;
+ path = 'viz-bin/asu-tsv'
  if nopoint then $
-  QueryURL = root + "asu-tsv/?-source=" + catalog + '&' + $
+  Query = "-source=" + catalog + '&' + $
               search + '&-out.max=unlimited' else $
  if targname then $
-  QueryURL = $
-   root + "asu-tsv/?-source=" + catalog + $
+  Query = $
+          "-source=" + catalog + $
      "&-c=" + object + search + '&-out.max=unlimited' else $
-  queryURL = $
-   root + "asu-tsv/?-source=" + catalog + $
+  query = $
+          "-source=" + catalog + $
        "&-c.ra=" + strtrim(ra,2) + '&-c.dec=' + strtrim(dec,2) + $
        search + '&-out.max=unlimited'
 
-  if keyword_set(allcolumns) then queryURL = queryURL + '&-out.all=1'
- if keyword_set(verbose) then message,queryurl,/inf
-
-  Result = webget(QueryURL,/http10, silent=silent)
-;
-  t = strtrim(result.text,2)
+  if keyword_set(allcolumns) then queryURL += '&-out.all=1'
+ if keyword_set(verbose) then message,query,/inf
+  
+  oURL = obj_new('IDLnetURL')
+  oURL -> SetProperty, URL_Scheme='http',URL_host=host,URL_query=query, $
+                    URL_PATH = path
+  result = oURL -> GET(/STRING_ARRAY)
+; 
+  t = strtrim(result,2)
   keyword = strtrim(strmid(t,0,7),2)
+
+  if strmid(keyword[-1],0,5) EQ '#INFO' then begin      ;Error finding catalog?
+      message,/INF,t[-1]
+      return, -1
+  endif    
 
   linecon = where(keyword EQ '#---Lis', Ncon)
   if Ncon GT 0 then remove,linecon, t, keyword
@@ -320,7 +303,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
   i0 = max(lcol) + 4  
   if i0 GT (N_elements(t)-1) then begin 
        message,'No sources found within specified radius',/INF
-       return,-1
+       return, -1
   endif
   
   iend = where( t[i0:*] EQ '', Nend)
