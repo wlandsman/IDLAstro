@@ -1,9 +1,8 @@
-                                                            May 2002
+                                                            Dec 2006
 
-This directory contains any  data files which are used by procedures
-in the IDL astronomy library.   These procedures
-look for these data files in a directory with the logical name
-ASTRO_DATA (VMS) or the environment name ASTRO_DATA (Unix).
+This directory contains any  data files which are used by procedures in the IDL
+astronomy library.   These procedures look for these data files in a directory
+with the  environment variable name ASTRO_DATA.
 
 As of May 2002, this directory contains two files 
 
@@ -19,8 +18,4 @@ As of May 2002, this directory contains two files
 
 Because of the large size of JPLEPH.405 and testpo.405 they are not included
 with the IDL Astronomy Library .tar or .zip files.   Users who need these files
-should instead fetch them from ftp://idlastro.gsfc.nasa.gov/pub/data
-
-An earlier file ebcasc.dat, which was read by STREBCASC.PRO (giving the 
-EBCDIC-ASCII conversion codes is still available in the 
-ftp://idlastro.gsfc.nasa.gov/pub/obsolete directory.
+should instead fetch them from http://idlastro.gsfc.nasa.gov/ftp/data/ .
