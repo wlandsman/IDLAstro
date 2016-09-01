@@ -109,7 +109,7 @@
 ;       /NAN    = If set, then return Not-a-Number (!values.f_nan) for missing
 ;                 values.  Ignored if keyword MISSING is present.
 ;       /NULL   = If set, then return !NULL (undefined) for missing values.
-;                 Ignored if MISSING of /NAN is present, or if earlier than IDL
+;                 Ignored if MISSING or /NAN is present, or if earlier than IDL
 ;                 version 8.0.  If multiple values would be returned, then
 ;                 MISSING= or /NAN should be used instead of /NULL, making sure
 ;                 that the datatype is consistent with the non-missing values,
@@ -127,7 +127,7 @@
 ;
 ;       The system variable !err is set to -1 if parameter not found, 0 for a
 ;       scalar value returned.  If a vector is returned it is set to the number
-;       of keyword matches found.
+;       of keyword matches found.    This use of !ERR is deprecated.
 ;
 ;       If a keyword occurs more than once in a header, a warning is given,
 ;       and the first occurence is used.  However, if the keyword is "HISTORY",
