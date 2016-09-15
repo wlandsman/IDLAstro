@@ -115,7 +115,6 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
    xtemp =  xcosang + y[i]*sinang
    ytemp = -xsinang + y[i]*cosang
    im[0,i] = sqrt( (xtemp*ratio)^2 + ytemp^2 )
-   stop
  endfor
 
  return
