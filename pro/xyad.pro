@@ -128,7 +128,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
          else: xy2ad, x, y, astr, a, d
   endcase
   titname = strmid(astr.ctype,0,4)
-  if (titname[0] EQ 'DEC-') or (titname[0] EQ 'ELAT') or $
+  if (titname[0] EQ 'DEC-') || (titname[0] EQ 'ELAT') || $
           (titname[0] EQ 'GLAT') then titname = rotate(titname,2)
 
   eqnx = get_equinox(hdr,code)  
@@ -161,7 +161,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
       titname = ['RA--','DEC-']
   endif 
 
-  if (npar lt 5) or keyword_set(PRINT) then begin
+  if (npar lt 5) || keyword_set(PRINT) then begin
         g = where( finite(d) and finite(a), Ng)
 	 tit1= titname[0]
 	 t1 = strpos(tit1,'-')
@@ -195,7 +195,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 	    unit2 = strtrim( sxpar( hdr, 'CUNIT2'+alt,count = N_unit2),2)
             if N_unit2 EQ 0 then unit2 = ''
        print,'    X       Y         ' + titname[0] + '     ' + titname[1] 
-       if (N_unit1 GT 0) or (N_unit2 GT 0) then $
+       if (N_unit1 GT 0) || (N_unit2 GT 0) then $
        print,unit1 ,unit2,f='(t23,a,t33,a)' 	    
         for i=0l, npts-1 do $
        print,FORMAT=fmt, float(x[i]), float(y[i]), a[i], d[i]

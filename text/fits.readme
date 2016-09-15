@@ -1,4 +1,4 @@
-/FITS directory                                                  Jan-2012
+/FITS directory                                                  Aug-2016
 
 FITS (Flexible Image Transport Sytem) is a standardized data format which is
 widely used in astronomy.   Information on the FITS format can be obtained 
@@ -22,7 +22,7 @@ http://idlastro.gsfc.nasa.gov/mrdfits.html.
 To compile MRDFITS and MWRFITS the following procedures must be included in
 the !PATH
 	FXADDPAR, FXPAR(), FXPARPOS()             (in pro/fits_bintable)
-        GETTOK(), VALID_NUM()                     (in pro/misc)
+    GETTOK(), VALID_NUM()                     (in pro/misc)
 	FXMOVE, FXPOSIT, MRD_HREAD, MRD_SKIP      (in pro/fits)
 	MRD_STRUCT()                              (in pro/structure)
 
@@ -63,8 +63,8 @@ line.   The HPRINT procedure in the /misc directory will display a FITS
 header without this extra space.
 
 The procedures FITS_INFO and FITSDIR use the non-standard system variables 
-!TEXTUNIT and !TEXTOUT.   These can be added to one's session using the 
-procedure ASTROLIB in the /misc directory.
+!TEXTUNIT and !TEXTOUT.    The system variables will be automatically added if 
+they are not previously defined.
 
 The available FITS I/O routines can be summarized as follows:          
 
@@ -109,11 +109,6 @@ The available FITS I/O routines can be summarized as follows:
       structure.   Each header, image or spectra, or table is placed into a 
       separate structure tag.
 
-     Prior to November 2001, the IDL Astronomy Library contained a set of
-     Unix-only procedures  for reading, listing and writing FITS files on tape
-     devices.    These procedures are still available in
-     ftp://idlastro.gsfc.nasa.gov/pub/obsolete and in the SolarSoft directory
-     http://sohowww.nascom.nasa.gov/solarsoft/gen/idl/
 *************************************************************************
 APPENDIX 1 - Summary of FITS I/O procedures
 
