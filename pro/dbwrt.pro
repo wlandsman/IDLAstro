@@ -37,6 +37,7 @@ pro dbwrt,entry,index,append,noconvert=noconvert
 ;	William Thompson, GSFC/CDS (ARC), 28 May 1994
 ;		Added support for external (IEEE) representation.
 ;	Faster handling of byte swapping  W. L.  August 2010
+;	Updates for indexing on the fly, D.Lindler, June, 2016
 ;-
 ;-------------------------------------------------------------------
  COMMON db_com,qdb,qitems,qdbrec
@@ -124,8 +125,9 @@ pro dbwrt,entry,index,append,noconvert=noconvert
      isort = (indextype[i] EQ 3) || (indextype[i] EQ 4)
 
      datarec = dbindex_blk(unit, sblock[pos[i]], 512, sbyte, idltype[i])
-     reclong = assoc(unit,lonarr(1),(iblock[pos]*512L))
-
+     reclong = assoc(unit,lonarr(1),(iblock[pos[i]]*512L))
+     if idltype[i] eq 7 then v = byte(v)                    ; convert string to a byte array
+     if n_elements(v) eq 1 then v = reform(v,1,/overwrite)  ; make scale into an array
      case indextype[i] of
 
 	1:  datarec[0] = bswap ? swap_endian(v) : v
