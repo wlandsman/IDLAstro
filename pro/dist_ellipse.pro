@@ -47,7 +47,7 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ;
 ;       ADXY, H, ra, dec, x, y       ;Get X and Y corresponding to RA and Dec
 ;       GETROT, H, rot, cdelt        ;CDELT gives plate scale degrees/pixel
-;       cdelt = abs( cdelt)*3600.    ;CDELT now in arc seconds/pixel
+;       cdelt = abs(cdelt)*3600.    ;CDELT now in arc seconds/pixel
 ;       DIST_ELLIPSE, ell, 200, x, y, 2.3, 25  ;Create a elliptical image mask
 ;       ell = ell*cdelt[0]           ;Distances now given in arcseconds
 ;       good = where( ell lt 180 )   ;Within 3 arc minutes
