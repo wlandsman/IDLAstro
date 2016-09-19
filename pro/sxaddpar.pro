@@ -12,7 +12,7 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;                               BEFORE =, AFTER = , FORMAT= , /PDU
 ;                               /SAVECOMMENT, Missing=, /Null
 ; INPUTS:
-;       Header = String array containing FITS or STSDAS header.    The
+;       Header = String array containing FITS header.    The
 ;               length of each element must be 80 characters.    If not 
 ;               defined, then SXADDPAR will create an empty FITS header array.
 ;
@@ -107,7 +107,6 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ; MODIFICATION HISTORY:
 ;       DMS, RSI, July, 1983.
 ;       D. Lindler Oct. 86  Added longer string value capability
-;       Converted to NEWIDL  D. Lindler April 90
 ;       Added Format keyword, J. Isensee, July, 1990
 ;       Added keywords BEFORE and AFTER. K. Venkatakrishna, May '92
 ;       Pad string values to at least 8 characters   W. Landsman  April 94
@@ -129,7 +128,8 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;       Oct 2005 Jan 2004 change made SXADDPAR fail for empty strings W.L.
 ;       May 2011 Fix problem with slashes in string values W.L. 
 ;       Aug 2013 Only use keyword_set for binary keywords W. L. 
-;       Sep 2015 Added NULL and MISSING keywords W.L>
+;       Sep 2015 Added NULL and MISSING keywords W.L.
+;       Sep 2016 Allow writing of byte or Boolean variables  W.L.
 ;       
 ;-
  compile_opt idl2
@@ -366,14 +366,22 @@ REPLACE:
         ELSE v = STRING(value, FORMAT='(G19.12)')
         s = strlen(v)                                   ; right justify
         strput, h, v, (30-s)>10
-        END
+        END               
 
  else:  begin
         if ~save_as_null then begin
+        if type[1] EQ 1 then begin
+             if !VERSION.RELEASE GE '8.4' && ISA(value,/boolean) then begin
+                upval = ['F','T']
+                strput,h,upval[value],29 
+                break
+             endif else v = strtrim(fix(value),2) 
+        endif else begin
         if (N_elements(format) eq 1) then $            ;use format keyword
             v = string(value, FORMAT='('+strupcase(format)+')' ) else $
             v = strtrim(strupcase(value),2)      
                                       ;convert to string, default format
+        endelse                              
         s = strlen(v)                 ;right justify
         strput,h,v,(30-s)>10          ;insert
         endif
