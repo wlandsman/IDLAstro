@@ -9,7 +9,7 @@ pro sxdelpar, h, parname
 ;	sxdelpar, h, parname
 ;
 ; INPUTS:
-;	h - FITS or STSDAS header, string array
+;	h - FITS header, string array
 ;	parname - string or string array of keyword name(s) to delete
 ;
 ; OUTPUTS:
@@ -25,10 +25,10 @@ pro sxdelpar, h, parname
 ;	(1)  No message is returned if the keyword to be deleted is not found
 ;	(2)  All appearances of a keyword in the header will be deleted
 ; HISTORY:
-;	version 1  D. Lindler Feb. 1987
+;   version 1  D. Lindler Feb. 1987
 ;	Test for case where all keywords are deleted    W. Landsman Aug 1995 
-;       Allow for headers with more than 32767 lines W. Landsman Jan. 2003
-;       Use ARRAY_EQUAL, cleaner syntax  W. L.  July 2009
+;   Allow for headers with more than 32767 lines W. Landsman Jan. 2003
+;   Use ARRAY_EQUAL, cleaner syntax  W. L.  July 2009
 ;------------------------------------------------------------------
  On_error,2
  compile_opt idl2
