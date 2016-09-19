@@ -124,12 +124,6 @@ pro forprint, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, $
       return
   endif
   
-   defsysv,'!TEXTOUT',exists=ex			; Check if !TEXTOUT exists.
-  if ex eq 0 then defsysv,'!TEXTOUT',1		; If not define it.
-  defsysv,'!TEXTUNIT',exists=ex			; Check if !TEXTUNIT exists.
-  if ex eq 0 then defsysv,'!TEXTUNIT',0		; If not define it.
-
-
   if N_elements( STARTLINE ) EQ 0 then startline = 1l else $
          startline = startline > 1l 
 
@@ -184,12 +178,13 @@ pro forprint, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, $
    demo = lmgr(/demo)
    if ~demo then begin 
 
-   if ~keyword_set( TEXTOUT ) then textout = !TEXTOUT 
-   if size( textout,/TNAME) EQ 'STRING' then text_out = 6  $      ;make numeric
-                                  else text_out = textout
+ 
 
    textopen,'FORPRINT',TEXTOUT=textout,SILENT=silent,STDOUT=STDOUT, $
        MORE_SET = more_set, WIDTH=width
+
+   if size( textout,/TNAME) EQ 'STRING' then text_out = 6  $      ;make numeric
+                                  else text_out = textout
    if ( text_out GT 2 ) && (~keyword_set(NOCOMMENT)) then begin
        Ncomm = N_elements(comment)
        if Ncomm GT 0 then $

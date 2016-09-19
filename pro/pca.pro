@@ -113,7 +113,7 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      Fix MATRIX output, remove GOTO statements   W. Landsman August 1998      
 ;      Changed some index variable to type LONG    W. Landsman March 2000
 ;      Fix error in computation of proj_atr, see Jan 1990 fix in 
-;       http://astro.u-strasbg.fr/~fmurtagh/mda-sw/pca.f   W. Landsman Feb 2008
+;       http://www.classification-society.org/csna/mda-sw/pca.f   W. Landsman Feb 2008
 ;- 
   compile_opt idl2
   On_Error,2     ;return to user if error
@@ -129,14 +129,7 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
   RETURN
  ENDIF 
 
-;Define nonstandard system variables if not already present
 
-  defsysv, '!TEXTUNIT', exist = exist
-     if ~exist then  defsysv, '!TEXTUNIT', 0
-  defsysv, '!TEXTOUT', exist = exist
-     if ~exist then defsysv, '!TEXTOUT', 1
-
-  
   if size(data,/N_dimen)  NE 2 THEN BEGIN 
     HELP,data
     MESSAGE,'ERROR - Data matrix is not two-dimensional'
@@ -201,7 +194,6 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 
   if ~keyword_set(SILENT) then begin
 ;       Open output file 
-        if ~keyword_set( TEXTOUT ) then TEXTOUT = textout
         textopen,'PCA', TEXTOUT = textout
         printf,!TEXTUNIT,'PCA: ' + systime()
         sz1 = strtrim( Nobj,2) & sz2 = strtrim( Mattr, 2 )
