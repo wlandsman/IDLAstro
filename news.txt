@@ -1,3 +1,8 @@
+19-Sep-2016: DBWRT - Update to allow indexing on the fly
+             SXADDPAR - Allow writing of byte or Boolean variables
+            FTPRINT, FITS_INFO, TBHELP FORPRINT, FITSDIR - No need to explicitly test for 
+            !TEXTUNIT
+
 25-Jul-2016: AL_LEGEND,AL_LEGENDTEST - Implement histogram filling 
 
 24-Jul-2016: ZENPOS - Now has latitude, longitude, time zone keywords for interactive use
