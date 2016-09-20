@@ -65,13 +65,9 @@ pro ftprint,h,tab,columns,rows,textout=textout
    print,'Syntax -  FTPRINT, h, tab, [ columns, rows, TEXTOUT= ]'
    return
  endif
-
- defsysv,'!textout',exists = i
- if i EQ 0 then astrolib
  
  if N_elements(columns) EQ 0 then columns = -1
  if N_elements(rows) EQ 0 then rows= -1
- if  not keyword_set(TEXTOUT)  then textout = !TEXTOUT
 
 ; make sure rows is a vector
 

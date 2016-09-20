@@ -106,6 +106,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ;       Increased nmax (max number of extensions) from 400 to 2000   Sept 2012
 ;       Correctly fills EXTNAME when SILENT is set    EH   Jan 2013
 ;       Turned ptr to long64 in order to read very large files EH Dec 2013
+;       Let TEXTOPEN test for !TEXTOUT  WL Sep 2016
 ;-
  On_error,2
  compile_opt idl2
@@ -116,9 +117,6 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
      return
  endif
 
- defsysv,'!TEXTOUT',exists=ex   ; Check if !TEXTOUT exists.
- if ex eq 0 then defsysv,'!TEXTOUT',1 ; If not define it.
-
  fil = file_search( filename, COUNT = nfiles) 
  if nfiles EQ 0 then message,'No files found'
 ; File is gzip compressed if it ends in .gz or .ftz 
@@ -127,10 +125,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
  compress = (ext EQ '.gz') || (ext EQ 'ftz')
 
  silent = keyword_set( SILENT )
- if ~silent then begin 
-     if ~keyword_set( TEXTOUT ) then textout = !TEXTOUT    
-     textopen, 'FITS_INFO', TEXTOUT=textout
- endif
+ if ~silent then textopen, 'FITS_INFO', TEXTOUT=textout
 
  for nf = 0, nfiles-1 do begin
 
