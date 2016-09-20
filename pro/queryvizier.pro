@@ -30,7 +30,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;            'USNO-B1' - Verson B1 of the US Naval Observatory catalog (2003)
 ;            'UCAC4'  - 4th U.S. Naval Observatory CCD Astrograph Catalog (2012)
 ;            'B/DENIS/DENIS' - 2nd Deep Near Infrared Survey of southern Sky (2005)
-;            'I/259/TYC2' - Tycho-2 main catalog (2000)
+;            'I/337/gaia' - Gaia DR1 Data Release 1 (2016)
 ;            'I/311/HIP2' - Hipparcos main catalog, new reduction (2007)
 ;
 ;          Note that some names will prompt a search of multiple catalogs
@@ -124,7 +124,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;         IDL> str = queryvizier('I/259/TYC2','NONE',constrain='BTmag=13+/-0.1')
 ;
 ; PROCEDURES USED:
-;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2()
+;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2(), ZPARCHECK
 ; TO DO:
 ;       (1) Allow specification of output sorting
 ; MODIFICATION HISTORY: 
@@ -137,8 +137,9 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;         Update HTTP syntax for /CANADA    W. L.  Feb 2014
 ;         Add CFA keyword, remove /CANADA keyword  W.L. Oct 2014
 ;         Use IDLnetURL instead of Socket   W.L.    October 2014
+;         Add Catch, fix problem with /AllColumns W.L. September 2016
 ;-
-  On_error,2
+
   compile_opt idl2
   if N_params() LT 2 then begin
        print,'Syntax - info = QueryVizier(catalog, targetname_or_coord, dis,'
@@ -149,12 +150,20 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
        if N_elements(info) GT 0 then return,info else return, -1
   endif
 
+ Catch, theError
+ IF theError NE 0 THEN BEGIN
+       Catch,/CANCEL
+      void = cgErrorMsg(/Quiet)
+      return, -1
+      ENDIF   
+ 
  if keyword_set(cfa) then host = "vizier.cfa.harvard.edu" $
                        else  host = "webviz.u-strasbg.fr" 
  silent = keyword_set(silent)
  
   if N_elements(catalog) EQ 0 then $
             message,'ERROR - A catalog name must be supplied as a keyword'
+  zparcheck,'QUERYVIZIER',catalog,1,7,0,'Catalog Name'         
   targname = 0b
  if N_elements(dis) EQ 0 then dis = 5
  if min(dis) LE 0 then $
@@ -204,7 +213,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
        "&-c.ra=" + strtrim(ra,2) + '&-c.dec=' + strtrim(dec,2) + $
        search + '&-out.max=unlimited'
 
-  if keyword_set(allcolumns) then queryURL += '&-out.all=1'
+ if keyword_set(allcolumns) then query += '&-out.all=1'
  if keyword_set(verbose) then message,query,/inf
   
   oURL = obj_new('IDLnetURL')
