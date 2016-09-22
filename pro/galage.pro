@@ -67,7 +67,7 @@
 ;
 ;     (3) An alternative set of IDL procedures for computing cosmological
 ;    parameters is available at 
-;            http://cerebus.as.arizona.edu/~ioannis/research/red/
+;            https://github.com/jlfischer/red-idl-cosmology
 ; PROCEDURES CALLED:
 ;    COSMO_PARAM, QSIMP
 ; HISTORY: 
