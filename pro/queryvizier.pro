@@ -190,6 +190,9 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
  if strlen(constraint) GT 0 then begin
      urlconstrain = strtrim(constraint,2)
      urlconstrain = strcompress2(constraint,['<','>','='])
+;Note that one cannot uses the URLENCODE method of IDLnetURL
+;because of the "=" needed when encoding "<" and ">" characters.
+;I am not sure why this is so.  ---WL    
       urlconstrain = repstr(urlconstrain, ',','&')
      urlconstrain = repstr(urlconstrain, '<','=%3C')
      urlconstrain = repstr(urlconstrain, '>','=%3E')
