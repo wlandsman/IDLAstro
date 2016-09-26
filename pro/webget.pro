@@ -10,6 +10,11 @@
 ;     and perform simple downloads. Currently, text and FITS files can be 
 ;     accessed.    
 ;
+;     The IDLNetURL object is a much more robust way of 
+;     transferring files across the Web.     However, WEBGET() is still
+;     useful for opening a remote file unit (e.g. a FITS file) and 
+;     processing it 
+;
 ; CALLING SEQUENCE: 
 ;      a=webget(URL)
 ;
