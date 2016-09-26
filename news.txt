@@ -1,3 +1,6 @@
+
+26-Sep-2016: QUERYDSS, QUERYSIMBAD - Rewritten to use IDLNetURL object
+
 19-Sep-2016: DBWRT - Update to allow indexing on the fly
              SXADDPAR - Allow writing of byte or Boolean variables
             FTPRINT, FITS_INFO, TBHELP FORPRINT, FITSDIR - No need to explicitly test for 
