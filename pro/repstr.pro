@@ -58,8 +58,8 @@ function repstr,obj,in,out
 	return, obj
  endif
 
- if !VERSION.RELEASE GE '8.4' then return,call_method('replace',obj,in,out)
  if N_elements(out) EQ 0 then out = ''
+ if !VERSION.RELEASE GE '8.4' then return,call_method('replace',obj,in,out)
  l1 = strlen(in)
  if l1 EQ 0 then message,'ERROR - empty input string not allowed'
  l2 = strlen(out)
