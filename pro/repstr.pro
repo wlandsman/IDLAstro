@@ -49,6 +49,7 @@ function repstr,obj,in,out
 ;   Streamline code W Landsman Dec 2011
 ;   Use string .replace method in IDL 8.4 or later  W. Landsman Feb 2015
 ;   Use CALL_METHOD so that it still compiles in IDL 7.1 W.Landsman Aug 2015
+;   Keep 3rd parameter optional in V8.4 or later W. Landsman Sep 2016
 ;-
  On_error,2
  compile_opt idl2
