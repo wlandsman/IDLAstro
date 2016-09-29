@@ -421,8 +421,8 @@ if n_elements(horizontal) eq 0 then $              ; D=VERTICAL
 
  ; line_orient or polyspace imply line filling...otherwise, solid or
  ; pattern filling
- if ((N_elements(line_orient) ne 0) || N_elements(poly_fill) NE 0 || $
-     (N_elements(polyspace) ne 0)) then begin
+ 
+ if poly_fill NE 0  then begin
 
   case N_elements(line_orient) of
   0:    line_orient = replicate(0,n)
