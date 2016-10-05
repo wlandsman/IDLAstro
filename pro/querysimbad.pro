@@ -1,5 +1,5 @@
 PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
-    Verbose = verbose, CADC = cadc, CFA=cfa, Server=server, SILENT=silent, $
+    Verbose = verbose, CFA=cfa, Server=server, SILENT=silent, $
     Print = print,Vmag=Vmag,Jmag=Jmag,Hmag=Hmag,Kmag=Kmag,parallax=parallax
 ;+
 ; NAME: 
@@ -9,7 +9,7 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;   Query the SIMBAD/NED/Vizier astronomical name resolver to obtain coordinates
 ;
 ; EXPLANATION: 
-;   Uses the IDL SOCKET command to query either the SIMBAD or NED nameserver 
+;   Uses the IDLnetURL object to query either the SIMBAD or NED nameserver 
 ;   over the Web to return J2000 coordinates.  By default, QuerySimbad 
 ;   first queries the Simbad database, then (if no match found) the NED 
 ;   database, and then the Vizier database.
@@ -18,7 +18,7 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;   and for the NED service, see http://ned.ipac.caltech.edu/
 ;
 ; CALLING SEQUENCE: 
-;    QuerySimbad, name, ra, dec, [ id, Found=, /NED, /CADC, ERRMSG=, /VERBOSE]
+;    QuerySimbad, name, ra, dec, [ id, Found=, /NED, /CFA, ERRMSG=, /VERBOSE]
 ;        /PRINT, Vmag=V, Jmag=J, Hmag=H, Kmag=Kmag, parallax=parallax
 ;
 ; INPUTS: 
@@ -72,7 +72,7 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;      IDL> QuerySimbad,'GAL045.45+00.06'
 ;           ===>19 14 20.77  +11 09  3.6
 ; PROCEDURES USED:
-;       REPSTR(), WEBGET()
+;       REPSTR(), ADSTRING()
 ; NOTES:
 ;     The actual  query is made to the Sesame name resolver 
 ;     ( see http://cdsweb.u-strasbg.fr/doc/sesame.htx ).     The Sesame
@@ -80,7 +80,6 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;     Vizier.   
 ; MODIFICATION HISTORY: 
 ;     Written by M. Feldt, Heidelberg, Oct 2001   <mfeldt@mpia.de>
-;     Minor updates, W. Landsman   August 2002
 ;     Added option to use NED server, better parsing of SIMBAD names such as 
 ;          IRAS F10190+5349    W. Landsman  March 2003
 ;     Turn off extended name search for NED server, fix negative declination
@@ -100,6 +99,7 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;     Added /PRINT keyword W.L.   Oct 2011
 ;     Added ability to get V, J, H, and K magnitudes as well as
 ;     a parallax - jswift, Jan 2014
+;     Use IDLnetURL instead of WebGet()  W.L.  Oct. 2014
 ;-
 
   compile_opt idl2
@@ -118,31 +118,35 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
       RETURN
       ENDIF   
   ;;
+  fluxes = arg_present(Vmag) || arg_present(Jmag) || arg_present(Hmag) $
+    || arg_present(Kmag)
   printerr = ~arg_present(errmsg)
   if ~printerr  then errmsg = ''
-  object = repstr(name,'+','%2B')
- object = repstr(strcompress(object),' ','%20')
- if keyword_set(Cadc) then message,'CADC keyword is no longer supported'
- if keyword_set(cfa) then base = 'vizier.cfa.harvard.edu/viz-bin' else $
- base = 'cdsweb.u-strasbg.fr/cgi-bin'
-    if keyword_set(NED) then begin
- QueryURL = "http://" + base + "/nph-sesame/-o/NF?" + $
-               strcompress(object,/remove)
- endif else begin
- QueryURL = "http://" + base + "/nph-sesame/-oIF?" + $
-               strcompress(object,/remove)
 
-  endelse
+ host =  keyword_set(cfa) ? 'vizier.cfa.harvard.edu' : $
+                            'cdsweb.u-strasbg.fr'
+
+   path = "/viz-bin/nph-sesame/-oI
+   if fluxes then path+='F'
+    if keyword_set(NED) then path+='/N' else path+='/SNV'
+ 
+  queryURL = repstr(strcompress(name,/remove),'+','%2B')
   ;;
-  if keyword_set(verbose) then print,queryURL
-  Result = webget(QueryURL)
+  if keyword_set(verbose) then message,/INF,'http://' + host + path + '?' + queryURL
+  
+  oURL = obj_new('IDLnetURL')
+  oURL-> SetProperty, URL_Scheme = 'http',URL_Host=host,URL_Query=QueryURL, $
+                      URL_PATH=path
+  result = oURL-> GET(/STRING_ARRAY)
   found = 0
+  
   ;;
-   Result=Result.Text
    if arg_present(server) then $ 
         server = strmid(result[1],2,1)
 ; look for J2000 coords
-  idx=where(strpos(Result, '%J ') ne -1,cnt)
+      prefix = strmid(Result,0,5)         
+
+  idx=where(strmid(prefix,0,3) EQ '%J ',cnt)
 
   if cnt GE 1 then begin
       if cnt GT 1 then begin 
@@ -155,8 +159,8 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
       reads,strmid(Result[idx],2),ra,de
 
       if N_params() GT 3 then begin 
-          
-          idx2= where(strpos(Result, '%I.0 ') ne -1,cnt)
+      
+                idx2= where(strpos(Result, '%I.0 ') ne -1,cnt)
           if cnt GT 0 then id = strtrim(strmid(Result[idx2],4),2) else $
             if ~keyword_set(SILENT) then $
             message,'Warning - could not determine primary ID',/inf 
@@ -182,9 +186,8 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
       plxi = where(strpos(Result, '%X ') ne -1,plxcnt)
       if plxcnt GE 1 then reads,strmid(Result[plxi],2),parallax
       
-
   ENDIF ELSE BEGIN 
-      errmsg = ['No objects returned by SIMBAD.   The server answered:' , $
+      errmsg = ['No objects returned found.   The server answered:' , $
                  strjoin(result)]
       if printerr then begin
          message, errmsg[0], /info	

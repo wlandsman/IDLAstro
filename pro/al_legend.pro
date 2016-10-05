@@ -264,6 +264,7 @@
 ;       Fixed bug when linsize, /right called simultaneously, Dec 2012, K.Stewart
 ;       Added a check for embedded symbols in the items string array. March 2013. David Fanning
 ;       Implement histogram filling.  J. Sapp  Aug 2015.
+;       Only set polycolor if using polygon filling W. Landsman Sep 2016
 ;       
 ;-
 pro al_legend, items, BOTTOM_LEGEND=bottom, BOX = box, CENTER_LEGEND=center, $
@@ -420,8 +421,8 @@ if n_elements(horizontal) eq 0 then $              ; D=VERTICAL
 
  ; line_orient or polyspace imply line filling...otherwise, solid or
  ; pattern filling
- if ((N_elements(line_orient) ne 0) || $
-     (N_elements(polyspace) ne 0)) then begin
+ 
+ if poly_fill NE 0  then begin
 
   case N_elements(line_orient) of
   0:    line_orient = replicate(0,n)
@@ -435,17 +436,17 @@ if n_elements(horizontal) eq 0 then $              ; D=VERTICAL
   else: ;polyspace = polyspace
   endcase
 
- endif
-
  case N_elements(polycolor) of
  0:    polycolor = replicate('opposite',n)
  1:    polycolor = replicate(polycolor,n)
  else: ;polycolor = polycolori
  endcase
+ 
  empty_polycolor = where(polycolor eq '', n_empty)
  if (n_empty ne 0) then $
   polycolor[empty_polycolor] = 'background'
  polycolor = cgcolor(temporary(polycolor))
+endif
 
  fill = keyword_set(fill)
 if (n_elements(usersym) eq 1) then usersym = 2*[[0,0],[0,1],[1,1],[1,0],[0,0]]-1

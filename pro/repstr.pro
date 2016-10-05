@@ -49,6 +49,7 @@ function repstr,obj,in,out
 ;   Streamline code W Landsman Dec 2011
 ;   Use string .replace method in IDL 8.4 or later  W. Landsman Feb 2015
 ;   Use CALL_METHOD so that it still compiles in IDL 7.1 W.Landsman Aug 2015
+;   Keep 3rd parameter optional in V8.4 or later W. Landsman Sep 2016
 ;-
  On_error,2
  compile_opt idl2
@@ -58,8 +59,8 @@ function repstr,obj,in,out
 	return, obj
  endif
 
- if !VERSION.RELEASE GE '8.4' then return,call_method('replace',obj,in,out)
  if N_elements(out) EQ 0 then out = ''
+ if !VERSION.RELEASE GE '8.4' then return,call_method('replace',obj,in,out)
  l1 = strlen(in)
  if l1 EQ 0 then message,'ERROR - empty input string not allowed'
  l2 = strlen(out)
