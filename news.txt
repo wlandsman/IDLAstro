@@ -1,3 +1,6 @@
+11-Oct-2016: FXADDPAR - Now works with byte and boolean values
+
+29-Sep-2016: AL_LEGEND - Don't ever modify the current color table
 
 26-Sep-2016: QUERYDSS, QUERYSIMBAD - Rewritten to use IDLNetURL object
 

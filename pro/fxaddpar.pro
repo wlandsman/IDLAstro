@@ -29,6 +29,9 @@
 ;                 may be continued over more than one line using the OGIP 
 ;                 CONTINUE standard.
 ;
+;                 The special BOOLEAN datatype introduced in IDL 8.4 is also
+;                 recognized, and recorded as either 'T' or 'F' in the header.
+;
 ; Opt. Inputs : 
 ;       COMMENT = String field.  The '/' is added by this routine.  Added
 ;                 starting in position 31.  If not supplied, or set equal to ''
@@ -155,8 +158,11 @@
 ;       Version 7, 13-Aug-2015, William Thompson, allow null values
 ;               Add keywords /NULL, MISSING.  Catch non-finite values (e.g. NaN)
 ;       Version 7.1, 22-Sep-2015, W. Thompson, No slash if null & no comment
+;       Version 8, 15-Sep-2016, W. Thompson, treat byte and boolean values
+;       Version 8.1, 28-Sep-2016, W. Thompson, use EXECUTE() for pre 8.4
+;       Version 8.2, 28-Sep-2016, W. Thompson, instead use COMPILE_OPT IDL2
 ; Version     : 
-;       Version 7.1, 22-Sep-2015
+;       Version 8.2, 28-Sep-2016
 ;-
 ;
 
@@ -245,7 +251,7 @@ END
 PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
               AFTER=AFTER, FORMAT=FORMAT, NOCONTINUE = NOCONTINUE, $
               ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL
-
+        COMPILE_OPT IDL2
         ON_ERROR,2                              ;Return to caller
 ;
 ;  Check the number of parameters.
@@ -354,7 +360,9 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;  Format the record.
 ;
                 NEWLINE = BLANK
-                STRPUT,NEWLINE,NN+STRING(VALUE),0
+                IF STYPE EQ 1 THEN SVALUE = STRING(FIX(VALUE)) ELSE $
+                  SVALUE = STRING(VALUE)
+                STRPUT,NEWLINE,NN+SVALUE,0
 ;
 ;  If a history record, then append to the record just before the end.
 ;
@@ -563,13 +571,12 @@ REPLACE:
         H=BLANK                 ;80 blanks
         STRPUT,H,NN+'= '        ;insert name and =.
         APOST = "'"             ;quote (apostrophe) character
-        TYPE = SIZE(VALUE)      ;get type of value parameter
 ;
 ;  Store the value depending on the data type.  If a character string, first
 ;  check to see if it is one of the logical values "T" (true) or "F" (false).
 ;
 
-        IF TYPE[1] EQ 7 THEN BEGIN              ;which type?
+        IF STYPE EQ 7 THEN BEGIN              ;which type?
                 UPVAL = STRUPCASE(VALUE)        ;force upper case.
                 IF ~KEYWORD_SET(NOLOGICAL)  $ 
 		   &&  ((UPVAL EQ 'T') OR (UPVAL EQ 'F')) THEN BEGIN
@@ -664,8 +671,8 @@ REPLACE:
 ;  If complex, then format the real and imaginary parts, and add the comment
 ;  beginning in column 51.
 ;
-        END ELSE IF (TYPE[1] EQ 6) OR (TYPE[1] EQ 9) THEN BEGIN
-                IF TYPE[1] EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
+        END ELSE IF (STYPE EQ 6) OR (STYPE EQ 9) THEN BEGIN
+                IF STYPE EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
                 VI = IMAGINARY(VALUE)
                 IF N_ELEMENTS(FORMAT) EQ 1 THEN BEGIN   ;use format keyword
                         VR = STRING(VR, '('+STRUPCASE(FORMAT)+')')
@@ -686,11 +693,22 @@ REPLACE:
         END ELSE BEGIN
             IF NOT SAVE_AS_NULL THEN BEGIN
                 IF (N_ELEMENTS(FORMAT) EQ 1) THEN $ ;use format keyword
-                        V = STRING(VALUE,'('+STRUPCASE(FORMAT)+')' ) ELSE BEGIN
-			IF TYPE[1] EQ 5 THEN $
-			V = STRING(VALUE,FORMAT='(G19.12)') ELSE $
-                        V = STRTRIM(strupcase(VALUE),2)    ;default format
-			ENDELSE
+                  V = STRING(VALUE,'('+STRUPCASE(FORMAT)+')' ) ELSE BEGIN
+                    IF STYPE EQ 5 THEN V = STRING(VALUE,FORMAT='(G19.12)') $
+                    ELSE BEGIN
+                        IF STYPE GT 1 THEN SVALUE = STRING(VALUE) ELSE BEGIN
+                            SVALUE = STRING(FIX(VALUE))
+                            IF !VERSION.RELEASE GE '8.4' THEN BEGIN
+                                ISBOOL = ISA(VALUE, /BOOLEAN)
+                                IF ISBOOL THEN BEGIN
+                                    FT = ['F','T']
+                                    SVALUE = FT[VALUE]
+                                ENDIF
+                            ENDIF
+                        ENDELSE
+                        V = STRTRIM(SVALUE,2) ;default format
+                    ENDELSE
+                ENDELSE
                 S = STRLEN(V)                 ;right justify
                 STRPUT,H,V,(30-S)>10          ;insert
             ENDIF
