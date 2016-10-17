@@ -154,7 +154,7 @@ pro wfpc2_read,filename,chip1,header1,chip2,header2, $
                     sxaddpar, thishdr, 'CRPIX1', crpix[0] + x1[3]
                     sxaddpar, thishdr, 'CRPIX2', crpix[1] + y1[3]
                     header1 = thishdr
-                    CHECK_FITS,chip1,header1,/update,/silent,/FITS
+                    CHECK_FITS,chip1,header1,/update,/silent
             endif 
         endif else begin  
 	   (scope_varfetch('chip' + ii)) = temporary(thischp)
@@ -186,7 +186,7 @@ pro wfpc2_read,filename,chip1,header1,chip2,header2, $
 	      crpix = sxpar(header3,'CRPIX*')
               sxaddpar, header1, 'CRPIX1', crpix[0] + x1[3]
               sxaddpar, header1, 'CRPIX2', crpix[1] + y1[3]
-              CHECK_FITS, chip1, header1, /update, /silent, /FITS
+              CHECK_FITS, chip1, header1, /update, /silent 
               endif else if keyword_set(trim) then begin 
               HROTATE, chip1, header1, rotpars[0]
               HEXTRACT, chip1, header1, extpars[0,0], extpars[1,0], $
@@ -250,7 +250,7 @@ pro wfpc2_read,filename,chip1,header1,chip2,header2, $
      if nout GT 1 then begin
 
 	thischp = d[*,*,cn_0] 
-        CHECK_FITS, thischp,  thishdr, /fits, /update, /silent
+        CHECK_FITS, thischp,  thishdr, /update, /silent
           
     if keyword_set(trim) then begin
         HROTATE, thischp, thishdr, rotpars[cn_0]
@@ -268,7 +268,7 @@ pro wfpc2_read,filename,chip1,header1,chip2,header2, $
                     sxaddpar, thishdr, 'CRPIX1', crpix[0] + x1[3]
                     sxaddpar, thishdr, 'CRPIX2', crpix[1] + y1[3]
                     header1 = thishdr
-                    CHECK_FITS, chip1, header1, /update, /silent, /FITS
+                    CHECK_FITS, chip1, header1, /update, /silent
            endif
     endif else begin
     
@@ -277,7 +277,7 @@ pro wfpc2_read,filename,chip1,header1,chip2,header2, $
     endelse
    endif else begin
        header1 = thishdr
-       CHECK_FITS, chip1, header1, /fits,/update,/silent  
+       CHECK_FITS, chip1, header1,/update,/silent  
        if keyword_set(TRIM) then begin
          HROTATE, chip1, header1, rotpars[cn_0]
          HEXTRACT, chip1, header1, extpars[0,cn_0], extpars[1,cn_0], $

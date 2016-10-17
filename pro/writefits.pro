@@ -124,7 +124,7 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
                 if keyword_set(append) then mkhdr, header, data, /IMAGE  $
                                        else mkhdr, header, data, /EXTEND
         endif else if naxis GT 0 then $         
-              check_FITS, data, header, /UPDATE, /FITS, Silent= silent
+              check_FITS, data, header, /UPDATE, Silent= silent
 
   hdr = header     ;Don't modify supplied header
   
