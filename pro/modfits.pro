@@ -284,7 +284,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
         endif
       
         if (nheader EQ 0) && (dtype NE 'STRUCT') then begin
-                check_fits,data,oldheader,/FITS,ERRMSG = message
+                check_fits,data,oldheader,ERRMSG = message
                 if message NE '' then goto, BAD_EXIT
         endif
  

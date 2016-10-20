@@ -70,7 +70,7 @@ PRO QuerySimbad, name, ra, de, id, Found = found, NED = ned, ERRMSG = errmsg, $
 ;         G45.45+0.06 
 ;
 ;      IDL> QuerySimbad,'GAL045.45+00.06'
-;           ===>19 14 20.77  +11 09  3.6
+;           ===>19 14 21.30  +11 09 13.0
 ; PROCEDURES USED:
 ;       REPSTR(), ADSTRING()
 ; NOTES:
