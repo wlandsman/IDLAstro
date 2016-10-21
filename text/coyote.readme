@@ -1,4 +1,4 @@
-/coyote                                                           Nov 2013
+/coyote                                                           Oct 2016
 
 
 The procedures in this directory are a subset of the IDL program library (the
@@ -47,10 +47,11 @@ cgPS2Raster - Convert a Postscript file to high resolution raster via ImageMagic
 cgPS_Close - Close a postscript file
 cgPS_Config - Configure the PostScript device using a graphical interface
 cgPS_Open - Set-up a postscript file for subsequent plotting
+cgPSWINDOW - Calculate size of a PostScript window with specified aspect ratio
 cgQuery() - Provide information about  current cgWindow applications
 cgrootname - Parse a file name or path
-cgScaleVector() - Scale elements of a vector to a given data rangecgSet - Make the selected cgWindow application the "current" window
-cgSet - Select the cgWindow aplication to be the "current" application
+cgScaleVector() - Scale elements of a vector to a given data range
+cgSet - Select the cgWindow application to be the "current" application
 cgSetColorState -  Device independent way to set color decomposition state
 cgShow - Select the Cgwindow application to bring forward on the display
 cgSnapshot() - Screen dumps with proper color decomposition
@@ -70,7 +71,6 @@ IMAGE_DIMENSIONS - Return various dimensions of an image
 LINKEDLIST__DEFINE - Object implementing a linked list
 PROGRAMROOTDIR - Portable way of finding root directory of program distribution
 PS_BACKGROUND - Device-independent way to set the background color in  PostScript
-PSWINDOW - Calculate size of a PostScript window with specified aspect ratio
 SETDEFAULTVALUE  - Set default values for positional and keyword arguments
 STR_SIZE() - Return the proper character size to fit a string in a window
 UNDEFINE - Undefine an IDL variable, more powerful than DELVAR
