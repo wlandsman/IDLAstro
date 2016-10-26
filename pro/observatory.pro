@@ -86,6 +86,7 @@ pro observatory,obsname,obs_struct, print = print
 ;  'fmo': Fan Mountain Observatory
 ;  'whitin': Whitin Observatory, Wellesley College
 ;  'mgio': Mount Graham International Observatory
+;  'tubitak': TUBITAK National Observatory, Turkey
 ;
 ; PROCEDURE CALLS:
 ;    TEN()             
@@ -108,7 +109,7 @@ obs=[ 'kpno','ctio','eso','lick','mmto','cfht','lapalma','mso','sso','aao', $
   'mcdonald','lco','mtbigelow','dao','spm','tona','Palomar','mdm','NOV','bmo',$
    'BAO','keck','ekar','loiano','apo','lowell','vbo','flwo','oro','lna','saao',$
    'casleo','bosque','rozhen','irtf','bgsuo','ca','holi','lmo','fmo','whitin',$
-   'mgio']
+   'mgio','tubitak']
 
  if N_elements(obsname) EQ 1 then if obsname eq '' then obsname = obs
  nobs = N_elements(obsname)
@@ -415,6 +416,13 @@ case strlowcase(obsname[i]) of
 	latitude = [32,42,04.69]
 	altitude = 3191.0
 	tz = 7
+        end
+ "tubitak": begin
+        name = "TUBITAK National Observatory, Turkey"
+        longitude = [329,39,52]
+        latitude = [36,49,27]
+        tz = -3
+        altitude = 2490.0
         end
  else: message,'Unable to find observatory ' + obsname + ' in database'
  endcase
