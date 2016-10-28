@@ -176,7 +176,8 @@ endif else begin
                   last = cur
                   dr = co_refract_forward(cur,P=P[i],T=T[i])
                   cur= a[i] + dr
-                endrep until abs(last-cur)*3600. LT epsilon
+                endrep until (abs(last-cur)*3600. LT epsilon) || $
+                             ~finite(last - cur)
                 aout[i] = cur
         endfor
 endelse
