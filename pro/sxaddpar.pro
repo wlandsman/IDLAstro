@@ -130,6 +130,7 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;       Aug 2013 Only use keyword_set for binary keywords W. L. 
 ;       Sep 2015 Added NULL and MISSING keywords W.L.
 ;       Sep 2016 Allow writing of byte or Boolean variables  W.L.
+;       Nov 2016 Allow value to be a 1 element scalar  W.L.
 ;       
 ;-
  compile_opt idl2
@@ -339,8 +340,8 @@ REPLACE:
         strput,h,nn+'= '        ;insert name and =.
         apost = "'"             ;quote a quote
         type = size(value)      ;get type of value parameter
-        if type[0] ne 0 then $
-                message,'Keyword Value (third parameter) must be scalar'
+        if N_elements(value) NE 1 then $
+                message,'Keyword Value (third parameter) must be a scalar'
 
         case type[1] of         ;which type?
 
