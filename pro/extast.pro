@@ -155,6 +155,7 @@ pro extast,hdr,astr,noparams, alt=alt
 ;      v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
 ;      v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
 ;      v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
+;      v2.5.3 Add warning if CPDIS1 keyword present WL Nov 2016
 ;-
  On_error, 0
  compile_opt idl2
@@ -324,6 +325,11 @@ pro extast,hdr,astr,noparams, alt=alt
 
  cd = dblarr(2,2)
  cdelt = [1.0d,1.0d]
+ 
+   l = where(keyword EQ 'CPDIS1',  N_cpdis1)
+   if N_cpdis1 GT 0 then message, /inf, $
+       'Warning - FITS header may contain table lookup distortions (CPDIS1), ' + $
+        not currently implemented'
 
 GET_CD_MATRIX:
 
