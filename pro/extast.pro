@@ -329,7 +329,7 @@ pro extast,hdr,astr,noparams, alt=alt
    l = where(keyword EQ 'CPDIS1',  N_cpdis1)
    if N_cpdis1 GT 0 then message, /inf, $
        'Warning - FITS header may contain table lookup distortions (CPDIS1), ' + $
-        not currently implemented'
+      'not currently implemented'
 
 GET_CD_MATRIX:
 
