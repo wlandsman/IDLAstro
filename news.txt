@@ -1,10 +1,9 @@
 08-Dec-2016:  APER - Removed limitations on the maximum number of sky pixels
 
-22-Nov-2016:  EXTAST - Add warning if CPDIS1 keyword is present
+22-Nov-2016: EXTAST - Warn if header uses lookup table distortion convention
+              SKY - Remove HIGHBAD values before determining mode
 
-14-Nov-2016:  SKY - Remove high bad points before calling MMM
-
-10-Nov-2016:  SXADDPAR - Allow input to be a 1 element vector
+10-Nov-2016:  SXADDPAR - Allow 'value' to be a 1 element vector
 
 7-Nov-2016:   CO_REFRACT - Avoid possible infinite loop
 
@@ -17,12 +16,6 @@
 29-Sep-2016: AL_LEGEND - Don't ever modify the current color table
 
 26-Sep-2016: QUERYDSS, QUERYSIMBAD - Rewritten to use IDLNetURL object
-
-
-22-Nov-2016: EXTAST - Warn if header uses lookup table distortion convention
-             SKY - Remove HIGHBAD values before determining mode
-
-10-Nov-2016: SXADDPAR - Allow 'value' to be a one element scalar
 
 19-Sep-2016: DBWRT - Update to allow indexing on the fly
              SXADDPAR - Allow writing of byte or Boolean variables
