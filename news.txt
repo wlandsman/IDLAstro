@@ -1,3 +1,5 @@
+15-Dec-2016:  CORREL_OPTIMIZE - Added Init_factor keyword (default = 8)
+
 08-Dec-2016:  APER - Removed limitations on the maximum number of sky pixels
 
 22-Nov-2016: EXTAST - Warn if header uses lookup table distortion convention
