@@ -51,10 +51,11 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;              the bin for values of 6 will go from 5.5 to 6.5.   The default
 ;              is to set the HALFBIN keyword for integer data, and not for
 ;              non-integer data.     
-;      /NAN - If set, then check for the occurence of IEEE not-a-number values
-;             This is the default for floating point or Double data
-;      /NOPLOT - If set, will not plot the result.  Useful if intention is to
-;             only get the xhist and yhist outputs.
+;      /NAN - The default is to check for the occurence of IEEE not-a-number 
+;             values for non-integer input.   Set NAN=0 for PLOTHIST to give
+;             a traceback error if NaN values are present.
+;      /NOPLOT - If set, will not plot the result.  Useful if the intention is
+;             tp only get the xhist and yhist outputs.
 ;      /OVERPLOT - If set, will overplot the data on the current plot.  User
 ;            must take care that only keywords valid for OPLOT are used.
 ;      PEAK - if non-zero, then the entire histogram is normalized to have
@@ -129,6 +130,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Make /NaN,/AUTOBIN and BOXPLOT the default  W. Landsman   April 2016
 ;        Speed up COLOR processing W. Landsman  July 2016
 ;        Use Scott's normal reference rule for bin size W. Landsman  July 2016
+;        Check for NaN values when computing min and max W. Landsman  Jan 2017
 ;-
 ;			Check parameters.
 
@@ -155,8 +157,8 @@ if N_elements( arr ) LT 2 then message, $
       'ERROR - Input array must contain at least 2 elements',/noname
 
  
- arrmin = min( arr, MAX = arrmax)
- if ( arrmin EQ arrmax ) then message, /noname, $
+ minarr = min( arr, MAX = maxarr,/NaN)
+ if ( minarr EQ maxarr ) then message, /noname, $
        'ERROR - Input array must contain distinct values'
   if N_elements(boxplot) EQ 0 then boxplot=1     
 
@@ -167,7 +169,6 @@ if N_elements( arr ) LT 2 then message, $
  if ~keyword_set(BIN) then begin
 
 ;    Compute bin size using Scott's normal reference rule?
-       minarr = min(arr,max=maxarr)
 
        if keyword_set(sqrt) then $
         bin = (maxarr-minarr)/sqrt(N_elements(arr)) else $   ;Square root rule
@@ -202,7 +203,7 @@ if N_elements( arr ) LT 2 then message, $
  
  ;Positions of each bin:
  xhist = lindgen( N_hist ) * bin + min(y*bin) 
- 
+
  if ~halfbin then xhist = xhist + 0.5*bin
 
 ;;;
