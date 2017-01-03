@@ -55,7 +55,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;             values for non-integer input.   Set NAN=0 for PLOTHIST to give
 ;             a traceback error if NaN values are present.
 ;      /NOPLOT - If set, will not plot the result.  Useful if the intention is
-;             tp only get the xhist and yhist outputs.
+;             to only get the xhist and yhist outputs.
 ;      /OVERPLOT - If set, will overplot the data on the current plot.  User
 ;            must take care that only keywords valid for OPLOT are used.
 ;      PEAK - if non-zero, then the entire histogram is normalized to have
