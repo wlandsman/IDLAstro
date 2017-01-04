@@ -156,13 +156,13 @@ pro aper,image,xc,yc,mags,errap,sky,skyerr,phpadu,apr,skyradii,badpix, $
 ;       Added MINSKY keyword W.L. Dec 2011
 ;       Don't ever modify input skyrad variable  W. Landsman Aug 2013
 ;       Avoid integer overflow for very big images W. Landsman/R. Gutermuth   Mar 2016
+;       Eliminate limit on maximum number of sky pixels W. Landsman  Dec 2016
 ;-
  COMPILE_OPT IDL2
  On_error,2
 ;             Set parameter limits
  ;Smallest number of pixels from which the sky may be determined
  if N_elements(minsky) EQ 0 then minsky = 20   
- maxsky = 10000         ;Maximum number of pixels allowed in the sky annulus.
 ;                                
 if N_params() LT 3 then begin    ;Enough parameters supplied?
   print, $
@@ -345,7 +345,7 @@ DONE:
  else if chk_badpix then skypix = skypix and ( rotbuf GT badpix[0] ) and $
         (rotbuf LT badpix[1] )
  sindex =  where(skypix, Nsky) 
- Nsky =   Nsky < maxsky   ;Must be less than MAXSKY pixels
+ 
  if ( nsky LT minsky ) then begin                       ;Sufficient sky pixels?
     if ~silent then $
         message,'There aren''t enough valid pixels in the sky annulus.',/con

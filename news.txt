@@ -1,4 +1,17 @@
-13-Oct-2016  It is recommended to update CGCOLOR in the Coyote Library to
+03-Jan-2017:  PLOTHIST - Check for NaN values when computing min and max
+
+15-Dec-2016:  CORREL_OPTIMIZE - Added Init_factor keyword (default = 8)
+
+08-Dec-2016:  APER - Removed limitations on the maximum number of sky pixels
+
+22-Nov-2016: EXTAST - Warn if header uses lookup table distortion convention
+              SKY - Remove HIGHBAD values before determining mode
+
+10-Nov-2016:  SXADDPAR - Allow 'value' to be a 1 element vector
+
+7-Nov-2016:   CO_REFRACT - Avoid possible infinite loop
+
+13-Oct-2016:  It is recommended to update CGCOLOR in the Coyote Library to
              fix a problem on X Window systems without backing store.   The problem
              could affect colors on a number of IDLAstro plotting routines.
 
@@ -7,8 +20,6 @@
 29-Sep-2016: AL_LEGEND - Don't ever modify the current color table
 
 26-Sep-2016: QUERYDSS, QUERYSIMBAD - Rewritten to use IDLNetURL object
-
-10-Nov-2016: SXADDPAR - Allow 'value' to be a one element scalar
 
 19-Sep-2016: DBWRT - Update to allow indexing on the fly
              SXADDPAR - Allow writing of byte or Boolean variables
