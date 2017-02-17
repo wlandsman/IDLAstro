@@ -34,21 +34,35 @@ PRO xyxy, hdra, hdrb, xa, ya, xb, yb
 ; MODIFICATION HISTORY:
 ;	Written by Michael R. Greason, Hughes-STX, 13 April 1992.
 ;	Updated to use ASTROMETRY structures.  J.D.Offenberg, HSTX, Jan 1993
-;	Converted to IDL V5.0   W. Landsman   September 1997
-;       Check coordinate system   J. Ballet/ W. Landsman  April 2004
+;   Check coordinate system   J. Ballet/ W. Landsman  April 2004
+;   Make sure output arrays supplied    W. Landsman Feb 2017
 ;-
-On_error,2
 ;			Check parameters.
 np = N_params()
 if (np LT 4) then begin  
 	print, "Syntax:  xyxy, hdra, hdrb, xa, ya [, xb, yb]"
 	return
 endif
+
+ Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
+
+
 if ( N_elements(xa) NE N_elements(ya) ) then begin  
 	message,/CON, $
      'ERROR - The first two parameters must have the same number of elements.'
 	return
 endif
+
+if (np EQ 4) && ~arg_present(xa) then begin
+    message,/CON, 'ERROR - No output variables supplied'
+    return
+endif    
+
 epa = get_equinox( hdra, codea)
 epb = get_equinox( hdrb, codeb)
 
@@ -58,7 +72,8 @@ epb = get_equinox( hdrb, codeb)
 ;
 extast, hdra, astra, noparamsa
 extast, hdrb, astrb, noparamsb
-IF ( (noparamsa LT 0) OR (noparamsb LT 0)) THEN BEGIN
+
+IF ( (noparamsa LT 0) || (noparamsb LT 0)) THEN BEGIN
 	xb = xa
 	yb = ya
 	return
@@ -80,7 +95,7 @@ IF typea NE typeb THEN $
              RETURN
       ENDELSE
    ENDCASE
-
+   
 ;			Perform the conversion.
 
 case strmid(astra.ctype[0],5,3)  of
@@ -88,7 +103,7 @@ case strmid(astra.ctype[0],5,3)  of
    else: xy2ad, xa, ya, astra, a, d
 endcase
 
-if ( codea GE 0 ) and (codeb GE 0) then $
+if ( codea GE 0 ) && (codeb GE 0) then $
     if ( epa NE epb ) then $
            precess, a, d, epa, epb
 
