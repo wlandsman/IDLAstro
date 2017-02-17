@@ -12,7 +12,8 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;    See notes below for comparison with the intrinsic IDL function PCOMP.
 ;
 ;    Harris Geospatial has a video/blog post  on using pca.pro at 
-;    http://tinyurl.com/h6ky6qy
+;    http://tinyurl.com/h6ky6qy .     Also see David Fanning's discussion of
+;    PCA analysis with IDL ( http://www.idlcoyote.com/code_tips/pca.html )
 ;
 ; CALLING SEQUENCE:
 ;    PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, 
@@ -77,8 +78,8 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      PCA uses the non-standard system variables !TEXTOUT and !TEXTUNIT.
 ;      These are automatically added if not originally present.
 ;
-;      The intrinsic IDL function PCOMP  duplicates most
-;      most of the functionality of PCA, but uses different conventions and
+;      The intrinsic IDL function PCOMP duplicates most of the 
+;      functionality of PCA, but uses different conventions and
 ;      normalizations.   Note the following:
 ;
 ;   (1) PCOMP requires a N_ATTRIB x N_OBJ input array; this is the transpose
@@ -116,7 +117,6 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;       http://www.classification-society.org/csna/mda-sw/pca.f   W. Landsman Feb 2008
 ;- 
   compile_opt idl2
-  On_Error,2     ;return to user if error
 
 ; Constants
   TOLERANCE = 1.0E-5       ; are array elements near-zero ?
@@ -128,6 +128,17 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
   print,'               [MATRIX =, /COVARIANCE, /SSQ, /SILENT, TEXTOUT=]'
   RETURN
  ENDIF 
+ 
+ ; Constants
+  TOLERANCE = 1.0E-5       ; are array elements near-zero ?
+
+
+ Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
 
 
   if size(data,/N_dimen)  NE 2 THEN BEGIN 
