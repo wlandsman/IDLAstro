@@ -1,3 +1,5 @@
+17-Feb-2017:  XYXY - Make sure output parameters supplied
+
 03-Jan-2017:  PLOTHIST - Check for NaN values when computing min and max
 
 15-Dec-2016:  CORREL_OPTIMIZE - Added Init_factor keyword (default = 8)
