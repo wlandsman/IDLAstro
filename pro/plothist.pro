@@ -5,7 +5,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
                  FORIENTATION=Forientation, NAN = NAN, $
                  _EXTRA = _extra, Halfbin = halfbin, AUTOBin = autobin, $
                  Boxplot = boxplot, xlog = xlog, ylog = ylog, $
-                 yrange = yrange, Color = color,axiscolor=axiscolor, $
+                 xrange=xrange,yrange = yrange, Color = color,axiscolor=axiscolor, $
                  rotate = rotate, WINDOW=window,XSTYLE=xstyle, YSTYLE = ystyle,$
 		 THICK= thick, LINESTYLE = linestyle, SQRT=SQRT
 ;+
@@ -51,7 +51,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;              the bin for values of 6 will go from 5.5 to 6.5.   The default
 ;              is to set the HALFBIN keyword for integer data, and not for
 ;              non-integer data.     
-;      /NAN - The default is to check for the occurence of IEEE not-a-number 
+;      /NAN - The default is to check for the occurrence of IEEE not-a-number 
 ;             values for non-integer input.   Set NAN=0 for PLOTHIST to give
 ;             a traceback error if NaN values are present.
 ;      /NOPLOT - If set, will not plot the result.  Useful if the intention is
@@ -131,6 +131,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Speed up COLOR processing W. Landsman  July 2016
 ;        Use Scott's normal reference rule for bin size W. Landsman  July 2016
 ;        Check for NaN values when computing min and max W. Landsman  Jan 2017
+;        Always set a minimum number of bins   W. Landsman   Feb 2017
 ;-
 ;			Check parameters.
 
@@ -174,6 +175,9 @@ if N_elements( arr ) LT 2 then message, $
         bin = (maxarr-minarr)/sqrt(N_elements(arr)) else $   ;Square root rule
        bin = (3.5D * StdDev(arr, /NAN))/N_Elements(arr)^(1./3.0D) 
        if ~floatp then bin = bin > 1
+; If xrange is set, make sure we have at least 4 bins       
+        if keyword_set(xrange) then bin = bin < (xrange[1] - xrange[0])/4.
+       
  endif else begin
     bin = float(abs(bin))
  endelse
@@ -217,7 +221,6 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
  if keyword_set(NoPlot) then return
  
  ;JRM;;;;;
- xra_set = keyword_set(XRANGE)?1:0
  xst_set = keyword_set(xstyle)?1:0
  yst_set = keyword_set(ystyle)?1:0
 ;JRM;;;;;
@@ -257,7 +260,6 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
     
     ;If xrange is not set.
     ;Then the auto x- range by setting xrange to [0,0].
-    if ~xra_set then xrange=[0,0]
     if ~xst_set then xstyle=0
     if ~yst_set then ystyle=1
     
