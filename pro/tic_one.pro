@@ -28,15 +28,15 @@ pro tic_one, min, pixx, incr, min2, tic1, RA=ra
 ;	zero point.  A tic mark is desired every 10 arc minutes, which 
 ;	corresponds to 12.74 pixels.  Then
 ;
-;	IDL> TIC_ONE, 30.2345, 1, 12.74, min2, tic1
+;	IDL> TIC_ONE, 30.2345, 12.74, 10, min2, tic1
 ;
-;	yields values of min2 = 30.333 and tic1 = 5.74, i.e. the first tic
+;	yields values of min2 = 30.333 and tic1 = 7.55, i.e. the first tic
 ;	mark should be labeled 30 deg 20 minutes and be placed at pixel value
-;	5.74
+;	7.55
 ;
 ; REVISION HISTORY:
 ;	by B. Pfarr, 4/15/87
-;	Converted to IDL V5.0   W. Landsman   September 1997
+;	Corrected documentation example  W. Landsman   Mar 2017
 ;-
   On_error,2
 ;                             convert min to minutes
