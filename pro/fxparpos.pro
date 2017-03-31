@@ -59,6 +59,7 @@
 ;       Version 3, 15-Mar-2017, William Thompson, GSFC
 ;               Test for continue lines when using AFTER option.
 ;       Version 4, 16-Mar-2017, William Thompson, GSFC, added LAST keyword
+;       Version 5, 30-Mar-2017, William Thompson, GSFC, fix bug if AFTER=''
 ;-
 ;
 	ON_ERROR,2				;Return to caller
@@ -70,18 +71,20 @@
 ;
 ;  If the AFTER keyword has been entered, then find the location.
 ;
-	IF N_ELEMENTS(AFTER) EQ 1 THEN BEGIN
-            KEY_AFTER = STRING(REPLICATE(32B,8))
-            STRPUT,KEY_AFTER,STRUPCASE(STRTRIM(AFTER,2)),0
-            ILOC = WHERE(KEYWRD EQ KEY_AFTER,NLOC)
+        IF N_ELEMENTS(AFTER) EQ 1 THEN BEGIN
+            IF STRTRIM(AFTER) NE '' THEN BEGIN
+                KEY_AFTER = STRING(REPLICATE(32B,8))
+                STRPUT,KEY_AFTER,STRUPCASE(STRTRIM(AFTER,2)),0
+                ILOC = WHERE(KEYWRD EQ KEY_AFTER,NLOC)
 ;
 ;  Check to see if the keyword is continued.
 ;
-            IF NLOC GT 0 THEN BEGIN
-                IRETURN = (MAX(ILOC)+1)
-                WHILE (IRETURN LT IEND) AND (KEYWRD[IRETURN] EQ 'CONTINUE') $
-                  DO IRETURN = IRETURN + 1
-                RETURN, IRETURN
+                IF NLOC GT 0 THEN BEGIN
+                    IRETURN = (MAX(ILOC)+1)
+                    WHILE (IRETURN LT IEND) AND (KEYWRD[IRETURN] EQ 'CONTINUE') $
+                    DO IRETURN = IRETURN + 1
+                    RETURN, IRETURN
+                ENDIF
             ENDIF
 	ENDIF
 ;
