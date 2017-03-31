@@ -161,14 +161,16 @@
 ;       Version 8, 15-Sep-2016, W. Thompson, treat byte and boolean values
 ;       Version 8.1, 28-Sep-2016, W. Thompson, use EXECUTE() for pre 8.4
 ;       Version 8.2, 28-Sep-2016, W. Thompson, instead use COMPILE_OPT IDL2
+;       Version 9, 16-Mar-2017, W. Thompson, include comments in long strings
+;               Use FXPARPOS, /LAST option.  Put space between slash and comment
 ; Version     : 
-;       Version 8.2, 28-Sep-2016
+;       Version 9, 16-Mar-2017
 ;-
 ;
 
 ; This is a utility routine, which splits a parameter into several
 ; continuation bits.
-PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
+PRO FXADDPAR_CONTPAR, VALUE, COMMENT, CONTINUED
   
   APOST = "'"
   BLANK = STRING(REPLICATE(32B,80)) ;BLANK line
@@ -187,7 +189,7 @@ PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
   ENDELSE
 
   ;; Split out the remaining values.
-  WHILE( STRLEN(VALUE) GT 0 ) DO BEGIN
+  WHILE (STRLEN(VALUE) GT 0) OR (STRLEN(COMMENT) GT 0) DO BEGIN
       H = BLANK
 
       ;; Add CONTINUE keyword
@@ -196,9 +198,40 @@ PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
       IF(STRLEN(VALUE) GT 68) THEN BEGIN
           STRPUT, H, STRMID(VALUE, 0, 67)+'&'+APOST, 11
           VALUE = STRMID(VALUE, 67, STRLEN(VALUE)-67)
+      ENDIF ELSE IF (STRLEN(VALUE)+STRLEN(COMMENT)) GT 66 THEN BEGIN
+          IF STRLEN(VALUE) GT 67 THEN BEGIN
+              STRPUT, H, STRMID(VALUE, 0, 67)+'&'+APOST, 11
+              VALUE = STRMID(VALUE, 67, STRLEN(VALUE)-67)
+          ENDIF ELSE BEGIN
+              TEMP = VALUE+'&'+APOST+' /'
+              VALUE = ''
+              NTEMP = STRLEN(TEMP)
+              IF NTEMP LT 68 THEN BEGIN
+                  NCOM = 68 - NTEMP
+                  WORDS = STRSPLIT(COMMENT, ' ', /EXTRACT)
+                  IF STRLEN(WORDS[0]) GT NCOM THEN BEGIN
+                      TEMP = TEMP + ' ' + STRMID(COMMENT,0,NCOM)
+                      COMMENT = STRMID(COMMENT, NCOM, STRLEN(COMMENT)-NCOM)
+                  ENDIF ELSE BEGIN
+                      WHILE STRLEN(WORDS[0]) LT NCOM DO BEGIN
+                          TEMP = TEMP + ' ' + WORDS[0]
+                          NTEMP = STRLEN(TEMP)
+                          NCOM = 69 - NTEMP
+                          WORDS = WORDS[1:*]
+                      ENDWHILE
+                      COMMENT = WORDS[0]
+                      FOR IWORD = 1,N_ELEMENTS(WORDS)-1 DO $
+                        COMMENT = COMMENT + ' ' + WORDS[IWORD]
+                  ENDELSE
+              ENDIF
+              STRPUT, H, TEMP, 11
+          ENDELSE
       ENDIF ELSE BEGIN
-          STRPUT, H, VALUE+APOST, 11
+          TEMP = VALUE+APOST
+          IF N_ELEMENTS(COMMENT) GT 0 THEN TEMP = TEMP + ' / ' + COMMENT
+          STRPUT, H, TEMP, 11
           VALUE = ''
+          COMMENT = ''
       ENDELSE
 
       CONTINUED = [ CONTINUED, H ]
@@ -225,23 +258,23 @@ PRO FXADDPAR_CONTWARN, HEADER, NAME
     RETURN
 
   FXADDPAR, HEADER, 'LONGSTRN', 'OGIP 1.0', $
-    ' The OGIP long string convention may be used.', $
+    'The OGIP long string convention may be used.', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    ' This FITS file may contain long string keyword values that are', $
+    'This FITS file may contain long string keyword values that are', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    " continued over multiple keywords.  This convention uses the  '&'", $
+    "continued over multiple keywords.  This convention uses the  '&'", $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    ' character at the end of a string which is then continued', $
+    'character at the end of a string which is then continued', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    " on subsequent keywords whose name = 'CONTINUE'.", $
+    "on subsequent keywords whose name = 'CONTINUE'.", $
     BEFORE=NAME
 
   RETURN
@@ -412,9 +445,12 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
                                 IF QUOTE LT 0 THEN SLASH = -1 ELSE      $
                                         SLASH = STRPOS(HEADER[I],'/',QUOTE+1)
                         ENDIF
-                        IF SLASH NE -1 THEN     $
-                                COMMENT = STRMID(HEADER[I],SLASH+1,80) ELSE $
-                                COMMENT = STRING(REPLICATE(32B,80))
+                        IF SLASH NE -1 THEN BEGIN
+                            SPOS = SLASH + 1
+                            IF STRMID(HEADER[I],SPOS,1) EQ ' ' THEN $
+                              SPOS = SLASH + 2
+                            COMMENT = STRMID(HEADER[I],SPOS,80)
+                        END ELSE COMMENT = STRING(REPLICATE(32B,80))
                 ENDIF
                 GOTO, REPLACE
         ENDIF
@@ -544,13 +580,11 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;
 ;  At this point the location has not been determined, so a new line is added
 ;  at the end of the FITS header, but before any blank, COMMENT, or HISTORY
-;  keywords, unless overridden by the BEFORE or AFTER keywords.
+;  keywords at the end of the header, unless overridden by the BEFORE or AFTER
+;  keywords.
 ;
         I = FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE=BEFORE)
-        IF I EQ IEND THEN I =                                     $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='')         < $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='COMMENT')  < $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='HISTORY')
+        IF I EQ IEND THEN I = FXPARPOS(KEYWRD,IEND,AFTER=AFTER,/LAST)
 ;
 ;  A new line needs to be added.  First check to see if the length of the
 ;  header array needs to be extended.  Then insert a blank record at the proper
@@ -604,9 +638,10 @@ REPLACE:
 ; CM 24 Sep 1997
 ;  Separate parameter if it needs to be CONTINUEd.
 ;
-                        IF NOT KEYWORD_SET(NOCONTINUE) THEN $
-                             FXADDPAR_CONTPAR, VAL, CVAL  ELSE $
-                             CVAL = STRMID(VAL,0,68)
+                        IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
+                            CCOM = STRTRIM(COMMENT)
+                            FXADDPAR_CONTPAR, VAL, CCOM, CVAL
+                        ENDIF ELSE CVAL = STRMID(VAL,0,68)
                         K = I + 1
                         ;; See how many CONTINUE lines there already are
                         WHILE K LT IEND DO BEGIN
@@ -641,7 +676,7 @@ REPLACE:
 
                         IF STRLEN(CVAL[0]) GT 18 THEN BEGIN
                             STRPUT,H,APOST+STRMID(CVAL[0],0,68)+APOST+ $
-                              ' /'+COMMENT,10
+                              ' / '+COMMENT,10
                             HEADER[I]=H
                                 
 ;  There might be a continuation of this string.  CVAL would contain
@@ -683,7 +718,7 @@ REPLACE:
                 ENDELSE
                 SR = STRLEN(VR)  &  STRPUT,H,VR,(30-SR)>10
                 SI = STRLEN(VI)  &  STRPUT,H,VI,(50-SI)>30
-                STRPUT,H,' /'+COMMENT,50
+                STRPUT,H,' / '+COMMENT,50
                 HEADER[I] = H
                 RETURN
 ;
@@ -718,8 +753,8 @@ REPLACE:
 ;  add the slash if the value is null and there is no comment.
 ;
         IF (NOT SAVE_AS_NULL) OR (STRLEN(STRTRIM(COMMENT)) GT 0) THEN BEGIN
-            STRPUT,H,' /',30    ;add ' /'
-            STRPUT,H,COMMENT,32 ;add comment
+            STRPUT,H,' / ',30   ;add ' / '
+            STRPUT,H,COMMENT,33 ;add comment
         ENDIF
         HEADER[I]=H             ;save line
 ;
