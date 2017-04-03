@@ -28,7 +28,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;            '2MASS-PSC' - 2MASS point source catalog (2003)
 ;            'GSC2.3' - Version 2.3.2 of the HST Guide Star Catalog (2006)
 ;            'USNO-B1' - Verson B1 of the US Naval Observatory catalog (2003)
-;            'UCAC4'  - 4th U.S. Naval Observatory CCD Astrograph Catalog (2012)
+;            'UCAC5'  - 5th U.S. Naval Observatory CCD Astrograph Catalog (2017)
 ;            'B/DENIS/DENIS' - 2nd Deep Near Infrared Survey of southern Sky (2005)
 ;            'I/337/gaia' - Gaia DR1 Data Release 1 (2016)
 ;            'I/311/HIP2' - Hipparcos main catalog, new reduction (2007)
@@ -138,6 +138,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;         Add CFA keyword, remove /CANADA keyword  W.L. Oct 2014
 ;         Use IDLnetURL instead of Socket   W.L.    October 2014
 ;         Add Catch, fix problem with /AllColumns W.L. September 2016
+;         Update Strasbourg Web address  W.L. April 2017
 ;-
 
   compile_opt idl2
@@ -158,7 +159,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
       ENDIF   
  
  if keyword_set(cfa) then host = "vizier.cfa.harvard.edu" $
-                       else  host = "webviz.u-strasbg.fr" 
+                       else  host = "vizier.u-strasbg.fr" 
  silent = keyword_set(silent)
  
   if N_elements(catalog) EQ 0 then $
