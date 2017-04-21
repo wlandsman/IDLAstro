@@ -1,3 +1,5 @@
+20-Apr-2017:  READCOL - Avoid error if more format codes than output variables
+
 31-Mar-2017:  FXADDPAR - Include comments in long strings 
               FXPARPOS() - Added LAST keyword
 
