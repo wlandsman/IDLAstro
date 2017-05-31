@@ -23,7 +23,7 @@
 ;		in order from largest to smallest.    
 ;                         or
 ;   HRMNSC_STRING - String giving sexagesmal quantity separated by
-;               spaces or colons e.g. "10 23 34" or "-3:23:45.2"
+;               spaces, commas or colons e.g. "10 23 34" or "-3:23:45.2"
 ;               Any negative values should begin with a minus sign.
 ; OUTPUTS:
 ;	Function value returned = double real scalar, decimal equivalent of
@@ -34,7 +34,7 @@
 ; EXAMPLES:
 ;       IDL> print,ten(0,-23,34)
 ;                 --> -0.39277778
-;       IDL> print,ten("-0:23:34")
+;       IDL> print,ten("-0,23,34")
 ;                 --> -0.39277778
 ; PROCEDURE:
 ;	Mostly involves checking arguments and setting the sign.
@@ -45,8 +45,9 @@
 ; MODIFICATION HISTORY:
 ;	Written by R. S. Hill, STX, 21 April 87       
 ;	Modified to allow non-vector arguments.  RSH, STX, 19-OCT-87
-;       Recognize -0.0   W. Landsman/B. Stecklum   Dec 2005
-;       Work with string input  W. Landsman Dec 2008
+;   Recognize -0.0   W. Landsman/B. Stecklum   Dec 2005
+;   Work with string input  W. Landsman Dec 2008
+;   Accept comma separator in string input W. Landsman May 2017
 ;-
       compile_opt idl2
       np = N_params()
@@ -56,6 +57,7 @@
 	      temp = strtrim(dd,2)
 	      neg = strmid(dd,0,1) EQ '-'
 	      temp = repchr(temp,':',' ')
+	      temp = repchr(temp,',',' ')
 	      value = abs(double(gettok(temp,' ')))
 	       mm = double(gettok(temp,' '))
 	       decimal =  value + mm/60. + double(temp)/3600.0d 
@@ -63,7 +65,7 @@
 	      return,decimal
          endif else vector=dd
       endif else begin
-         if (np lt 1) or (np gt 3) then goto,bad_args
+         if (np lt 1) || (np gt 3) then goto,bad_args
          vector=dblarr(3)
          vector[0]=dd
          vector[1]=mm
@@ -82,7 +84,7 @@
       i = 1
       while (i le nel-1) do begin
          decim = decim + double(vector[i])/facs[i]
-         i = i + 1
+         i++
       endwhile
       return,decim*sign
 bad_args:    

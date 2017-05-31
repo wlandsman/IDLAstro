@@ -50,10 +50,10 @@
 ;	Written by W.B. Landsman           April, 1991
 ;       Recognize -0.0   W. Landsman/B. Stecklum   Dec 2005
 ;       Work with string input   W. Landsman Feb 2009
+;       Accept comma separator in string input W. Landsman May 2017
 ;
 ;-
  compile_opt idl2
- On_error,2                                 ;Return to caller
 
  npar = N_params()
  npts = N_elements(dd)
@@ -66,6 +66,7 @@
  if size(dd,/TNAME) EQ 'STRING' then begin 
        temp = strtrim(dd,2)
        temp = repchr(temp,':',' ')
+       temp = repchr(temp,',',' ')
        neg = where( strmid(temp,0,1) EQ '-', Nneg)
        value = abs(double(gettok(temp,' ')))
        mm = double(gettok(temp,' '))
