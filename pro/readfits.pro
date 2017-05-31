@@ -41,10 +41,7 @@
 ;
 ; OPTIONAL OUTPUT:
 ;       Header = String array containing the header from the FITS file.
-;              If you don't need the header, then the speed may be improved by
-;              not supplying this parameter.    Note however, that omitting 
-;              the header can imply /NOSCALE, i.e. BSCALE and BZERO values
-;              may not be applied.
+;
 ;       heap = For extensions, the optional heap area following the main
 ;              data array (e.g. for variable length binary extensions).
 ;
@@ -151,7 +148,7 @@
 ;               (1) the system variable !ERROR_STATE.CODE is set negative 
 ;                   (via the MESSAGE facility)
 ;               (2) the error message is displayed (unless /SILENT is set),
-;                   and the message is also stored in !!ERROR_STATE.MSG
+;                   and the message is also stored in !ERROR_STATE.MSG
 ;               (3) READFITS returns with a value of -1
 ; RESTRICTIONS:
 ;       (1) Cannot handle random group FITS
@@ -222,6 +219,7 @@
 ;      First header is not necessarily primary if unit supplied WL Jan 2011
 ;      Fix test for 'SIMPLE' at beginning of header WL November 2012
 ;      Fix problem passing extensions with > 2GB WL, M. Carlson August 2013
+;      Always read entire header, even if header variable not supplied W. Landsman May 2017
 ;-
 function READFITS, filename, header, heap, CHECKSUM=checksum, $ 
                    COMPRESS = compress, HBUFFER=hbuf, EXTEN_NO = exten_no, $
@@ -299,13 +297,11 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
   endelse
   if N_elements(POINTLUN) GT 0 then mrd_skip, unit, pointlun
 
-  doheader = arg_present(header) || do_checksum
-  if doheader  then begin
-          if N_elements(hbuf) EQ 0 then hbuf = 180 else begin
+
+  if N_elements(hbuf) EQ 0 then hbuf = 180 else begin
                   remain = hbuf mod 36
                   if remain GT 0 then hbuf = hbuf + 36-remain
-           endelse
-  endif else hbuf = 36
+  endelse
 
   for ext = 0L, exten_no do begin
                
@@ -313,8 +309,8 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
 
        block = string(replicate(32b,80,36))
        w = [-1]
-       if ((ext EQ exten_no) && (doheader)) then header = strarr(hbuf) $
-                                             else header = strarr(36)
+       if (ext EQ exten_no)  then header = strarr(hbuf) $
+                             else header = strarr(36)
        headerblock = 0L
        i = 0L      
 
@@ -336,7 +332,7 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
       endif
 
       w = where(strcmp(block,'END     ',8), Nend)
-      if (headerblock EQ 1) || ((ext EQ exten_no) && (doheader)) then begin
+      if (headerblock EQ 1) || (ext EQ exten_no) then begin
               if Nend GT 0 then  begin
              if headerblock EQ 1 then header = block[0:w[0]]   $
                                  else header = [header[0:i-1],block[0:w[0]]]
