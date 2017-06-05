@@ -1,5 +1,4 @@
-function tbget, hdr_or_tbstr, tab, field, rows, nulls, NOSCALE = noscale, $
-        CONTINUE = continue
+function tbget, hdr_or_tbstr, tab, field, rows, nulls, NOSCALE = noscale
 ;+
 ; NAME:
 ;       TBGET
@@ -28,8 +27,6 @@ function tbget, hdr_or_tbstr, tab, field, rows, nulls, NOSCALE = noscale, $
 ;       /NOSCALE - If this keyword is set and nonzero, then the TSCALn and
 ;               TZEROn keywords will *not* be used to scale to physical values
 ;               Default is to perform scaling
-;       CONTINUE - This keyword does nothing, it is kept for consistency with
-;               with earlier versions of TBGET().
 ; OUTPUTS:
 ;       the values for the row are returned as the function value.
 ;       Null values are set to 0 or blanks for strings.
@@ -82,6 +79,7 @@ function tbget, hdr_or_tbstr, tab, field, rows, nulls, NOSCALE = noscale, $
 ;       Use faster BYTEORDER byteswapping  W. Landsman April 2006
 ;       Free pointers if FITS header supplied W. Landsman March 2007
 ;       Use V6.0 notation W. Landsman  April 2014
+;       Remove nonfunctional CONTINUE keyword W. Landsman  May 2017
 ;-
 ;------------------------------------------------------------------
  On_error,2
