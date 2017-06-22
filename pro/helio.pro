@@ -40,7 +40,7 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
 ;
 ;       (2) Find heliocentric position of Mars on August 23, 2000 
 ;         IDL> JDCNV, 2000,08,23,0,jd
-;         IDL> HELIO,JD,2,HRAD,HLONG,HLAT
+;         IDL> HELIO,JD,4,HRAD,HLONG,HLAT
 ;                  ===> hrad = 1.6407 AU hlong = 124.3197 hlat = 1.7853
 ;         For comparison, the JPL ephemeris gives
 ;                       hrad = 1.6407 AU hlong = 124.2985 hlat = 1.7845
