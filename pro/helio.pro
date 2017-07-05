@@ -87,8 +87,8 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
 
 ; Mean orbital elements taken from https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
 ; (1) semi-major axis in AU, (2) eccentricity, (3) inclination (degrees),
-; (4) longitude of the ascending node (degrees), (5) longitude of perihelion
-; (degrees) and (6) mean longitude (degrees)
+; (4) mean longitude (degrees), (5) longitude of perihelion (degrees)
+; and (6) longitude of the ascending node (degrees)
 
 ;Mercury   
 PD = [ [0.38709927d, 0.20563593d, 7.00497902d, 252.25032350d, 77.45779628d , 48.33076593d], $
