@@ -4,17 +4,18 @@
 ; PURPOSE:
 ;       Read a FITS file into IDL data and header variables. 
 ; EXPLANATION:
-;       READFITS() can read FITS files compressed with gzip or Unix (.Z) 
-;       compression.  FPACK ( http://heasarc.gsfc.nasa.gov/fitsio/fpack/ )
+;       READFITS() can read FITS files compressed with gzip (.gz), Unix (.Z) 
+;       or BZip (.bz2) compression.  FPACK ( http://heasarc.gsfc.nasa.gov/fitsio/fpack/ )
 ;       compressed FITS files can also be read provided that the FPACK software
 ;       is installed.
+;
 ;       See http://idlastro.gsfc.nasa.gov/fitsio.html for other ways of
 ;       reading FITS files with IDL.   
 ;
 ; CALLING SEQUENCE:
 ;       Result = READFITS( Filename/Fileunit,[ Header, heap, /NOSCALE, EXTEN_NO=,
 ;                     NSLICE=, /SILENT , STARTROW =, NUMROW = , HBUFFER=,
-;                     /CHECKSUM, /COMPRESS, /FPACK, /No_Unsigned, NaNVALUE = ]
+;                     /CHECKSUM, /COMPRESS, /FPACK, /No_Unsigned ]
 ;
 ; INPUTS:
 ;       Filename = Scalar string containing the name of the FITS file  
@@ -57,7 +58,8 @@
 ;               READFITS will assume that if the file name extension ends in 
 ;               '.gz' then the file is gzip compressed.   The /COMPRESS keyword
 ;               is required only if the the gzip compressed file name does not 
-;               end in '.gz' or .ftz
+;               end in '.gz' or .ftz.   BZip compressed files must have a .bz2
+;               extension.
 ;              
 ;       EXTEN_NO - non-negative scalar integer specifying the FITS extension to
 ;               read.  For example, specify EXTEN = 1 or /EXTEN to read the 
@@ -220,6 +222,7 @@
 ;      Fix test for 'SIMPLE' at beginning of header WL November 2012
 ;      Fix problem passing extensions with > 2GB WL, M. Carlson August 2013
 ;      Always read entire header, even if header variable not supplied W. Landsman May 2017
+;      Support BZip compression   W. Landsman Aug 2017 
 ;-
 function READFITS, filename, header, heap, CHECKSUM=checksum, $ 
                    COMPRESS = compress, HBUFFER=hbuf, EXTEN_NO = exten_no, $
@@ -264,8 +267,9 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
     gzip = (ext EQ '.gz') || (ext EQ 'ftz')
     compress = keyword_set(compress) || gzip[0]
     unixZ =  (strmid(filename, len-2, 2) EQ '.Z') 
+    bzip = ext EQ 'bz2'
     fcompress = keyword_set(fpack) || ( ext EQ '.fz') 
-    unixpipe = unixZ || fcompress	      
+    unixpipe = unixZ || fcompress || bzip      
 
  
 ;  Go to the start of the file.
@@ -280,10 +284,10 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
 ;  Handle Unix or Fpack compressed files which will be opened via a pipe using
 ;  the SPAWN command.     
 
-        if unixZ then begin
+        if unixZ || bzip then begin
                 free_lun, unit
-                spawn, 'gzip -cd '+filename, unit=unit                 
-                gzip = 1b
+                if bzip then cmd = 'bunzip2' else cmd = 'gzip'
+                spawn, cmd + ' -cd '+filename, unit=unit                 
 
         endif else if fcompress then begin 
 	        free_lun, unit
@@ -363,7 +367,7 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
                 
        if naxis GT 0 then begin 
             dims = sxpar( header,'NAXIS*')           ;Read dimensions
-	    ndata = product(dims,/integer)
+	    ndata = product(dims[0:naxis-1],/integer)    ;Update 7-31-2017
        endif else ndata = 0
                 
        nbytes = byte_elem * gcount * (pcount + ndata)
