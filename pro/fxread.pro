@@ -154,6 +154,7 @@
 ;       Version 12, William Thompson, 18-Jun-2010, update BLANK value.
 ;       Version 13, W. Landsman  Remove IEEE_TO_HOST, V6.0 notation
 ;       Version 14, William Thompson, 25-Sep-2014, fix BSCALE bug in version 13
+;       Version 15, William Thompson, 24-Jul-2017, allow NAXISn=0 if n>NAXIS
 ;-
 ;
 	ON_ERROR, 2
@@ -303,7 +304,8 @@
             RETURN
         ENDIF
 
-	DIMS = FXPAR(HEADER,'NAXIS*')
+        DIMS = FXPAR(HEADER,'NAXIS*')
+        DIMS = DIMS[0:NAXIS-1]
 	N1 = DIMS[0]
 	IF NAXIS EQ 2 THEN N2 = DIMS[1] ELSE N2 = 1
 ;
