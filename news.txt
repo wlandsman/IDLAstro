@@ -1,3 +1,8 @@
+4-Sep-2017:  EQ2HOR - Work correctly with both /Verbose set and vector JD used
+
+02-Aug-2017: READFITS() - Can now read BZip (.bz2) files
+             FXREAD - allow NAXISn=0 if n>NAXIS
+
 31-May-2017: TEN(), TENV() - Accept comma delimiter for string input
 
               READFITS() - Always read full header to check for BSCALE keyword
