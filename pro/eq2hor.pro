@@ -59,7 +59,7 @@
 ;               altitude).  See CO_REFRACT for more details.
 ;
 ; OUTPUT VARIABLES: (all double precision)
-;       alt    : altitude (in degrees)
+;       alt    : altitude, also known as elevation (in degrees)
 ;       az     : azimuth angle (in degrees, measured EAST from NORTH, but see
 ;                keyword WS above.)
 ;       ha     : hour angle (in degrees) (optional)
@@ -116,7 +116,7 @@
 ;
 ; The program produces this output (because the VERBOSE keyword was set)
 ;
-;Latitude = +50 31 36.0   Longitude = +06 51 18.0
+; Latitude = +50 31 36.0   Longitude = +06 51 18.0
 ; ************************** 
 ;Julian Date =  2460107.250000
 ;LMST = +11 46 42.0
