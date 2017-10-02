@@ -1,5 +1,7 @@
 02-Oct-2017: PUTAST - Fix when no astrometry structure supplied
 
+             COMPARE_STRUCT() - Now work when structure tags are hashes or lists
+
 28-Sep-2017: FXREAD - Now allows NAXISn = 0
              
 4-Sep-2017:  EQ2HOR - Work correctly with both /Verbose set and vector JD used
