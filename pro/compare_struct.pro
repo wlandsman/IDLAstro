@@ -9,10 +9,6 @@
 ;       between two structure arrays (may have different struct.definitions),
 ;       and return a structured List of fields found different.
 ;
-;       The Exelis contrib library has a faster but less powerful procedure
-;       struct_equal.pro, see 
-;       http://www.exelisvis.com/Default.aspx?tabid=1540&id=1175
-;
 ; CALLING SEQUENCE:
 ;       diff_List = compare_struct( struct_A, struct_B [ EXCEPT=, /BRIEF,
 ;                                    /FULL, /NaN, /RECUR_A, /RECUR_B )
@@ -61,6 +57,9 @@
 ;       modif Aug.90 by F.V. to check and compare same # of elements only.
 ;       Added /NaN keyword W. Landsman  March 2004
 ;       Don't test string for NaN values W. Landsman March 2008
+;       Don't test object for NaN values W. Landsman Sep 2017
+;       NE returns an empty list when comparing equal hashes or lists
+;             W. Landsman  October 2017
 ;-
 
 function compare_struct, struct_A, struct_B, EXCEPT=except_Tags, Struct_Name, $
@@ -157,7 +156,7 @@ function compare_struct, struct_A, struct_B, EXCEPT=except_Tags, Struct_Name, $
 
                      if (NtA GT 0 ) AND (NtB GT 0) then begin
 
-                        if keyword_set( full ) OR keyword_set( brief ) then $
+                        if keyword_set( full ) || keyword_set( brief ) then $
                                                 print, sname + Tags_A[tA], " :"
 
                         diffs = compare_struct( struct_A.(tA), struct_B.(tB), $
@@ -166,21 +165,31 @@ function compare_struct, struct_A, struct_B, EXCEPT=except_Tags, Struct_Name, $
                                                 FULL=full, BRIEF=brief )
                         diff_List = [ diff_List, diffs ]
 
-                      endif else if (NtA LE 0) AND (NtB LE 0) then begin
-
-                           if keyword_set(NaN) then begin
-                                  x1 = struct_b.(tB)
-                                  x2 = struct_a.(tA)
-				  if (size(x1,/tname) NE 'STRING') and $
-				     (size(x2,/tname) NE 'STRING') then begin
-                                  g = where( finite(x1) or finite(x2), Ndiff )
+                      endif else if (NtA LE 0) && (NtB LE 0) then begin
+                                 
+                         x1 = struct_b.(tB)
+                         x2 = struct_a.(tA)
+                         szx1 = size(x1,/tname)
+                         szx2 = size(x2,/tname)
+                      dofinite = keyword_set(NaN) &&  $
+                          (szx1 NE 'STRING') && (szx1 NE 'OBJREF') && $
+				          (szx2 NE 'STRING') && (szx2 NE 'OBJREF')
+                      
+                      
+                           if dofinite then begin
+ 
+                                  g = where( finite(x1) OR finite(x2), Ndiff )
                                   if Ndiff GT 0 then $
                                     w = where( x1[g] NE x2[g], Ndiff ) 
-				    endif
-                           endif else $ 
-                            w = where( struct_B.(tB) NE struct_A.(tA) , Ndiff )
-
+                           endif else begin
+                            xx = struct_B.(tB) NE struct_A.(tA)
+;Handle hashes and lists different from other variable types
+                            if N_elements(xx) EQ 0 then Ndiff = 0 else $
+                               w = where( struct_B.(tB) NE struct_A.(tA) , Ndiff )
+                           endelse 
+   
                                 if (Ndiff GT 0) then begin
+                        
                                         diff = replicate( {DIFF_LIST}, 1 )
                                         diff.Tag_Num_A = tA
                                         diff.Tag_Num_B = tB
