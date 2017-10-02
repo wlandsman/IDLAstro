@@ -155,6 +155,7 @@
 ;       Version 13, W. Landsman  Remove IEEE_TO_HOST, V6.0 notation
 ;       Version 14, William Thompson, 25-Sep-2014, fix BSCALE bug in version 13
 ;       Version 15, William Thompson, 24-Jul-2017, allow NAXISn=0 if n>NAXIS
+;       Version 16, W. Landsman 25-Sep-2017, allow NAXISn=0 
 ;-
 ;
 	ON_ERROR, 2
@@ -294,8 +295,14 @@
             ENDIF
         ENDIF
             
-        ;; Handle case of empty image, or no data requested
-        IF NAXIS EQ 0 OR KEYWORD_SET(NODATA) THEN BEGIN
+        IF NAXIS GT 0 THEN BEGIN
+             DIMS = FXPAR(HEADER,'NAXIS*')
+             DIMS = DIMS[0:NAXIS-1]
+             NDATA = PRODUCT(DIMS, /INTEGER)
+        ENDIF ELSE NDATA = 0     
+        
+            ;; Handle case of empty image, or no data requested
+        IF NDATA EQ 0 OR KEYWORD_SET(NODATA) THEN BEGIN
             ;; Make DATA an undefined variable, reflecting no data
             DATA = 0 & DUMMY = TEMPORARY(DATA)
 
@@ -303,9 +310,8 @@
             FREE_LUN,UNIT
             RETURN
         ENDIF
-
-        DIMS = FXPAR(HEADER,'NAXIS*')
-        DIMS = DIMS[0:NAXIS-1]
+        
+        
 	N1 = DIMS[0]
 	IF NAXIS EQ 2 THEN N2 = DIMS[1] ELSE N2 = 1
 ;

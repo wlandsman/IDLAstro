@@ -1,3 +1,7 @@
+02-Oct-2017: PUTAST - Fix when no astrometry structure supplied
+
+28-Sep-2017: FXREAD - Now allows NAXISn = 0
+             
 4-Sep-2017:  EQ2HOR - Work correctly with both /Verbose set and vector JD used
 
 02-Aug-2017: READFITS() - Can now read BZip (.bz2) files

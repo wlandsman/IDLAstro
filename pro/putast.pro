@@ -149,6 +149,7 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
 ;          TPV projection   WL  December 2015
 ;	    Corrected for case when Equinox is NaN in structure. J. Murthy May 2016
+;       Fix when no structure supplied W. Landsman Oct 2018
 ;-
  compile_opt idl2
  npar = N_params()
@@ -156,7 +157,7 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
  if ( npar EQ 0 ) then begin    ;Was header supplied?
         print,'Syntax: PUTAST, Hdr, astr, [ EQUINOX= , CD_TYPE=, ALT= ,/NAXIS]'
         print,'       or'
-        print,'Syntax: PUTAST, Hdr, [ cd, crpix, crval, EQUINOX = , CD_TYPE =]'   
+        print,'Syntax: PUTAST, Hdr, [ cd, crpix, crval, ctype, EQUINOX = , CD_TYPE =]'   
         return
  endif
  
@@ -174,7 +175,7 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
                 ctype = ['RA---TAN','DEC--TAN']
    read,'Enter plate scale in arc seconds/pixel: ',cdelt
    inp =''
-   print,'Reference pixel position should be in FORTRAN convention'
+   print,'Reference pixel position should be in FITS convention'
    print,'(First pixel has coordinate (1,1) )'
 
 GETCRPIX: print, $
@@ -387,7 +388,7 @@ RD_CEN:
   endif
   
 ; We don't want to update PV keywords if they are being used for TPV projection
-     if N_elements(astr) GT 0 then begin
+     if size(astr,/tname) EQ 'STRUCT' then begin
      pv_update = ~tag_exist(astr,'DISTORT') ||  $
                   (tag_exist(astr,'DISTORT') &&  astr.distort.name NE 'TPV')
     endif else pv_update = 0
