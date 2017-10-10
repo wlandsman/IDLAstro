@@ -95,8 +95,8 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       An error occurs if there is no parameter with the given name.
 ;
 ;       If a numeric value has no decimal point it is returned as type
-;       LONG.   If it contains more than 8 numerals, or contains the 
-;       characters 'D' or 'E', then it is returned as type DOUBLE.  Otherwise
+;       LONG.   If it has a decimal point, and contains more than 8 numerals, or 
+;       contains the character 'D', then it is returned as type DOUBLE.  Otherwise
 ;       it is returned as type FLOAT.    Very large integer values, outside
 ;       the range of valid LONG, are returned as LONG64.
 ;
