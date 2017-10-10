@@ -1,3 +1,6 @@
+10-Oct-2017: SXPAR() - New DUP keyword for when keyword appears multiple times in 
+                 FITS header.   Lets one select which value to use.
+
 02-Oct-2017: PUTAST - Fix when no astrometry structure supplied
 
              COMPARE_STRUCT() - Now work when structure tags are hashes or lists

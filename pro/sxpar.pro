@@ -1,6 +1,6 @@
 function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
                 IFound = number, NoContinue = NoContinue, SILENT = silent, $
-                NULL = K_Null, NAN = NaN, MISSING = Missing
+                DUP = dup, NULL = K_Null, NAN = NaN, MISSING = Missing
 ;+
 ; NAME:
 ;      SXPAR
@@ -9,7 +9,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;
 ; CALLING SEQUENCE:
 ;      result = SXPAR( Hdr, Name, [ Abort, COUNT=, COMMENT =, /NoCONTINUE, 
-;                                           /SILENT  ])   
+;                                        DUP=,   /SILENT  ])   
 ;
 ; INPUTS:
 ;      Hdr =  FITS header array, (e.g. as returned by READFITS) 
@@ -29,23 +29,29 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;               (and !ERR = -1) if a keyword is not found.
 ;
 ; OPTIONAL INPUT KEYWORDS: 
-;       /NOCONTINUE = If set, then continuation lines will not be read, even
-;                 if present in the header
-;       /SILENT - Set this keyword to suppress warning messages about duplicate
-;                 keywords in the FITS header.
+;       DUP =  When the FITS keyword exists more than once in a header, set 
+;                 DUP to a positive integer to specify which value is to be 
+;                 read.   For example, set DUP = 2 to read the value of the 
+;                 second appearance of a keyword in the header.    If DUP is not
+;                 supplied, then by default, SXPAR() reads the *last* appearance and
+;                 issues a warning.
 ;       MISSING = By default, this routine returns 0 when keyword values are
 ;                 not found.  This can be overridden by using the MISSING
 ;                 keyword, e.g. MISSING=-1.
 ;       /NAN    = If set, then return Not-a-Number (!values.f_nan) for missing
 ;                 values.  Ignored if keyword MISSING is present.
+;       /NOCONTINUE = If set, then continuation lines will not be read, even
+;                 if present in the header
 ;       /NULL   = If set, then return !NULL (undefined) for missing values.
-;                 Ignored if MISSING of /NAN is present, or if earlier than IDL
+;                 Ignored if MISSING or /NAN is present, or if earlier than IDL
 ;                 version 8.0.  If multiple values would be returned, then
 ;                 MISSING= or /NAN should be used instead of /NULL, making sure
 ;                 that the datatype is consistent with the non-missing values,
 ;                 e.g. MISSING='' for strings, MISSING=-1 for integers, or
 ;                 MISSING=-1.0 or /NAN for floating point.  /NAN should not be
 ;                 used if the datatype would otherwise be integer.
+;       /SILENT - Set this keyword to suppress warning messages about duplicate
+;                 keywords in the FITS header.
 ;
 ; OPTIONAL OUTPUT KEYWORDS:
 ;       COUNT - Optional keyword to return a value equal to the number of 
@@ -56,7 +62,6 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;              For example, one searches for 'TUNIT*' and the FITS header contains
 ;              TUNIT1, TUNIT2, TUNIT4, and TUNIT6 then IFOUND woud be returned as
 ;              [1,2,4,6].    Set to zero if Name is not of the form keyword*.
-
 ;
 ; OUTPUTS:
 ;       Function value = value of parameter in header.
@@ -69,12 +74,13 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;
 ; SIDE EFFECTS:
 ;       !ERR is set to -1 if parameter not found, 0 for a scalar
-;       value returned.  If a vector is returned it is set to the
+;       value returned.  If a vector is returned !ERR is set to the
 ;       number of keyword matches found.    The use of !ERR is deprecated, and
 ;       instead the COUNT keyword is preferred
 ;
 ;       If a keyword (except HISTORY or COMMENT) occurs more than once in a 
-;       header, a warning is given, and the *last* occurrence is used.
+;       header, and the DUP keyword is not supplied, then a warning is given, 
+;       and the *last* occurrence is used.
 ;
 ; EXAMPLES:
 ;       Given a FITS header, h, return the values of all the NAXISi values
@@ -92,27 +98,21 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       LONG.   If it contains more than 8 numerals, or contains the 
 ;       characters 'D' or 'E', then it is returned as type DOUBLE.  Otherwise
 ;       it is returned as type FLOAT.    Very large integer values, outside
-;       the range of valid LONG, are returned as DOUBLE.
+;       the range of valid LONG, are returned as LONG64.
 ;
 ;       If the value is too long for one line, it may be continued on to the
-;       the next input card, using the OGIP CONTINUE convention.  For more info,
+;       the next input card, using the CONTINUE convention.  For more info,
 ;       see http://fits.gsfc.nasa.gov/registry/continue_keyword.html
 ;
 ;       Complex numbers are recognized as two numbers separated by one or more
 ;       space characters.
-;
-;       If a numeric value has no decimal point (or E or D) it is returned as
-;       type LONG.  If it contains more than 8 numerals, or contains the
-;       character 'D', then it is returned as type DOUBLE.  Otherwise it is
-;       returned as type FLOAT.    If an integer is too large to be stored as
-;       type LONG, then it is returned as DOUBLE.
 ;
 ; NOTES:
 ;       The functions SXPAR() and FXPAR() are nearly identical, although
 ;       FXPAR() has slightly more sophisticated parsing, and additional keywords
 ;       to specify positions in the header to search (for speed), and to force
 ;       the output to a specified data type..   There is no
-;       particular reason for having two nearly identical procedures, but
+;       particular reason for having two nearly identical functions, but
 ;       both are too widely used to drop either one.
 ;
 ; PROCEDURES CALLED:
@@ -144,7 +144,9 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Dec 2014  Return Logical as IDL Boolean in IDL 8.4 or later
 ;       W. Landsman May 2015  Added IFound output keyword
 ;       J. Slavin Aug 2015 Allow for 72 character par values (fixed from 71)
-;       W. Landsman Sep 2015  Added Missing, /NULL and /NaN keywords 
+;       W. Landsman Sep 2015  Added Missing, /NULL and /NaN keywords
+;       W. Landsman Oct 2017   Added DUP keyword,  Needed to support distortion
+;			table lookup parameters
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -213,44 +215,58 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 
 
 ;  If of the form 'keyword*', then find all instances of 'keyword' followed by
-;  a number.  Store the positions of the located keywords in NFOUND, and the
+;  a number.  Store the positions of the located keywords in IFOUND, and the
 ;  value of the number field in NUMBER.
 
         histnam = (nam eq 'HISTORY ') || (nam eq 'COMMENT ') || (nam eq '') 
         keyword = strmid( hdr, 0, 8)
-	number = 0
+	    number = 0
  
         if vector then begin
-            nfound = where(strpos(keyword,nam) GE 0, matches)
+            ifound = where(strpos(keyword,nam) GE 0, matches)
             if  matches GT 0  then begin
-                numst= strmid( hdr[nfound], name_length, num_length)
-		igood = where(VALID_NUM(numst,/INTEGER), matches)
-		if matches GT 0 then begin 
-		     nfound = nfound[igood]
-                     number = long(numst[igood])
-		     g = where(number GT 0, matches)
- 		     if matches GT 0 then number = number[g]
+                numst= strmid( hdr[ifound], name_length, num_length)
+	        	igood = where(VALID_NUM(numst,/INTEGER), matches)
 
-		endif 
+				if matches GT 0 then begin 
+		     			ifound = ifound[igood]
+             			number = long(numst[igood])
+		     			g = where(number GT 0, matches)
+ 		     			if matches GT 0 then number = number[g]
+				endif 
            endif
 
 ;  Otherwise, find all the instances of the requested keyword.  If more than
-;  one is found, and NAME is not one of the special cases, then print an error
-;  message.
+;  one is found, and NAME is not one of the special cases, then check if DUP keyword 
+;  supplied to determine which one to use.   If DUP not supplied then issue a
+;  warning and use the *last* appearance.
+;  
 
         endif else begin
-            nfound = where(keyword EQ nam, matches)
-             if (matches GT 1) && ~histnam then        $
+            ifound = where(keyword EQ nam, matches)
+             if (matches GT 1) && ~histnam then begin
+                if N_elements(dup) EQ 1 then begin
+                if dup LE matches then begin 
+                        ifound = ifound[dup-1] 
+                        matches = 1
+                endif else begin
+                   message,/inf,'Warning - keyword ' + strtrim(nam,2) + $
+                   ' located ' + strtrim(matches,2) + ' times in FITS header'
+                   message,/inf,'But DUP specified as ' + strtrim(dup,2)
+                endelse 
+                endif else begin  
                 if ~keyword_set(silent) then $
                 message,/informational, 'Warning - keyword ' +   $
-                nam + ' located more than once in ' + abort
+                strtrim(nam,2) + ' located more than once in ' + abort
+                endelse
+        endif
         endelse
 
 
 ; Process string parameter 
 
  if matches GT 0 then begin
-  line = hdr[nfound]
+  line = hdr[ifound]
   svalue = strtrim( strmid(line,9,71),2)
   if histnam then $
        value = strtrim(strmid(line,8,72),2) else for i = 0,matches-1 do begin
@@ -292,10 +308,10 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 
                 if (strlen(val) gt 0) && $
                   (strmid(val, strlen(val)-1, 1) EQ '&') && $
-                  (strmid(hdr[nfound[i]+off],0,8) EQ 'CONTINUE') then $
+                  (strmid(hdr[ifound[i]+off],0,8) EQ 'CONTINUE') then $
 		      if ~array_equal(keyword EQ 'LONGSTRN',0b) then begin 
                   value = strmid(val, 0, strlen(val)-1)
-                  test = hdr[nfound[i]+off]
+                  test = hdr[ifound[i]+off]
                   test = strmid(test, 8, strlen(test)-8)
                   test = strtrim(test, 2)
                   if strmid(test, 0, 1) NE "'" then message, $
@@ -331,7 +347,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
                 if !VERSION.RELEASE GE 8.4 then begin
                 	true =  boolean(true) 
                 	false = boolean(false)
-               endif 
+               endif                      
 
                if ( value EQ 'T' ) then value = true else $
                if ( value EQ 'F' ) then value = false else begin
