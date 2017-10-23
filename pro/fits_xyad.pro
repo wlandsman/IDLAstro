@@ -97,7 +97,7 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 ;                       Setting EXTLEVEL=0, EXTVER=0, EXTNAME='', or
 ;                       XTENSION='' is the same as not supplying them.
 ;               case 3: if none of the keyword parameters, EXTEN_NO, XTENSION,
-;                       EXTNAME, EXTVER, or EXTLEVEL are supplied.  FITS_READ
+;                       EXTNAME, EXTVER, or EXTLEVEL are supplied.  FITS_XYAD
 ;                       will read the next extension in the file.  If the
 ;                       primary data unit (PDU), extension 0 has no astrometry, the
 ;                       first call to FITS_XYAD will read the first extension

@@ -1,4 +1,5 @@
-pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=exten_no  
+pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=exten_no, $
+	extver= extver, extname = extname,extlevel=extlevel 
 ;+
 ; NAME:
 ;       FITS_adxy
@@ -8,6 +9,10 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 ;       Use astrometry in a FITS file to compute X and Y positions, given the
 ;       RA and Dec (or longitude, latitude) in decimal degrees.  
 ;
+;       This routine can be used with any FITS file containing WCS (world coordinate
+;       system) information.    But it is especially useful for files using the
+;		proposed distortion lookup tables (https://fits.gsfc.nasa.gov/wcs/dcs_20040422.pdf)
+;		which are stored in separate extensions in the FITS file.
 ; CALLING SEQUENCE:
 ;       FITS_adxy, HDR               ;Prompt for Ra and DEC 
 ;       FITS_adxy, hdr, a, d, x, y, [ EXTEN_NO=, /PRINT, ALT= ]
@@ -39,6 +44,9 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 ;		EXTEN_NO - Extension number of FITS file containing the astrometric
 ;			information.   By default, the first extension is used, if present,
 ;			otherwise the primary header (EXTEN_NO=0) is used.
+;       EXTNAME - string name of the extname to read
+;       EXTVER - integer version number to read
+;       EXTLEVEL - integer extension level to read
 ;       /PRINT - If this keyword is set and non-zero, then results are displayed
 ;               at the terminal.
 ;
@@ -50,8 +58,26 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 ;       then it is quicker to call FITS_OPEN once and pass the file control block
 ;		FCB on each call to FITS_XYAD.
 ;
+;       How to specify which extension in the FITS file to use
+;               case 1: EXTEN_NO specified. EXTEN_NO will give the number of the
+;                       extension to read.  The primary data unit is refered
+;                       to as extension 0. If EXTEN_NO is specified, XTENSION,
+;                       EXTNAME, EXTVER, and EXTLEVEL parameters are ignored.
+;               case 2: if EXTEN_NO is not specified, the first extension
+;                       with the specified XTENSION, EXTNAME, EXTVER, and
+;                       EXTLEVEL will be read.  If any of the 4 parameters
+;                       are not specified, they will not be used in the search.
+;                       Setting EXTLEVEL=0, EXTVER=0, EXTNAME='', or
+;                       XTENSION='' is the same as not supplying them.
+;               case 3: if none of the keyword parameters, EXTEN_NO, XTENSION,
+;                       EXTNAME, EXTVER, or EXTLEVEL are supplied.  FITS_XYAD
+;                       will read the next extension in the file.  If the
+;                       primary data unit (PDU), extension 0 has no astrometry, the
+;                       first call to FITS_XYAD will read the first extension
+;                       of the file.;		
+;
 ; PROCEDURES CALLED:
-;       AD2XY, ADSTRING(), EXTAST, FITS_OPEN, GETOPT(), TEN()
+;       AD2XY, ADSTRING(), EXTAST, FITS_OPEN, FITS_READ, GETOPT(), TEN()
 ;
 ; REVISION HISTORY:
 ;		Adapted from adxy.pro  W. Landsman    October 2017
@@ -130,11 +156,18 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
  	if has_CPDIS then begin
 		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
 		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
-		xpos = x/sxpar(hdis1,'CDELT1')
-		ypos = y/sxpar(hdis1,'CDELT2')
+		cdelt1 = sxpar(hdis1,'CDELT*')
+		crval1 = sxpar(hdis1,'CRVAL*')
+		crpix1 = sxpar(hdis1,'CRPIX*')
+		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
+		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
 		x -=  interpolate(imdis1,xpos,ypos)
-		xpos = x/sxpar(hdis2,'CDELT1')
-		ypos = y/sxpar(hdis2,'CDELT2')
+		
+		cdelt2 = sxpar(hdis2,'CDELT*')
+		crval2 = sxpar(hdis2,'CRVAL*')
+		crpix2 = sxpar(hdis2,'CRPIX*')
+		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
+		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
 		y -= interpolate(imdis2,xpos,ypos)
 	endif  
 
