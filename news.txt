@@ -1,3 +1,12 @@
+23-Oct-2017: EXTAST - Added HAS_CPDIS1 keyword to indicate that there is an array of 
+                pixel distortion corrections in a different FITS extension
+             AD2XY - Default projection (i.e. when CTYPEi is not available) is now pixel
+                rather than TANGENT  
+                
+             FITS_XYAD, FITS_ADXY - Use a FITS file to convert between world and pixel
+             coordinates.    Allow for the existence of a pixel distortion lookup table
+             in a separate FITS extension 
+
 10-Oct-2017: SXPAR() - New DUP keyword for when keyword appears multiple times in 
                  FITS header.   Lets one select which value to use.
 
