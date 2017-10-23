@@ -131,11 +131,6 @@ pro ad2xy, a, d, astr, x, y
                ((coord[0] EQ 'ELAT') && (coord[1] EQ 'ELON'))
  ENDELSE
  if reverse then crval = rotate(crval,2)        ;Invert CRVAL?
-
- if (ctype[0] EQ '') then begin   
-      ctype = ['RA---TAN','DEC--TAN']
-      message,'No CTYPE specified - assuming TANgent projection',/INF
- endif      
      
   spherical = strmid(astr.ctype[0],4,1) EQ '-'
   if spherical then begin
