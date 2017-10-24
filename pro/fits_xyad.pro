@@ -133,7 +133,6 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
  IF theError NE 0 then begin
      Catch,/Cancel
      void = cgErrorMsg(/quiet)
-     stop
      RETURN
      ENDIF                                                      
 
@@ -176,7 +175,6 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		crpix1 = sxpar(hdis1,'CRPIX*')
 		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
 		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
-stop
 		xp =  x + interpolate(imdis1,xpos,ypos)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
