@@ -96,6 +96,7 @@ pro ad2xy, a, d, astr, x, y
 ;     Evaluate TPV distortion (SCAMP) if present  W. Landsman  Jan 2014
 ;     Support IRAF TNX projection M. Sullivan U. of Southhamptom  Mar 2014
 ;     No longer check that CDELT[0] differs from 1 W. Landsman Apr 2015
+;     Default projection is PIXEL not Tangent  W. Landsman Oct 2017
 ;     
 ;-
 
