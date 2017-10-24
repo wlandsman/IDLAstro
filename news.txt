@@ -1,3 +1,5 @@
+24-Oct-2017: Removed FITS_CD_FIX (now in /obsolete directory)
+
 23-Oct-2017: EXTAST - Added HAS_CPDIS1 keyword to indicate that there is an array of 
                 pixel distortion corrections in a different FITS extension
              AD2XY - Default projection (i.e. when CTYPEi is not available) is now pixel
