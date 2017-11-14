@@ -1,4 +1,4 @@
-pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis
+pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d2imdis
 ;+
 ; NAME:
 ;     EXTAST
@@ -82,7 +82,13 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis
 ;              Greisen & Calabretta (2002, A&A, 395, 1061) for information about
 ;              alternate astrometry keywords.    If not set on input, then
 ;              ALT is set to ' ' on output.
-; OPTIONAL OUTPUT KEYWORD
+; OPTIONAL OUTPUT KEYWORD:
+;		HAS_D2IMDIS = set to 1 if the FITS header includes a D2IMDISi keyword indicating that 
+;			there is an array of (detector to image) pixel distortion corrections located in
+;           another extension.  This use of a distortion lookup table is used by a couple of 
+;           Hubble instruments.     If this keyword is not supplied, but the header 
+;           contains D2IMDISi keywords then a warning message will be supplied, since
+;           this distortion information will be missing from the astrometry structure.
 ;		HAS_CPDIS = set to 1 if the FITS header includes a CPDISi keyword indicating that 
 ;			there is an array of pixel distortion corrections located in another extension.
 ;			This use of a distortion lookup table is based on the draft proposal 
@@ -164,7 +170,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis
 ;	v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
 ;	v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
 ;	v2.5.3 Add warning if CPDIS1 keyword present WL Nov 2016
-;	v2.5.4 Add HAS_CPDISi keyword WL Nov 2017
+;	v2.5.4 Add HAS_CPDIS and HAS_D2IMDIS keywords WL Nov 2017
 ;-
 
  compile_opt idl2
@@ -339,14 +345,31 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis
 
  cd = dblarr(2,2)
  cdelt = [1.0d,1.0d]
+
+; Look for distortion keywords pointing to another FITS extension
  
-	l = where(keyword EQ 'CPDIS1',  N_cpdis1)
-	if Arg_present(has_cpdis) then has_cpdis = N_cpdis1<1 else begin
-	if N_cpdis1 GT 0 then begin 
+ cpdis1 = ''
+ l = where(keyword EQ 'CPDIS1',  N_cpdis1)
+ if N_cpdis1 GT 0 then cpdis1 = strtrim(lvalue[l[N_cpdis1-1]],2)
+ haslookup =  strupcase(cpdis1) EQ 'LOOKUP'
+ if arg_present(has_cpdis) then has_cpdis = haslookup else begin 
+	if haslookup then begin 
 	    message, /inf, $
 		'Warning - FITS header may point to table lookup distortions (CPDIS1)'
 		 message,/inf, 'Use FITS_XYAD or FITS_ADXY to include distortion lookup table'
-   endif
+    endif
+   endelse
+ 
+ d2imdis1 = ''  
+ l = where(keyword EQ 'D2IMDIS1',  N_d2imdis1)
+ if N_d2imdis1 GT 0 then d2imdis1 = strtrim(lvalue[l[N_cpdis1-1]],2)
+ haslookup =  strupcase(d2imdis1) EQ 'LOOKUP'
+ if arg_present(has_d2imdis) then has_d2imdis =haslookup else begin 
+	if haslookup then begin 
+	    message, /inf, $
+		'Warning - FITS header may point to table lookup distortions (D2IMDIS1)'
+		 message,/inf, 'Use FITS_XYAD or FITS_ADXY to include distortion lookup table'
+    endif
    endelse
    
 GET_CD_MATRIX:
