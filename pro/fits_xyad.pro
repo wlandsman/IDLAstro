@@ -1,6 +1,7 @@
 pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
          CELESTIAL = celestial, ECLIPTIC = ecliptic, PRECISION = precision, $
-         exten_no= exten_no, extver= extver, extname = extname,extlevel=extlevel
+         exten_no= exten_no, extver= extver, extname = extname,extlevel=extlevel, $
+         nodistort = nodistort, nosip = nosip
 ;+
 ; NAME:
 ;       FITS_XYAD
@@ -55,6 +56,8 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 ;       EXTNAME - string name of the extname to read
 ;       EXTVER - integer version number to read
 ;       EXTLEVEL - integer extension level to read
+;       /NODISTORT - If set, then do not apply the distortion lookup tables
+;       /NOSIP - If set, then do not apply the polynomial SIP distortions 
 ;       PRECISION - Integer scalar (0-4) specifying the number of digits 
 ;             displayed after the decimal of declination.   The RA is
 ;             automatically one digit more.   See ADSTRING() for more info.
@@ -114,7 +117,9 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 ;       ADSTRING(), EULER, EXTAST, FITS_OPEN, GSSSXYAD, REPCHR(), XY2AD
 ;
 ; REVISION HISTORY:
-;       Adapted from XYAD W. Landsman  October 2017     
+;       Adapted from XYAD W. Landsman  October 2017 
+;       Use both D2IMARR and WCSDVARR distortion tables  November  2017
+;-    
 
  compile_opt idl2
 
@@ -150,9 +155,9 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
     
  fits_read, fcb, 0, hdr, /HEADER_ONLY, exten_no = exten_no, extname = extname, $
  	extver = extver, extlevel = extlevel  
-     
-  extast, hdr, astr, noparams, ALT = alt, has_CPDIS=has_CPDIS  ;Extract astrometry structure
 
+;Extract astrometry structure     
+  extast, hdr, astr, noparams, ALT = alt, has_CPDIS=has_CPDIS, has_D2IMDIS = has_D2IMDIS  
 
   if ( noparams LT 0 ) then begin
         if alt EQ '' then $
@@ -166,16 +171,20 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
   astr2 = TAG_EXIST(astr,'AXES')
   
 	if ( npar lt 3 ) then read,'XYAD: Enter X and Y positions: ',x,y
-  
-	if has_CPDIS then begin
-		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+	xp = x
+	yp = y
+
+    if ~keyword_set(nodistort) then begin 
+	if has_D2IMDIS then begin
+		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=2,/no_abort,enum=enum2
+		if (enum1 GT 0) && (enum2 GT 0) then begin
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
 		crpix1 = sxpar(hdis1,'CRPIX*')
 		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
 		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
-		xp =  x + interpolate(imdis1,xpos,ypos)
+		xp1 =  interpolate(imdis1,xpos,ypos)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
@@ -183,13 +192,41 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
 
-		yp = y + interpolate(imdis2,xpos,ypos)
-	endif else begin
-	    xp = x
-	    yp = y
-	endelse	       
+		yp1 = interpolate(imdis2,xpos,ypos)
+		xp = xp+xp1
+		yp = yp+yp1
+		endif
+	endif	
+		
+	if has_CPDIS then begin	
 
-  if fcbtype EQ 'STRUC' then fits_close,fcb
+		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+        if (enum1 GT 0) && (enum2 GT 0) then begin 
+		cdelt1 = sxpar(hdis1,'CDELT*')
+		crval1 = sxpar(hdis1,'CRVAL*')
+		crpix1 = sxpar(hdis1,'CRPIX*')
+		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
+		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
+		xp2 =  interpolate(imdis1,xpos,ypos)
+		
+		cdelt2 = sxpar(hdis2,'CDELT*')
+		crval2 = sxpar(hdis2,'CRVAL*')
+		crpix2 = sxpar(hdis2,'CRPIX*')
+		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
+		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
+		yp2 = interpolate(imdis2,xpos,ypos)
+ 
+        xp = xp + xp2
+        yp = yp + yp2
+		forprint,xp-x,yp-y,f='(2f10.4)'
+		endif
+	endif    
+  endif  
+
+      
+  if fcbtype EQ 'STRING' then fits_close,fcb
+  if keyword_set(nosip) then astr.distort.name = ''
   case strmid(astr.ctype[0],5,3)  of 
         'GSS': gsssxyad, astr, xp, yp, a, d
          else: xy2ad, xp, yp, astr, a, d
