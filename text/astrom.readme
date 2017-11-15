@@ -1,4 +1,4 @@
-/astrom                                                   April 2014
+/astrom                                                   November 2017
 
 This directory contain IDL procedures for manipulating FITS images which include
 header keywords specifying the coordinate system.   The FITS header must follow
@@ -94,11 +94,11 @@ structure should always use the following code
         cd[1,1] = cd[1,1]*cdelt[1] & cd[1,0] =  cd[1,0]*cdelt[1]
  endif
 
-
-(2) Earlier draft versions of the World Coordinate System paper represented the
-CD matrix in a FITS header with names such as 'CD001001' rather than 'CD1_1', and
-'PC001001' instead of 'PC1_1'.   This notation is no longer recognized, but the
-procedure FITS_CD_FIX can be used to convert the FITS header to modern notation.
+(2) The _flt files for the ACS and WFC3 instruments on the Hubble Space Telescope (HST)
+include distortion lookup tables for high precision coordinates.    These lookup tables
+are located in separate FITS extensions.    Thus it is not sufficient to supply only a FITS
+header, but the entire (mult-extension) FITS file is required for astrometry.   This is 
+done with the procedures FITS_XYAD and FITS_ADXY 
 
 (3) The CRPIX value is stored in the astrometry structure the same way as it is
 in the FITS header, i.e. in FORTRAN (first pixel is 1) convention.    
@@ -106,6 +106,12 @@ in the FITS header, i.e. in FORTRAN (first pixel is 1) convention.
 (4) The procedures HREBIN and HCONGRID will update the astrometry, including the
 SIP distortion coefficients,  when expanding or contracting an image.   However,
 note that HROT or HROTATE currently will not update any SIP coefficient.
+
+(5) Very old draft versions of the World Coordinate System paper represented the
+CD matrix in a FITS header with names such as 'CD001001' rather than 'CD1_1', and
+'PC001001' instead of 'PC1_1'.   This notation is no longer recognized, but the
+procedure FITS_CD_FIX in the /obsolete directory can be used to convert the FITS header 
+to modern notation.
 
 Special astrometry procedures are required for the Digitized Sky Survey Images (
 http://archive.stsci.edu/dss/ ).   The Guidestar images can also be obtained
@@ -117,7 +123,7 @@ procedures EXTAST, XY2AD, and ADXY for standard astrometry.     All the
 astrometry procedures in the library will test for a Guidestar image header (by
 looking for the 'PPO1' keyword) and call the appropriate procedures.    The
 procedure GSSS_STDAST will convert the astrometry in a guidestar image header
-to  an standard tangent projection with very slightly degraded accuracy.   
+to  an standard tangent projection with very slightly degraded accuracy.       
 
 A couple of procedures in other directories also use the FITS world coordinate
 system including
@@ -134,7 +140,8 @@ CONS_DEC() - Obtain the X and Y coordinates of a line of constant
 CONS_RA() - Obtain the X and Y coordinates of a line of constant right
         ascension
 EXTAST- EXTract ASTrometry parameters from a FITS header into an IDL structure
-FITS_CD_FIX - Update obsolete representations of the CD matrix in a FITS header 
+FITS_ADXY - Use a FITS file with astrometry to convert world coordinates to pixel (X,Y)
+FITS_XYAD - Use a FITS file with astrometry to convert pixel (X,Y) to world coordinates
 GET_EQUINOX() - Return a numeric equinox value from a FITS header
 GETROT - GET ROTation and plate scale from a FITS header
 GSSS_STDAST - Insert the closest tangent projection astrometry into an STScI
