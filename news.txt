@@ -1,3 +1,6 @@
+14-Nov-2017: EXTAST - Added HAS_D2IMDIS keyword to indicate presence of distortion table
+             FITS_XYAD, FITS_ADXY -- Now handle both CPDISi and D2IMDISi distortion tables
+
 24-Oct-2017: Removed FITS_CD_FIX (now in /obsolete directory)
 
 23-Oct-2017: EXTAST - Added HAS_CPDIS1 keyword to indicate that there is an array of 
