@@ -1,5 +1,5 @@
 pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=exten_no, $
-	extver= extver, extname = extname,extlevel=extlevel 
+	extver= extver, extname = extname,extlevel=extlevel,nodistort=nodistort,nosip=nosip
 ;+
 ; NAME:
 ;       FITS_adxy
@@ -109,16 +109,16 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
  if fcbtype EQ 'STRING' then $
  	fits_open,filename_or_fcb,fcb else fcb = filename_or_fcb
  	
- 	if N_elements(exten_no) EQ 0 && N_Elements(extname) EQ 0 then exten_no = 1
+ if N_elements(exten_no) EQ 0 && N_Elements(extname) EQ 0 then exten_no = 1
  	
- 	fits_read, fcb, 0, hdr, /HEADER_ONLY, exten_no = exten_no, extname = extname, $
+ fits_read, fcb, 0, hdr, /HEADER_ONLY, exten_no = exten_no, extname = extname, $
  		extver = extver   
      
  if N_elements(exten_no) EQ 0 then $  
  	if fcb.nextend GE 1 then exten_no = 1 else exten_no =0   
 ;Extract astrometry from FITS header  
-	extast, hdr, astr, noparams, ALT = alt, has_CPDIS=has_CPDIS   
-		if ( noparams LT 0 ) then begin
+	extast, hdr, astr, noparams, ALT = alt, has_CPDIS=has_CPDIS, has_D2IMDIS = has_D2IMDIS   
+	if ( noparams LT 0 ) then begin
         	if alt EQ '' then $
         	message,'ERROR - No astrometry info in supplied FITS header' $
 			else  message, $
@@ -146,30 +146,64 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
          end
    endcase 
  endif
+   if keyword_set(nosip) then astr.distort.name = ''
  
 
  case strmid( astr.ctype[0], 5,3) of
  'GSS': gsssFITS_adxy, astr, a, d, x, y       ;HST Guide star astrometry
  else:  ad2xy, a, d, astr, x, y          ;All other cases
  endcase
-
- 	if has_CPDIS then begin
-		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+ 
+     if ~keyword_set(nodistort) then begin 
+	if has_D2IMDIS then begin
+		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=2,/no_abort,enum=enum2
+		if (enum1 GT 0) && (enum2 GT 0) then begin
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
 		crpix1 = sxpar(hdis1,'CRPIX*')
 		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
 		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
-		x -=  interpolate(imdis1,xpos,ypos)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
 		crpix2 = sxpar(hdis2,'CRPIX*')
 		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
-		y -= interpolate(imdis2,xpos,ypos)
-	endif  
+
+		x -= interpolate(imdis1,xpos,ypos)
+        y -= interpolate(imdis2,xpos,ypos)
+
+		endif
+	endif	
+		
+	if has_CPDIS then begin	
+
+		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+        if (enum1 GT 0) && (enum2 GT 0) then begin 
+		cdelt1 = sxpar(hdis1,'CDELT*')
+		crval1 = sxpar(hdis1,'CRVAL*')
+		crpix1 = sxpar(hdis1,'CRPIX*')
+		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
+		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
+		xp2 =  interpolate(imdis1,xpos,ypos)
+		
+		cdelt2 = sxpar(hdis2,'CDELT*')
+		crval2 = sxpar(hdis2,'CRVAL*')
+		crpix2 = sxpar(hdis2,'CRPIX*')
+		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
+		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
+		yp2 = interpolate(imdis2,xpos,ypos)
+ 
+        x -= interpolate(imdis1,xpos,ypos)
+        y -= interpolate(imdis2,xpos,ypos)
+
+		endif
+	endif    
+  endif  
+  if fcbtype EQ 'STRING' then fits_close,fcb
+
 
  if (npar lt 5) || keyword_set( PRINT ) then begin
         npts = N_elements(a)
