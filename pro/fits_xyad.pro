@@ -176,8 +176,13 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 
     if ~keyword_set(nodistort) then begin 
 	if has_D2IMDIS then begin
-		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=2,/no_abort,enum=enum2
+	    extkey = sxpar(hdr,'D2IM1',dup=1)
+	    e1 = (strsplit(extkey,' ',/ex))[1]
+	    extkey = sxpar(hdr,'D2IM2',dup=1)
+	    e2 = (strsplit(extkey,' ',/ex))[1]
+	    
+		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=e1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=e2,/no_abort,enum=enum2
 		if (enum1 GT 0) && (enum2 GT 0) then begin
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
@@ -193,22 +198,24 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
 
 		yp1 = interpolate(imdis2,xpos,ypos)
-		xp = xp+xp1
-		yp = yp+yp1
 		endif
+		
 	endif	
 		
 	if has_CPDIS then begin	
-
-		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+	    extkey = sxpar(hdr,'DP1',dup=1)
+	    e1 = (strsplit(extkey,' ',/ex))[1]
+	    extkey = sxpar(hdr,'DP2',dup=1)
+	    e2 = (strsplit(extkey,' ',/ex))[1]
+		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=e1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=e2,/no_abort,enum=enum2
         if (enum1 GT 0) && (enum2 GT 0) then begin 
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
 		crpix1 = sxpar(hdis1,'CRPIX*')
-		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
-		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
-		xp2 =  interpolate(imdis1,xpos,ypos)
+		xpos = (x+1-(crval1[0]))/cdelt1[0] + crpix1[0]
+		ypos = (y+1-crval1[1])/cdelt1[1] + crpix1[1]
+		xp2 =  interpolate(imdis1,xpos-1,ypos-1)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
@@ -216,10 +223,10 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
 		yp2 = interpolate(imdis2,xpos,ypos)
- 
-        xp = xp + xp2
-        yp = yp + yp2
-		forprint,xp-x,yp-y,f='(2f10.4)'
+    
+        xp += xp2 + xp1
+        yp += yp2 + yp1
+
 		endif
 	endif    
   endif  

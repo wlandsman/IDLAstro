@@ -81,6 +81,7 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 ;
 ; REVISION HISTORY:
 ;		Adapted from adxy.pro  W. Landsman    October 2017
+;       Use both D2IMARR and WCSDVARR distortion tables  November  2017
 ;-
  Compile_opt idl2
 
@@ -156,8 +157,12 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
  
      if ~keyword_set(nodistort) then begin 
 	if has_D2IMDIS then begin
-		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=2,/no_abort,enum=enum2
+		extkey = sxpar(hdr,'D2IM1',dup=1)
+	    e1 = (strsplit(extkey,' ',/ex))[1]
+	    extkey = sxpar(hdr,'D2IM2',dup=1)
+	    e2 = (strsplit(extkey,' ',/ex))[1]
+		fits_read,fcb, imdis1, hdis1, extname = 'D2IMARR',extver=e1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'D2IMARR',extver=e2,/no_abort,enum=enum2
 		if (enum1 GT 0) && (enum2 GT 0) then begin
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
@@ -178,9 +183,12 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 	endif	
 		
 	if has_CPDIS then begin	
-
-		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=1,/no_abort,enum=enum1
-		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=2,/no_abort,enum=enum2
+        extkey = sxpar(hdr,'DP1',dup=1)
+	    e1 = (strsplit(extkey,' ',/ex))[1]
+	    extkey = sxpar(hdr,'DP2',dup=1)
+	    e2 = (strsplit(extkey,' ',/ex))[1]
+		fits_read,fcb, imdis1, hdis1, extname = 'WCSDVARR',extver=e1,/no_abort,enum=enum1
+		fits_read,fcb, imdis2, hdis2, extname = 'WCSDVARR',extver=e2,/no_abort,enum=enum2
         if (enum1 GT 0) && (enum2 GT 0) then begin 
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
