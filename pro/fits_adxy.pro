@@ -176,8 +176,8 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
 
-		x -= interpolate(imdis1,xpos,ypos)
-        y -= interpolate(imdis2,xpos,ypos)
+		xp1 = interpolate(imdis1,xpos,ypos)
+        yp1 = interpolate(imdis2,xpos,ypos)
 
 		endif
 	endif	
@@ -195,20 +195,21 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 		crpix1 = sxpar(hdis1,'CRPIX*')
 		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
 		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
-		xp2 =  interpolate(imdis1,xpos,ypos)
+
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
 		crpix2 = sxpar(hdis2,'CRPIX*')
 		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
 		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
-		yp2 = interpolate(imdis2,xpos,ypos)
  
-        x -= interpolate(imdis1,xpos,ypos)
-        y -= interpolate(imdis2,xpos,ypos)
+        xp2 = interpolate(imdis1,xpos,ypos)
+        yp2 = interpolate(imdis2,xpos,ypos)
 
 		endif
-	endif    
+	endif
+	x = x - xp1 - xp2
+	y = y - yp1 - yp2    
   endif  
   if fcbtype EQ 'STRING' then fits_close,fcb
 

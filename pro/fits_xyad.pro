@@ -187,15 +187,15 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
 		crpix1 = sxpar(hdis1,'CRPIX*')
-		xpos = (x-crval1[0])/cdelt1[0] + crpix1[0]
-		ypos = (y-crval1[1])/cdelt1[1] + crpix1[1]
+		xpos = (x+1-crval1[0])/cdelt1[0] + crpix1[0]
+		ypos = (y+1-crval1[1])/cdelt1[1] + crpix1[1]
 		xp1 =  interpolate(imdis1,xpos,ypos)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
 		crpix2 = sxpar(hdis2,'CRPIX*')
-		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
-		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
+		xpos = (x+1-crval2[0])/cdelt2[0] + crpix2[0]
+		ypos = (y+1-crval2[1])/cdelt2[1] + crpix2[1]		
 
 		yp1 = interpolate(imdis2,xpos,ypos)
 		endif
@@ -213,15 +213,15 @@ pro fits_xyad, filename_or_fcb, x, y, a, d, PRINT = print, GALACTIC = galactic, 
 		cdelt1 = sxpar(hdis1,'CDELT*')
 		crval1 = sxpar(hdis1,'CRVAL*')
 		crpix1 = sxpar(hdis1,'CRPIX*')
-		xpos = (x+1-(crval1[0]))/cdelt1[0] + crpix1[0]
+		xpos = (x+1-crval1[0])/cdelt1[0] + crpix1[0]
 		ypos = (y+1-crval1[1])/cdelt1[1] + crpix1[1]
-		xp2 =  interpolate(imdis1,xpos-1,ypos-1)
+		xp2 =  interpolate(imdis1,xpos,ypos)
 		
 		cdelt2 = sxpar(hdis2,'CDELT*')
 		crval2 = sxpar(hdis2,'CRVAL*')
 		crpix2 = sxpar(hdis2,'CRPIX*')
-		xpos = (x-crval2[0])/cdelt2[0] + crpix2[0]
-		ypos = (y-crval2[1])/cdelt2[1] + crpix2[1]		
+		xpos = (x+1-crval2[0])/cdelt2[0] + crpix2[0]
+		ypos = (y+1-crval2[1])/cdelt2[1] + crpix2[1]		
 		yp2 = interpolate(imdis2,xpos,ypos)
     
         xp += xp2 + xp1
