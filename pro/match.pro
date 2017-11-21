@@ -18,6 +18,8 @@ pro match, a, b, suba, subb, COUNT = count, SORT = sort, epsilon=epsilon
 ;               vector b with matchs in vector a.
 ;
 ;       suba and subb are ordered such that a[suba] equals b[subb]
+;       suba and subb are set to !NULL if there are no matches (or set to -1
+;		if prior to IDL Version 8.0)
 ;
 ; OPTIONAL INPUT KEYWORD:
 ;       /SORT - By default, MATCH uses two different algorithm: (1) the
@@ -70,10 +72,18 @@ pro match, a, b, suba, subb, COUNT = count, SORT = sort, epsilon=epsilon
 ;       Work for scalar integer input    W. Landsman         June 2003
 ;       Assume since V5.4, use COMPLEMENT to WHERE() W. Landsman Apr 2006
 ;       Added epsilon keyword            Kim Tolbert         March 14, 2008
+;       Fix bug with Histogram method with all negative values W. Landsman/
+;			R. Gutermuth, return !NULL for no matches  November 2017
 ;-
 ;-------------------------------------------------------------------------
- On_error,2
  compile_opt idl2
+  Catch, theError
+  IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
+
 
  if N_elements(epsilon) EQ 0 then epsilon = 0
 
@@ -150,15 +160,21 @@ pro match, a, b, suba, subb, COUNT = count, SORT = sort, epsilon=epsilon
 ;If either set is empty, or their ranges don't intersect:
 ;  result = NULL (which is denoted by integer = -1)
   !ERR = -1
-  suba = -1
-  subb = -1
+  if !VERSION.RELEASE GE '8.0' then begin 
+		suba = !NULL 
+		subb = !NULL
+	endif else begin 	  
+		suba = -1
+		subb = -1
+	endelse
   COUNT = 0L
- if (maxab lt minab) || (maxab lt 0) then return
+ if maxab lt minab then return       ;No overlap 
 
  ha = histogram([a], MIN=minab, MAX=maxab, reverse_indices=reva)
  hb = histogram([b], MIN=minab, MAX=maxab, reverse_indices=revb)
 
  r = where((ha ne 0) and (hb ne 0), count)
+
  if count gt 0 then begin
   suba = reva[reva[r]]
   subb = revb[revb[r]]
