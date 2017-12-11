@@ -146,7 +146,7 @@
  
  endif
 
-;  Modified Nov 2015 to alway call FREBIN.     FREBIN() will call the IDL REBIN()
+;  Modified Nov 2015 to always call FREBIN.     FREBIN() will call the IDL REBIN()
 ;  function if we are changing dimensions by an exact multiple.
 
  if npar GT 1 then begin
