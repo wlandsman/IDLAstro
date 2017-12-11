@@ -9,7 +9,8 @@ function TNX_eval, xy
 ; EXPLANATION:
 ;     See http://fits.gsfc.nasa.gov/registry/tnx.html for the TNX convention
 ;   
-;     This distortion convention is used by IRAF.
+;     This distortion convention is used by IRAF.    The current procedures only
+;     supports simple polynomials and not Legendre or Chebyshev polynomials
 ;   
 ;     The coefficients and information are passed via common block.    This is because this
 ;     routine is called by the intrinisc BROYDEN() function in AD2XY, and 
@@ -28,13 +29,14 @@ function TNX_eval, xy
 ;      pv1/pv2 naming convention is a hangover from tpv_eval.pro on
 ;      which this approach is heavily based.
 ;      pv1.functype gives the TNX function type. Only type 3
-;         (polynominal) is supported.
+;         (polynomial) is supported.
 ;      pv1.xterms gives the type of cross-terms (1: full, 2: half, 0: none)
 ;      pv1.etaorder gives the order in eta
 ;      pv1.xiorder gives the order in xi
 ;      pv1.coeff gives the actual coefficients.
 ; REVISION HISTORY:
 ;     Written   M. Sullivan                  Mar 2014
+;     Use post-V6.0 notation  W. Landsman    Feb 2015
 ;-
 
 compile_opt idl2,hidden
@@ -66,18 +68,18 @@ IF(lngcor.xterms EQ 1)THEN BEGIN
    ;; full cross-terms
    FOR n=0,lngcor.etaorder-1 DO BEGIN
       FOR m=0,lngcor.xiorder-1 DO BEGIN
-         xp=xp + xin^m * yin^n * lngcor.coeff[icount]
+         xp += xin^m * yin^n * lngcor.coeff[icount]
          icount++
       ENDFOR
    ENDFOR
 ENDIF ELSE IF(lngcor.xterms EQ 0)THEN BEGIN
    ;; no cross-terms
    FOR m=0,lngcor.xiorder-1 DO BEGIN
-      xp=xp + xin^m * lngcor.coeff[icount]
+      xp += xin^m * lngcor.coeff[icount]
       icount++
    ENDFOR
    FOR n=0,lngcor.etaorder-1 DO BEGIN
-      xp=xp + yin^n * lngcor.coeff[icount]
+      xp += yin^n * lngcor.coeff[icount]
       icount++
    ENDFOR
 ENDIF ELSE IF(lngcor.xterms EQ 2)THEN BEGIN
@@ -86,30 +88,30 @@ ENDIF ELSE IF(lngcor.xterms EQ 2)THEN BEGIN
    FOR n=0,lngcor.etaorder-1 DO BEGIN
       FOR m=0,lngcor.xiorder-1 DO BEGIN
          IF(m+n GT maxxt)THEN CONTINUE
-         xp=xp + xin^m * yin^n * lngcor.coeff[icount]
+         xp += xin^m * yin^n * lngcor.coeff[icount]
          icount++
       ENDFOR
    ENDFOR   
 ENDIF
 
-yp=0.d0
-icount=0L
+yp = 0.d0
+icount = 0L
 IF(latcor.xterms EQ 1)THEN BEGIN
    ;; full cross-terms
    FOR n=0,latcor.etaorder-1 DO BEGIN
       FOR m=0,latcor.xiorder-1 DO BEGIN
-         yp=yp + xin^m * yin^n * latcor.coeff[icount]
+         yp += xin^m * yin^n * latcor.coeff[icount]
          icount++
       ENDFOR
    ENDFOR
 ENDIF ELSE IF(latcor.xterms EQ 0)THEN BEGIN
    ;; no cross-terms
    FOR m=0,latcor.xiorder-1 DO BEGIN
-      yp=yp + xin^m * latcor.coeff[icount]
+      yp += xin^m * latcor.coeff[icount]
       icount++
    ENDFOR
    FOR n=0,latcor.etaorder-1 DO BEGIN
-      yp=yp + yin^n * latcor.coeff[icount]
+      yp += yin^n * latcor.coeff[icount]
       icount++
    ENDFOR
 ENDIF ELSE IF(latcor.xterms EQ 2)THEN BEGIN
@@ -118,14 +120,14 @@ ENDIF ELSE IF(latcor.xterms EQ 2)THEN BEGIN
    FOR n=0,latcor.etaorder-1 DO BEGIN
       FOR m=0,latcor.xiorder-1 DO BEGIN
          IF(m+n GT maxxt)THEN CONTINUE
-         yp=yp + xin^m * yin^n * latcor.coeff[icount]
+         yp += xin^m * yin^n * latcor.coeff[icount]
          icount++
       ENDFOR
    ENDFOR   
 ENDIF
 
-xp=x+xp
-yp=y+yp
+xp = x+xp
+yp = y+yp
 
 return, [[xp],[yp]]
 
