@@ -10,7 +10,8 @@ function Bsort, Array, Asort, INFO=info, REVERSE = rev
 ;       order for equal values)
 ;
 ;       A faster algorithm (radix sort) for numeric data is described at 
-;       http://www.exelisvis.com/Learn/Blogs/IDLDataPointDetail/TabId/902/ArtMID/2926/ArticleID/13017/An-LSD-radix-sort-algorithm-in-IDL.aspx
+; http://www.harrisgeospatial.com/Learn/Blogs/Blog-Details/TabId/2716/ArtMID/10198/ArticleID/16724/An-LSD-radix-sort-algorithm-in-IDL.aspx
+;
 ;       and available at
 ;       https://github.com/mgalloy/mglib/blob/master/src/analysis/mg_sort.pro
 ; CALLING SEQUENCE:  
