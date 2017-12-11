@@ -1,3 +1,6 @@
+21-Nov-2017: MATCH - Fix bug when using HISTOGRAM method with all negative numbers
+				Use !NULL when no matches found
+
 14-Nov-2017: EXTAST - Added HAS_D2IMDIS keyword to indicate presence of distortion table
              FITS_XYAD, FITS_ADXY -- Now handle both CPDISi and D2IMDISi distortion tables
 
@@ -133,6 +136,8 @@
 27-Apr-2015: AD2XY, XY2AD - no longer check that CDELT[0] differs from 1
 
 25-Mar-2015: FITS_INFO - Use 64 bit long to deal with huge FITS files
+
+07-Feb-2015: LINTERP - Call INTERPOLATE with /DOUBLE if V8.2.3 or later
 
 06-Feb-2015: SXPAR() - Return logicals as IDL boolean in V8.4 or later
 
