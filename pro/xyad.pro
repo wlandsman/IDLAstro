@@ -77,14 +77,13 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 ;        IDL> xyad, hdr, 23.3, 100.2, /GALACTIC
 ;
 ; PROCEDURES CALLED
-;       ADSTRING(), EULER, EXTAST, GSSSXYAD, REPCHR(),  XY2AD
+;       ADSTRING(), EULER, EXTAST, GET_EQUINOX, GSSSXYAD, REPCHR(),  XY2AD
 ;
 ; REVISION HISTORY:
 ;       W. Landsman                 STX          Jan, 1988
 ;       Use astrometry structure  W. Landsman    Jan, 1994
 ;       Recognize GSSS header  W. Landsman       June, 1994
 ;       Changed ADSTRING output format   W. Landsman    September 1995
-;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Use vector call to ADSTRING() W. Landsman February 2000
 ;       Added ALT input keyword  W. Landsman June 2003
 ;       Add precision keyword  W. Landsman February 2004
@@ -179,7 +178,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 	if sexig then begin 
   
  	eqnx = code NE -1 ? '_' + string(eqnx,f='(I4)') :  '    '
-	tit = tit +  $
+	tit +=  $
 	   '        ' + tit1  + eqnx +  '      ' + tit2 + eqnx
         if N_elements(precision) EQ 0 then precision = 1
         str = replicate('    ---          ---    ', Npts)
