@@ -227,9 +227,10 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ; 
   t = strtrim(result,2)
   keyword = strtrim(strmid(t,0,7),2)
+  N = N_elements(t)
 
-  if strmid(keyword[-1],0,5) EQ '#INFO' then begin      ;Error finding catalog?
-      message,/INF,t[-1]
+  if strmid(keyword[n-1],0,5) EQ '#INFO' then begin      ;Error finding catalog?
+      message,/INF,t[n-1]
       return, -1
   endif    
 
