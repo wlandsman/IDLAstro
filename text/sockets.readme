@@ -1,14 +1,11 @@
-                                                         September 2013
+                                                         December 2017
  
-This directory contains procedures which use the IDL SOCKET command to access
-Web servers.  
+This directory contains procedures useful for querying the Web.      Earlier versions of
+these routines used the IDL SOCKET command to access Web servers, but they now 
+(except for querygsc.pro) use the more robust IDLnetURL object.  
 
 The directory  includes IDL procedures from the Infrared Science Archive (IRSA)
 ( http://irsa.ipac.caltech.edu/tools/irsa_idl.html )
-
-Dominic Zarro (LAC/GSFC) has written an independent set of routines to use IDL
-sockets to access Web servers.   His routines use object-oriented code and are
-available at http://beauty.nascom.nasa.gov/~zarro/idl/sockets/sockets.html
 
 WEBGET() - Use the IDL SOCKET procedure to get data from http servers
 QUERYGSC() - Query the Guide Star Catalog (GSC V2.3.2) at the Space
@@ -55,6 +52,8 @@ The identifier string needed for the IDL program is the "catname"
 column of the table.
 
 Changes:
+
+Dec 2017: Updated to V2.0 of IPAC query routines
 
 Sep 2013:  Added IPAC query procedures
 
