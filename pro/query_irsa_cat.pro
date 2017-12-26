@@ -1,4 +1,4 @@
-FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, radunits=radunits, outfile=outfile, change_null=change_null, DEBUG=debug
+FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, radunits=radunits, outfile=outfile, change_null=change_null, table_col_info = table_col_info, table_hdr=table_hdr, DEBUG=debug
 
 ;+
 ; NAME: 
@@ -6,21 +6,24 @@ FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, r
 ;
 ; PURPOSE: 
 ;    Query a catalog in the NASA/IPAC Infrared Science Archive (IRSA)
-;    database by position or resolvable target name.
+;    by position or resolvable target name.
 ; 
 ; EXPLANATION:
-;    Uses the IDL SOCKET command to provide a query of a catalog 
-;    in the IRSA (http://irsa.ipac.caltech.edu/) database over the Web and
-;    return results in an IDL structure.  If outfile is set, it saves
-;    the query as an IPAC table file.  This can be slow for large query
-;    results, so only write a file if needed.    
+;    Uses the IDLnetURL object to do a spatial cone search of a
+;    catalog in the IRSA (https://irsa.ipac.caltech.edu/) database.  
+;    Returns the table data in an array of structures.  Allows an 
+;    additional structure with table column information (required 
+;    to write the table later), and also a string array of headers.  If 
+;    outfile is set, it saves the table as an IPAC table file.  This 
+;    can be slow for large query results, so write only if needed.    
 ;     
 ; CALLING SEQUENCE: 
 ;    info = query_irsa_cat(targetname_or_coords, [catalog=catalog,
 ;    radius=radius, radunits=radunits, outfile=outfile,
-;    change_null=change_null, /DEBUG])
+;    change_null=change_null, table_col_info=table_col_info, 
+;    table_hdr=table_hdr, /DEBUG])
 ;
-; INPUTS: 
+; REQUIRED INPUT: 
 ;
 ;    TARGETNAME_OR_COORDS - Either a string giving a resolvable target
 ;           name (with J2000 coordinates determined by NED or SIMBAD), or a 
@@ -30,47 +33,50 @@ FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, r
 ; OPTIONAL INPUT:
 ;
 ;    CATALOG - string giving the identifier of the IRSA catalog to be
-;           searched.  The complete list of catalogs and identifier strings is available in
-;           XML format at:
-;             http://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-scan?mode=xml
+;           searched.  The complete list of catalogs and identifier
+;           strings is available in XML format at:
+;             https://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-scan?mode=xml
 ;           or as an IPAC Table (ascii) at:
-;             http://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-scan?mode=ascii
+;             https://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-scan?mode=ascii
 ;
-;           In the table, the identifier string is in the "catname" column.
+;           The identifier string is under "catname".
 ;
-;           If this keyword is omitted, the program will query the 2MASS point
-;           source catalog.
+;           If this keyword is omitted, the program will query the 2MASS Point
+;           Source Catalog ('fp_psc').
 ;
 ;           Examples of current IRSA catalogs include:  
-;              'wise_allsky_4band_p3as_psd' - WISE All-Sky Source Catalog
+;              'wise_allwise_p3as_psd' - AllWISE Source Catalog
 ;              'fp_psc' - 2MASS Point Source Catalog
 ;              'iraspsc' - IRAS Point Source Catalog v2.1 (PSC)
 ;              'irasfsc' - IRAS Faint Source Catalog v2.0
 ;              'cosmos_ib_phot' - COSMOS Intermediate and Broad Band Photometry Catalog 2008
-;              'akari_irc' - Akari/IRC Point Source Catalogue
 ;
-;    RADIUS - scalar input of the radius of the search.  By default it
-;             has a value of 60 arcsec. IRSA
-;           catalogs have maximum allowable search radii.  These are listed on the corresponding
-;           web interface page for the catalog search, or in the nph-scan return table in the
-;           "coneradius" column.
+;    RADIUS - scalar input of the radius of the search with default of
+;           60 (arcsec). IRSA catalogs have maximum allowable search 
+;           radii.  These are listed on the corresponding web
+;           interface page for the catalog search, or in the
+;           nph-scan return table under "coneradius".
 ;    
-;    RADUNITS - string giving the units of the radius.  By default it is 'arcsec'.
+;    RADUNITS - string giving the units of the radius (default is 'arcsec').
 ;    
-;    OUTFILE - if present, the search results are written to a file with this name.
+;    OUTFILE - if present, the query result is written to this filename.
 ;
-;     CHANGE_NULL - a numeric value (input as integer) to put in the structure if the table uses a string for nulls.  Default is -9999.
+;    CHANGE_NULL - a numeric value (input as integer) to put in the
+;           structure if the table uses a string for null
+;           integer values (default is -9999).
+;
+;    TABLE_COL_INFO - An IDL structure with table column headers.
+;           (required if table is written with write_ipac_table).
+;
+;    TABLE_HDR - An string array with header comments and keywords.
 ;
 ;    DEBUG - /DEBUG provides some additional output.
 ;
-; OUTPUTS: 
-;    info - Anonymous IDL structure containing information on the catalog.  The structure
-;           tag names are taken from the catalog column names.  If no objects were found in 
-;           the catalog, the structure values will be empty or zero.  If any input parameter
-;           (e.g. catalog name) is invalid, the structure will have no
-;           content fields other than info.CREATED.
+; OUTPUT: 
+;    info - An IDL structure with the query result rows.  The structure
+;           tags are the catalog column names, modified as needed for IDL.
 ;
-;           If the query fails or is invalid, the function returns a value of -1.  
+;           If the query fails or is invalid, the return value is -1.  
 ;
 ; EXAMPLES: 
 ;           (1) Plot a histogram of the J magnitudes of all 2MASS
@@ -92,7 +98,7 @@ FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, r
 ;
 ; PROCEDURES USED:
 ;    READ_IPAC_VAR  comes with query_irsa_cat.pro
-;    WEBGET(), VALID_NUM  from IDLastro
+;    VALID_NUM  from IDLastro
 ;
 ; NOTES:
 ;    The program writes an output IPAC table file only if the
@@ -103,6 +109,8 @@ FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, r
 ;    Removed requirement of writing/reading IPAC table file -
 ;      T. Brooke, IPAC May 2011
 ;    Longer timeout for webget, added change_null - TYB June 2013
+;    Added status message - TYB Jan 2016
+;    Replace webget with IDLnetURL and redo structues - TYB Aug 2017
 ;-
 
 ;Copyright © 2013, California Institute of Technology
@@ -146,7 +154,9 @@ compile_opt idl2
 if N_params() lt 1 then begin
   print,'Syntax - info = query_irsa_cat(targetname_or_coords,'
   print,'           [catalog=catalog,radius=radius,radunits=radunits,'
-  print,'            outfile=outfile,change_null=change_null,/DEBUG])'
+  print,'            outfile=outfile,change_null=change_null,'
+  print,'            table_col_info=table_col_info,table_hdr=table_hdr,'
+  print,'            /DEBUG])'
 endif
 
 IF NOT(keyword_set(radius)) THEN radius = 60
@@ -173,7 +183,8 @@ ENDIF
 
 ;;;;;;;;;;;;;;;;;;;  CONSTRUCT THE PARTS OF THE QUERY STRING
 
-root = 'http://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-query'
+query_host = 'irsa.ipac.caltech.edu'
+query_path = '/cgi-bin/Gator/nph-query'
 
 ;;;; CATALOG STRING
 
@@ -218,41 +229,47 @@ FOR i = 0l, nspat-1 DO $
       
 ;;;; USE IPAC FORMAT
 
-out_fmt = '?outfmt=1'
+out_fmt = 'outfmt=1'
 
 ;;;; combine into query string
 
-url_q = root+out_fmt+objstr+spatstr+spatparstr+catstr
+url_q = out_fmt+objstr+spatstr+spatparstr+catstr
 IF keyword_set(debug) THEN print, url_q
 
-;;;;;  use the IDL WEBGET to do the HTTP GET
+;;;;;  use IDLnetURL to do the GET
 
 IF keyword_set(debug) THEN print, systime(0) 
 
-url_return = WEBGET(url_q, timeout=120)   
+print, 'Query ',catalog_name, ' for object ', target
+
+oURL = obj_new('IDLnetURL')
+oURL -> SetProperty, URL_Scheme='https', URL_hostname=query_host, $
+                    URL_query=url_q, URL_Path=query_path
+url_return = oURL -> GET(/STRING_ARRAY)      
 
 IF keyword_set(debug) THEN print, systime(0) 
 
 ;;;;;  If requested, write the output to the outputfile
 
 IF (keyword_set(outfile)) THEN BEGIN
-  n = N_ELEMENTS(url_return.text)
+  n = N_ELEMENTS(url_return)
   OPENW, wunit, writefile, /get_lun
-  FOR i = 0l, n-1 DO PRINTF, wunit, (url_return.text)[i]
+  FOR i = 0l, n-1 DO PRINTF, wunit, url_return[i]
   FREE_LUN, wunit
 ENDIF
 
-;;;;; read the IPAC query into a structure
-
-textvar = url_return.text
+;;;;; read the IPAC query into structures
 
 IF (keyword_set(change_null)) THEN $
-  irsa_struct = read_ipac_var(textvar, change_null = null_num) $
+  info = read_ipac_var(url_return, table_col_info=table_col_info, table_hdr=table_hdr, change_null = null_num) $
 ELSE $
-  irsa_struct = read_ipac_var(textvar)
+  info = read_ipac_var(url_return, table_col_info=table_col_info, table_hdr=table_hdr)
 
-IF (n_tags(irsa_struct) eq 0) THEN print,'ERROR: unable to read results into structure.'
+IF (n_tags(info) eq 0) THEN BEGIN
+  print,'ERROR: unable to read results into structure.'
+  return, -1
+ENDIF
 
-return, irsa_struct
+return, info
 
 END
