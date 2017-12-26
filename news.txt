@@ -1,3 +1,8 @@
+26-Dec-2017:   QUERY_IRSA_CAT, READ_IPAC_TABLE, READ_IPAC_VAR, WRITE_IPAC_TABLE - Now
+use IDLnetURL object and improved V2.0 table format
+
+             WEBGET() - Function now deprecated in favor of IDLnetURL object
+
 21-Nov-2017: MATCH - Fix bug when using HISTOGRAM method with all negative numbers
 				Use !NULL when no matches found
 
