@@ -1,19 +1,17 @@
-;+
+ ;+
 ; NAME: 
-;    WEBGET()
+;	WEBGET()
 ;
 ; PURPOSE: 
-;    Use the IDL SOCKET procedure to get data from http servers
+;	Use the IDL SOCKET procedure to get data from http servers
 ;
 ; EXPLANATION: 
-;     WEBGET() can access http servers - even from behind a firewall - 
-;     and perform simple downloads. Currently, text and FITS files can be 
-;     accessed.    
+;	WEBGET() can access http servers - even from behind a firewall - 
+;	and perform simple downloads. Currently, text and FITS files can be 
+;	accessed.    
 ;
-;     The IDLNetURL object is a much more robust way of 
-;     transferring files across the Web.     However, WEBGET() is still
-;     useful for opening a remote file unit (e.g. a FITS file) and 
-;     processing it 
+;	This function is now deprecated because the IDLNetURL object is a much 
+;	more robust way of transferring files across the Web.     
 ;
 ; CALLING SEQUENCE: 
 ;      a=webget(URL)
@@ -73,22 +71,10 @@
 ;     FITS file.
 ;
 ; EXAMPLE: 
-;      IDL> a=webget('http://www.mpia.de/index.html')
-;      IDL> print,a.Text
-;      or
-;
-;          > PointingRA=0.0
-;          > PointingDE=30.0
-;          > QueryURL = strcompress("http://archive.eso.org/dss/dss/image?ra="+$
-;          >                          string(PointingRA)+$
-;          >                          "&dec="+$
-;          >                          string(PointingDE)+$
-;          >                          "&x=10&y=10&Sky-Survey=DSS1&mime-type=download-fits", $
-;          >                          /remove)
-;          > a=webget(QueryURL)
-;          > tvscl,a.Image
-;          > print,a.ImageHead
-;
+;	Query the Space Telescope Science Institute Guide Star Catalog
+;    IDL> t = 'http://gsss.stsci.edu/webservices/vo/CatalogSearch.aspx?RA=250&Dec=36&SR=0.1&FORMAT=CSV'
+;    IDL> a = webget(t)
+;    IDL> print,a.text
 ;
 ; MODIFICATION HISTORY: 
 ;     Written by M. Feldt, Heidelberg, Oct 2001 <mfeldt@mpia.de>
@@ -110,6 +96,7 @@
 ;     Timeout applies to connecting as well as reading, default is now 15
 ;               seconds  W Landsman January 2012
 ;     Allow http_proxy to be upper or lower case W.L./D. Palmer Feb 2013
+;     Function is now deprecated  W. Landsman  December 2017
 ;-
 
 PRO MimeType,  Header, Class, Type, Length
