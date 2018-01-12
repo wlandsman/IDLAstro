@@ -9,10 +9,6 @@
 ;       between two structure arrays (may have different struct.definitions),
 ;       and return a structured List of fields found different.
 ;
-;       The Exelis contrib library has a faster but less powerful procedure
-;       struct_equal.pro, see 
-;       http://www.exelisvis.com/Default.aspx?tabid=1540&id=1175
-;
 ; CALLING SEQUENCE:
 ;       diff_List = compare_struct( struct_A, struct_B [ EXCEPT=, /BRIEF,
 ;                                    /FULL, /NaN, /RECUR_A, /RECUR_B )
@@ -61,179 +57,191 @@
 ;       modif Aug.90 by F.V. to check and compare same # of elements only.
 ;       Added /NaN keyword W. Landsman  March 2004
 ;       Don't test string for NaN values W. Landsman March 2008
+;       Don't test object for NaN values W. Landsman Sep 2017
+;       NE returns an empty list when comparing equal hashes or lists
+;             W. Landsman  October 2017
 ;-
 
 function compare_struct, struct_A, struct_B, EXCEPT=except_Tags, Struct_Name, $
-                                        FULL=full, BRIEF=brief, NaN = NaN, $
-                                        RECUR_A = recur_A, RECUR_B = recur_B
+                         FULL=full, BRIEF=brief, NaN = NaN, $
+                         RECUR_A = recur_A, RECUR_B = recur_B
 
-   compile_opt idl2
-   common compare_struct, defined
-   if N_params() LT 2 then begin
-       print,'Syntax - diff_List = compare_struct(struct_A, struct_B '
-       print,'         [EXCEPT=, /BRIEF, /FULL, /NaN, /RECUR_A, /RECUR_B ]'
-       if N_elements(diff_List) GT 0 then return, diff_List else return, -1
-   endif
+  compile_opt idl2
+  common compare_struct, defined
+  if N_params() LT 2 then begin
+     print,'Syntax - diff_List = compare_struct(struct_A, struct_B '
+     print,'         [EXCEPT=, /BRIEF, /FULL, /NaN, /RECUR_A, /RECUR_B ]'
+     if N_elements(diff_List) GT 0 then return, diff_List else return, -1
+  endif
 
-        if N_elements( defined ) NE 1 then begin
+  if N_elements( defined ) NE 1 then begin
 
-                diff_List = { DIFF_LIST, Tag_Num_A:0, Tag_Num_B:0, $
-                                                Field:"",  Ndiff:0L }
-                defined = N_tags( diff_List )
-          endif else diff_List = replicate( {DIFF_LIST}, 1 )
+     diff_List = { DIFF_LIST, Tag_Num_A:0, Tag_Num_B:0, $
+                   Field:"",  Ndiff:0L }
+     defined = N_tags( diff_List )
+  endif else diff_List = replicate( {DIFF_LIST}, 1 )
 
-        Ntag_A = N_tags( struct_A )
-        if (Ntag_A LE 0) then begin
-                message," 1st argument must be a structure variable",/CONTIN
-                return,diff_List 
+  Ntag_A = N_tags( struct_A )
+  if (Ntag_A LE 0) then begin
+     message," 1st argument must be a structure variable",/CONTIN
+     return,diff_List 
+  endif
+  Ntag_B = N_tags( struct_B )
+  if (Ntag_B LE 0) then begin
+     message," 2nd argument must be a structure variable",/CONTIN
+     return,diff_List 
+  endif
+
+  N_A = N_elements( struct_A )
+  N_B = N_elements( struct_B )
+
+  if (N_A LT N_B) then begin
+
+     message,"comparing "+strtrim(N_A,2)+" of first structure",/CON
+     message,"to first "+strtrim(N_A,2)+" of "+strtrim(N_B,2)+ $
+             " in second structure",/CONTIN
+
+     diff_List = compare_struct( struct_A, struct_B[0:N_A-1], $
+                                 EXCEPT=except_Tags, $
+                                 RECUR_A = recur_A, $
+                                 RECUR_B = recur_B, $
+                                 FULL=full, BRIEF=brief, NaN=NaN )
+     return,diff_List 
+
+  endif else if (N_A GT N_B) then begin
+
+     message,"comparing first "+strtrim(N_B,2)+" of "+ $
+             strtrim(N_A,2)+" in first structure",/CON
+     message,"to "+strtrim(N_B,2)+" in second structure",/CONTIN
+
+     diff_List = compare_struct( struct_A[0:N_B-1], struct_B, $
+                                 EXCEPT=except_Tags, $
+                                 RECUR_A = recur_A, $
+                                 RECUR_B = recur_B, $
+                                 FULL=full, BRIEF=brief, NaN=NaN )
+     return,diff_List 
+  endif
+
+  Tags_A = tag_names( struct_A )
+  Tags_B = tag_names( struct_B )
+  wB = indgen( N_elements( Tags_B ) )
+  Nextag = N_elements( except_Tags )
+
+  if (Nextag GT 0) then begin
+
+     except_Tags = [strupcase( except_Tags )]
+
+     for t=0,Nextag-1 do begin
+
+        w = where( Tags_B NE except_Tags[t], Ntag_B )
+        Tags_B = Tags_B[w]
+        wB = wB[w]
+     endfor
+  endif
+
+  if N_elements( struct_name ) NE 1 then sname = "." $
+  else sname = struct_name + "." 
+
+  for t = 0, Ntag_B-1 do begin
+
+     wA = where( Tags_A EQ Tags_B[t] , nf )
+
+     if (nf GT 0) then begin
+
+        tA = wA[0]
+        tB = wB[t]
+
+        NtA = N_tags( struct_A.(tA) )
+        NtB = N_tags( struct_B.(tB) )
+
+        if (NtA GT 0 ) AND (NtB GT 0) then begin
+
+           if keyword_set( full ) || keyword_set( brief ) then $
+              print, sname + Tags_A[tA], " :"
+
+           diffs = compare_struct( struct_A.(tA), struct_B.(tB), $
+                                   sname + Tags_A[tA], $
+                                   EXCEPT=except_Tags, $
+                                   FULL=full, BRIEF=brief, NaN=NaN)
+           diff_List = [ diff_List, diffs ]
+
+        endif else if (NtA LE 0) && (NtB LE 0) then begin
+           
+           x1 = struct_b.(tB)
+           x2 = struct_a.(tA)
+           szx1 = size(x1,/tname)
+           szx2 = size(x2,/tname)
+           dofinite = keyword_set(NaN) &&  $
+              (szx1 NE 'STRING') && (szx1 NE 'OBJREF') && $
+              (szx2 NE 'STRING') && (szx2 NE 'OBJREF')
+           
+           if dofinite then begin
+              
+              g = where( finite(x1) OR finite(x2), Ndiff )
+              if Ndiff GT 0 then $
+                 w = where( x1[g] NE x2[g], Ndiff ) 
+           endif else begin
+              xx = struct_B.(tB) NE struct_A.(tA)
+              ;Handle hashes and lists different from other variable types
+              if N_elements(xx) EQ 0 then Ndiff = 0 else $
+                 w = where( struct_B.(tB) NE struct_A.(tA) , Ndiff )
+           endelse 
+           
+           if (Ndiff GT 0) then begin
+              
+              diff = replicate( {DIFF_LIST}, 1 )
+              diff.Tag_Num_A = tA
+              diff.Tag_Num_B = tB
+              diff.Field = sname + Tags_A[tA] 
+              diff.Ndiff = Ndiff
+              diff_List = [ diff_List, diff ]
            endif
-        Ntag_B = N_tags( struct_B )
-        if (Ntag_B LE 0) then begin
-                message," 2nd argument must be a structure variable",/CONTIN
-                return,diff_List 
-           endif
 
-        N_A = N_elements( struct_A )
-        N_B = N_elements( struct_B )
+           if keyword_set( full ) OR $
+              (keyword_set( brief ) AND (Ndiff GT 0)) then $
+                 print, Tags_A[tA], Ndiff, FORM="(15X,A15,I9)"
 
-        if (N_A LT N_B) then begin
+        endif else print, Tags_A[ta], " not compared"
 
-                message,"comparing "+strtrim(N_A,2)+" of first structure",/CON
-                message,"to first "+strtrim(N_A,2)+" of "+strtrim(N_B,2)+ $
-                        " in second structure",/CONTIN
+     endif
+  endfor
 
-                diff_List = compare_struct( struct_A, struct_B[0:N_A-1], $
-                                                EXCEPT=except_Tags, $
-                                                RECUR_A = recur_A, $
-                                                RECUR_B = recur_B, $
-                                                FULL=full, BRIEF=brief )
-                return,diff_List 
+  if keyword_set( recur_A ) then begin
 
-          endif else if (N_A GT N_B) then begin
+     for tA = 0, Ntag_A-1 do begin
 
-                message,"comparing first "+strtrim(N_B,2)+" of "+ $
-                        strtrim(N_A,2)+" in first structure",/CON
-                message,"to "+strtrim(N_B,2)+" in second structure",/CONTIN
+        if N_tags( struct_A.(tA) ) GT 0 then begin
 
-                diff_List = compare_struct( struct_A[0:N_B-1], struct_B, $
-                                                EXCEPT=except_Tags, $
-                                                RECUR_A = recur_A, $
-                                                RECUR_B = recur_B, $
-                                                FULL=full, BRIEF=brief )
-                return,diff_List 
-           endif
+           diffs = compare_struct( struct_A.(tA), struct_B, $
+                                   sname + Tags_A[tA], $
+                                   EXCEPT=except_Tags, $
+                                   RECUR_A = recur_A, $
+                                   RECUR_B = recur_B, $
+                                   FULL=full, BRIEF=brief, NaN=NaN )
+           diff_List = [ diff_List, diffs ]
+        endif
+     endfor
+  endif
 
-        Tags_A = tag_names( struct_A )
-        Tags_B = tag_names( struct_B )
-        wB = indgen( N_elements( Tags_B ) )
-        Nextag = N_elements( except_Tags )
+  if keyword_set( recur_B ) then begin
 
-        if (Nextag GT 0) then begin
+     for tB = 0, Ntag_B-1 do begin
 
-                except_Tags = [strupcase( except_Tags )]
+        if N_tags( struct_B.(tB) ) GT 0 then begin
 
-                for t=0,Nextag-1 do begin
+           diffs = compare_struct( struct_A, struct_B.(tB), $
+                                   sname + Tags_B[tB], $
+                                   EXCEPT=except_Tags, $
+                                   RECUR_A = recur_A, $
+                                   RECUR_B = recur_B, $
+                                   FULL=full, BRIEF=brief, NaN=NaN )
+           diff_List = [ diff_List, diffs ]
+        endif
+     endfor
+  endif
 
-                        w = where( Tags_B NE except_Tags[t], Ntag_B )
-                        Tags_B = Tags_B[w]
-                        wB = wB[w]
-                  endfor
-           endif
+  w = where( [diff_List.Ndiff] GT 0, np )
+  if (np LE 0) then w = [0]
 
-        if N_elements( struct_name ) NE 1 then sname = "." $
-                                          else sname = struct_name + "." 
-
-        for t = 0, Ntag_B-1 do begin
-
-                wA = where( Tags_A EQ Tags_B[t] , nf )
-
-                if (nf GT 0) then begin
-
-                     tA = wA[0]
-                     tB = wB[t]
-
-                     NtA = N_tags( struct_A.(tA) )
-                     NtB = N_tags( struct_B.(tB) )
-
-                     if (NtA GT 0 ) AND (NtB GT 0) then begin
-
-                        if keyword_set( full ) OR keyword_set( brief ) then $
-                                                print, sname + Tags_A[tA], " :"
-
-                        diffs = compare_struct( struct_A.(tA), struct_B.(tB), $
-                                                sname + Tags_A[tA], $
-                                                EXCEPT=except_Tags, $
-                                                FULL=full, BRIEF=brief )
-                        diff_List = [ diff_List, diffs ]
-
-                      endif else if (NtA LE 0) AND (NtB LE 0) then begin
-
-                           if keyword_set(NaN) then begin
-                                  x1 = struct_b.(tB)
-                                  x2 = struct_a.(tA)
-				  if (size(x1,/tname) NE 'STRING') and $
-				     (size(x2,/tname) NE 'STRING') then begin
-                                  g = where( finite(x1) or finite(x2), Ndiff )
-                                  if Ndiff GT 0 then $
-                                    w = where( x1[g] NE x2[g], Ndiff ) 
-				    endif
-                           endif else $ 
-                            w = where( struct_B.(tB) NE struct_A.(tA) , Ndiff )
-
-                                if (Ndiff GT 0) then begin
-                                        diff = replicate( {DIFF_LIST}, 1 )
-                                        diff.Tag_Num_A = tA
-                                        diff.Tag_Num_B = tB
-                                        diff.Field = sname + Tags_A[tA] 
-                                        diff.Ndiff = Ndiff
-                                        diff_List = [ diff_List, diff ]
-                                   endif
-
-                                if keyword_set( full ) OR $
-                                  (keyword_set( brief ) AND (Ndiff GT 0)) then $
-                                   print, Tags_A[tA], Ndiff, FORM="(15X,A15,I9)"
-
-                        endif else print, Tags_A[ta], " not compared"
-
-                 endif
-          endfor
-
-        if keyword_set( recur_A ) then begin
-
-                for tA = 0, Ntag_A-1 do begin
-
-                   if N_tags( struct_A.(tA) ) GT 0 then begin
-
-                        diffs = compare_struct( struct_A.(tA), struct_B, $
-                                                sname + Tags_A[tA], $
-                                                EXCEPT=except_Tags, $
-                                                RECUR_A = recur_A, $
-                                                RECUR_B = recur_B, $
-                                                FULL=full, BRIEF=brief )
-                        diff_List = [ diff_List, diffs ]
-                     endif
-                  endfor
-          endif
-
-        if keyword_set( recur_B ) then begin
-
-                for tB = 0, Ntag_B-1 do begin
-
-                   if N_tags( struct_B.(tB) ) GT 0 then begin
-
-                        diffs = compare_struct( struct_A, struct_B.(tB), $
-                                                sname + Tags_B[tB], $
-                                                EXCEPT=except_Tags, $
-                                                RECUR_A = recur_A, $
-                                                RECUR_B = recur_B, $
-                                                FULL=full, BRIEF=brief )
-                        diff_List = [ diff_List, diffs ]
-                     endif
-                  endfor
-          endif
-
-        w = where( [diff_List.Ndiff] GT 0, np )
-        if (np LE 0) then w = [0]
-
-return, diff_List[w]
+  return, diff_List[w]
 end
