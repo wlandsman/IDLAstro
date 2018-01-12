@@ -11,7 +11,8 @@
 ;	accessed.    
 ;
 ;	This function is now deprecated because the IDLNetURL object is a much 
-;	more robust way of transferring files across the Web.     
+;	more robust way of transferring files across the Web.    However webget()
+;   remains useful for maintaining an open unit, e.g. see querydss.pro    
 ;
 ; CALLING SEQUENCE: 
 ;      a=webget(URL)
