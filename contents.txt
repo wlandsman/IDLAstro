@@ -1,4 +1,4 @@
-        Contents of IDL Astronomy User's Library             Oct 2017
+        Contents of IDL Astronomy User's Library             Jan 2018
         (also see http://idlastro.gsfc.nasa.gov/contents.html)
 
 Astronomical Utilities    in pro/astro
