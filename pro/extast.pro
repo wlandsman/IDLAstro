@@ -171,7 +171,6 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
 ;	v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
 ;	v2.5.3 Add warning if CPDIS1 keyword present WL Nov 2016
 ;	v2.5.4 Add HAS_CPDIS and HAS_D2IMDIS keywords WL Nov 2017
-;   v2.5.5 Remove call to FITS_CD_FIX WL Jan 2018
 ;-
 
  compile_opt idl2
@@ -423,8 +422,16 @@ GET_CD_MATRIX:
         l = where(keyword EQ 'CROTA'+latc + alt,  N_crota) 
         if N_Crota EQ 0 then $
             l = where(keyword EQ 'CROTA'+lonc + alt,  N_crota) 
-        if N_crota EQ 0 then crota = 0.0d  $
-	                    else crota = double(lvalue[l[N_crota-1]])/RADEG
+        if N_crota EQ 0 then begin
+	          l = where(keyword EQ 'PC001001', N_PC00)
+	          l = where(keyword EQ 'CD001001', N_CD00)
+	          if (N_PC00 GT 0) || (N_CD00 GT 0) then begin
+	              message,'Updating obsolete CD matrix representation',/INF
+		            FITS_CD_FIX, hdr
+		            keyword = strtrim(strmid(hdr,0,8),2)
+		            goto, GET_CD_MATRIX
+	          endif else crota = 0.0d 
+	      endif else crota = double(lvalue[l[N_crota-1]])/RADEG
         cd = [ [cos(crota), -sin(crota)],[sin(crota), cos(crota)] ] 
  
         noparams = 1           ;Signal AIPS-type astrometry found
