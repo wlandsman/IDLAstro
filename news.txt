@@ -1,3 +1,8 @@
+15-Jan-2017:  FITS_CD_FIX - Moved back from /obsolete because PanStarrs still uses 
+              obsolete CD keywords
+
+12-Jan-2017: COMPARE_STRUCT - Pass the NaN keyword in recursive calls
+
 26-Dec-2017:   QUERY_IRSA_CAT, READ_IPAC_TABLE, READ_IPAC_VAR, WRITE_IPAC_TABLE - Now
 use IDLnetURL object and improved V2.0 table format
 
