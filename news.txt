@@ -1,3 +1,5 @@
+24-Jan-2017: READFITS(), WRITEFITS, MKHDR - Support 64bit unsigned integers
+
 15-Jan-2017:  FITS_CD_FIX - Moved back from /obsolete because PanStarrs still uses 
               obsolete CD keywords
 
