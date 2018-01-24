@@ -78,8 +78,8 @@ pro mkhdr, header, im, naxisx, IMAGE = image, EXTEND = extend
 ;       Add FITS definition COMMENT to primary headers W. Landsman Oct. 2001
 ;       Allow (nonstandard) 64 bit integers   W. Landsman  Feb. 2003
 ;       Add V6.0 notation W. Landsman July 2012
+;       Support unsigned 64 bit integers W. Landsman January 2018 
 ;-                          
- On_error,2
  compile_opt idl2
 
  npar = N_params()
@@ -89,6 +89,13 @@ pro mkhdr, header, im, naxisx, IMAGE = image, EXTEND = extend
    print,'   header - output FITS header to be created'
    return
  endif
+ 
+ Catch, theError
+IF theError NE 0 then begin
+	Catch,/Cancel
+	void = cgErrorMsg(/quiet)
+	RETURN
+ENDIF
 
  if (npar eq 1) then begin               ;Prompt for keyword values
     read,'Enter number of dimensions (NAXIS): ',naxis
@@ -125,6 +132,7 @@ pro mkhdr, header, im, naxisx, IMAGE = image, EXTEND = extend
        12:      bitpix = 16
        13:      bitpix = 32
        14:      bitpix = 64
+       15:      bitpix = 64
         else:   message,'ERROR: Illegal Image Datatype'
         endcase
 
@@ -158,6 +166,8 @@ pro mkhdr, header, im, naxisx, IMAGE = image, EXTEND = extend
             ' Original Data is Unsigned Integer'
  if stype EQ 13 then sxaddpar, header,'O_BZERO',2147483648, $
             ' Original Data is Unsigned Long'
+ if stype EQ 15 then sxaddpar, header,'O_BZERO',ulong64(2)^63, $
+            ' Original Data is Unsigned 64 bit Long'           
  header = header[0:s[0]+7]
 
  if ~keyword_set(IMAGE) then begin   ;Add FITS definition for primary header

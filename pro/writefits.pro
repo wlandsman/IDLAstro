@@ -101,14 +101,22 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
 ;       Bug fix when /CHECKSUM used with unsigned data  W.L. June 2013
 ;       June 2013 bug fix introduced problem when NAXIS=0  W.L. July 2013
 ;       Added /Silent keyword W.L. April 2016
+;		Support unsigned 64 bit data type  W.L.  January 2018
 ;-
-  On_error, 2
+
   compile_opt idl2  
 
   if N_params() LT 2 then begin 
        print,'Syntax - WRITEFITS, filename, data,[ header, /APPEND, /CHECKSUM]'
        return
   endif
+  
+  Catch, theError
+  IF theError NE 0 then begin
+	Catch,/Cancel
+	void = cgErrorMsg(/quiet)
+	RETURN
+  ENDIF
 
 ; Get information about data
 
@@ -150,7 +158,7 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
   unsigned = 0
   if naxis NE 0 then begin
               
-        unsigned = (type EQ 12) || (type EQ 13)
+        unsigned = (type EQ 12) || (type EQ 13) || (type EQ 15)
         if  unsigned then begin
              if type EQ 12 then begin
                      sxaddpar,hdr,'BZERO',32768,'Data is Unsigned Integer', $
@@ -160,7 +168,11 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
                     sxaddpar,hdr,'BZERO',2147483648,'Data is Unsigned Long', $
                               before = 'DATE'
                     newdata = long(data - 2147483648)
-             endif
+             endif else if type EQ 15 then begin
+             	sxaddpar,hdr,'BZERO',32768,'Data is 64 bit Unsigned Long', $
+             			before = 'DATE'
+             	newdata = long64(data - ulong64(2)^63 )
+             endif	
          endif 
 
 ; For floating or double precision test for NaN values to write

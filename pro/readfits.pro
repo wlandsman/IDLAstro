@@ -222,7 +222,8 @@
 ;      Fix test for 'SIMPLE' at beginning of header WL November 2012
 ;      Fix problem passing extensions with > 2GB WL, M. Carlson August 2013
 ;      Always read entire header, even if header variable not supplied W. Landsman May 2017
-;      Support BZip compression   W. Landsman Aug 2017 
+;      Support BZip compression   W. Landsman Aug 2017
+;	Support unsigned long64 data W. Landsman Jan 2018 
 ;-
 function READFITS, filename, header, heap, CHECKSUM=checksum, $ 
                    COMPRESS = compress, HBUFFER=hbuf, EXTEN_NO = exten_no, $
@@ -231,7 +232,6 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
                    POINTLUN = pointlun, SILENT = silent, STARTROW = startrow, $
                    NaNvalue = NaNvalue, FPACK = fpack, UNIXpipe=unixpipe
 
-  On_error,2                    ;Return to user
   compile_opt idl2
   On_IOerror, BAD
 
@@ -243,8 +243,15 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
       print,'                 HBUFFER = ,/NO_UNSIGNED, /CHECKSUM, /COMPRESS]'
       return, -1
    endif
+   
+Catch, theError
+if theError NE 0 then begin
+	Catch,/Cancel
+	void = cgErrorMsg(/quiet)
+	return, -1
+endif
 
-   unitsupplied = size(filename,/TNAME) NE 'STRING'
+unitsupplied = size(filename,/TNAME) NE 'STRING'
 
 ; Set default keyword values
 
@@ -532,22 +539,30 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
        
  
  
-; Check for unsigned integer (BZERO = 2^15) or unsigned long (BZERO = 2^31)
+; Check for unsigned integer (BZERO = 2^15) or unsigned long (BZERO = 2^31) or
+; unsigned long 64 bit (BZERO = 2^63)
 
           if ~keyword_set(No_Unsigned) then begin
+
             no_bscale = (Bscale EQ 1) || (N_bscale EQ 0)
             unsgn_int = (bitpix EQ 16) && (Bzero EQ 32768) && no_bscale
             unsgn_lng = (bitpix EQ 32) && (Bzero EQ 2147483648) && no_bscale
-            unsgn = unsgn_int || unsgn_lng
+            unsgn_lng64 = (bitpix EQ 64) && (Bzero EQ 9223372036854775808) && no_bscale
+            
+            unsgn = unsgn_int || unsgn_lng || unsgn_lng64
            endif else unsgn = 0
 
           if unsgn then begin
-                    if unsgn_int then begin  
+                if unsgn_int then begin  
                         data =  uint(data) - 32768US
-			if N_blank then blank = uint(blank) - 32768US 
-		   endif else  begin 
+			            if N_blank then blank = uint(blank) - 32768US 
+		   		endif else if unsgn_lng then begin 
                          data = ulong(data) - 2147483648UL
-			if N_blank then blank = ulong(blank) - 2147483648UL
+			             if N_blank then blank = ulong(blank) - 2147483648UL
+		   		endif else begin
+		                offset = ulong64(9223372036854775808)
+		   				data = ulong64(data) - offset
+		   				if N_blank then blank = ulong64(blank) - offset
 		   endelse 
 		   if N_blank then sxaddpar,header,'BLANK',blank
                    sxaddpar, header, 'BZERO', 0
