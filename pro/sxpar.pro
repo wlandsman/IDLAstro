@@ -147,6 +147,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Sep 2015  Added Missing, /NULL and /NaN keywords
 ;       W. Landsman Oct 2017   Added DUP keyword,  Needed to support distortion
 ;			table lookup parameters
+;       W. Landsman Jan 2018 Return ULONG64 integer if LONG64 will overflow
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -368,6 +369,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 
 NOT_COMPLEX:
                 On_IOerror, GOT_VALUE
+                 
                   if (strpos(value,'.') GE 0) || (strpos(value,'E') GT 0) $
                   || (strpos(value,'D') GE 0) then begin  ;Floating or double?
                       if ( strpos(value,'D') GT 0 ) || $  ;Double?
@@ -376,7 +378,11 @@ NOT_COMPLEX:
                        endif else begin                   ;Long integer
                             lmax = 2.0d^31 - 1.0d
                             lmin = -2.0d^31      ;Typo fixed Feb 2010
-                            value = long64(value)
+
+                            if strmid(value,0,1) NE '-' then begin 
+                            		value =ulong64(value) 
+                            		if value lt ulong64(2)^63-1 then value = long64(value)
+                            endif else value = long64(value)
                             if (value GE lmin) && (value LE lmax) then $
                                 value = long(value) 
                        endelse
