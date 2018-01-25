@@ -170,6 +170,8 @@
 ;               Don't convert LONG64 numbers to to double precision
 ;       Version 12, William Thompson, 13-Aug-2014
 ;               Add keywords MISSING, /NAN, and /NULL
+;		Version 13, W. Landsman 25-Jan-2018
+;				Return ULONG64 integer if LONG64 would overflow
 ;-
 ;------------------------------------------------------------------------------
 ;
@@ -405,12 +407,15 @@ NOT_COMPLEX:
                                 GE 0) OR (STRPOS(VALUE,'D') GE 0) THEN BEGIN
                             IF ( STRPOS(VALUE,'D') GT 0 ) OR $
                                     ( STRLEN(VALUE) GE 8 ) THEN BEGIN
-                                VALUE = DOUBLE(VALUE)
+                            	VALUE = DOUBLE(VALUE)
                                 END ELSE VALUE = FLOAT(VALUE)
                         ENDIF ELSE BEGIN
                             LMAX = 2.0D^31 - 1.0D
                             LMIN = -2.0D^31       ;Typo fixed Feb 2010
-                            VALUE = LONG64(VALUE)
+                            IF STRMID(VALUE,0,1) NE '-' THEN BEGIN
+                            	VALUE = ULONG64(VALUE)
+                            	IF VALUE LT ULONG64(2)^63-1 THEN VALUE = LONG64(VALUE)
+                            ENDIF ELSE VALUE = LONG64(VALUE)
                             if (VALUE GE LMIN) and (VALUE LE LMAX) THEN $
                                 VALUE = LONG(VALUE)
                         ENDELSE
