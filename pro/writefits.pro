@@ -161,17 +161,18 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
         unsigned = (type EQ 12) || (type EQ 13) || (type EQ 15)
         if  unsigned then begin
              if type EQ 12 then begin
-                     sxaddpar,hdr,'BZERO',32768,'Data is Unsigned Integer', $
+                     sxaddpar,hdr,'BZERO',32768,' Data is Unsigned Integer', $
                               before = 'DATE'
                      newdata = fix(data - 32768)
              endif else if type EQ 13 then begin 
-                    sxaddpar,hdr,'BZERO',2147483648,'Data is Unsigned Long', $
+                    sxaddpar,hdr,'BZERO',2147483648,' Data is Unsigned Long', $
                               before = 'DATE'
                     newdata = long(data - 2147483648)
              endif else if type EQ 15 then begin
-             	sxaddpar,hdr,'BZERO',32768,'Data is 64 bit Unsigned Long', $
+                offset = ulong64(2)^63
+             	sxaddpar,hdr,'BZERO',offset,' Data is 64 bit Unsigned Long', $
              			before = 'DATE'
-             	newdata = long64(data - ulong64(2)^63 )
+             	newdata = long64(data - offset )
              endif	
          endif 
 
