@@ -727,15 +727,6 @@ end
 function mrd_chkunsigned, bitpix, scale, zero, unsigned=unsigned
 compile_opt idl2, hidden
     if ~keyword_set(unsigned) then return, 0
-    
-    ; This is correct but we should note that
-    ; FXPAR returns a double rather than a long.
-    ; Since the offset is a power of two
-    ; it is an integer that is exactly representable
-    ; as a double.  However, if a user were to use
-    ; 64 bit integers and an offset close to but not
-    ; equal to 2^63, we would erroneously assume that
-    ; the dataset was unsigned...
 
     if scale eq 1 then begin
 	if (bitpix eq 16 && zero eq 32768L) ||                   $
