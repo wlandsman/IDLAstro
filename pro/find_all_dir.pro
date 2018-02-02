@@ -23,7 +23,7 @@
 ;               is the same unless the PLUS_REQUIRED keyword is set.
 ;
 ;               One can also path a series of directories separated
-;               by the correct character ("," for VMS, ":" for Unix)
+;               by the correct character (";" for Windows ":" for Unix)
 ;
 ; OUTPUTS:
 ;       The result of the function is a list of directories starting from the
