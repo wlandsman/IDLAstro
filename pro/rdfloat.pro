@@ -1,5 +1,5 @@
 pro rdfloat,name,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17, $
-            v18,v19,SKIPLINE = skipline, NUMLINE = numline,DOUBLE=double, $
+            v18,v19, SKIPLINE = skipline, NUMLINE = numline, DOUBLE=double, $
             SILENT = silent, COLUMNS = columns
 ;+
 ; NAME:
@@ -19,8 +19,7 @@ pro rdfloat,name,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17, $
 ;                         COLUMNS, /DOUBLE, SKIPLINE = , NUMLINE = ]
 ;
 ; INPUTS:
-;      NAME - Name of ASCII data file, scalar string.  In VMS, an extension of 
-;              .DAT is assumed, if not supplied.
+;      NAME - Name of ASCII data file, scalar string. 
 ;
 ; OPTIONAL INPUT KEYWORDS:
 ;      COLUMNS - Numeric scalar or vector specifying which columns in the file
@@ -69,19 +68,26 @@ pro rdfloat,name,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17, $
 ;      Written         W. Landsman                 September 1995
 ;      Call NUMLINES() function                    February 1996
 ;      Read up to 19 columns                       August 1997
-;      Converted to IDL V5.0   W. Landsman         September 1997
 ;      Allow to skip more than 32767 lines  W. Landsman  June 2001
 ;      Added /SILENT keyword   W. Landsman         March 2002
 ;      Added COLUMNS keyword, use STRSPLIT    W. Landsman May 2002
 ;      Use SKIP_LUN if V5.6 or later          W. Landsman Nov 2002
 ;      V5.6 version, use FILE_LINES()         W. Landsman Dec 2002
+;		Use Catch rather than On_ERROR,2      W. Landsman Jan 2018
 ;-
-  On_error,2                           ;Return to caller
+  compile_opt idl2
 
   if N_params() lt 2 then begin
      print,'Syntax - RDFLOAT, name, v1, [ v2, v3,...v19 '
      print,'                    COLUMNS = ,/DOUBLE, SKIPLINE =, NUMLINE = ]'
      return
+  endif
+
+  Catch, theError
+  if theError NE 0 then begin
+       Catch,/Cancel
+       void = cgErrorMsg(/quiet)
+  return
   endif
 
 ; Get number of lines in file
@@ -104,8 +110,7 @@ pro rdfloat,name,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17, $
    if skipline GT 0 then $
         skip_lun, lun, skipline, /lines
    readf,lun,temp
-   
-   
+      
    colval = strsplit(temp, count=ncol)         ;Determine number of columns
  
 ;Create big output array and read entire file into the array
