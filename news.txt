@@ -1,4 +1,4 @@
-25-Jan-2017: SXPAR() - Return ULONG64 if LONG64 would overflow
+25-Jan-2017: SXPAR(), FXPAR() - Return ULONG64 if LONG64 would overflow
 
 24-Jan-2017: READFITS(), WRITEFITS, MKHDR - Support 64bit unsigned integers
 
