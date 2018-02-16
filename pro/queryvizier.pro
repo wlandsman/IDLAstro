@@ -8,7 +8,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;   Query any catalog in the Vizier database by position
 ; 
 ; EXPLANATION:
-;   Uses the IDL SOCKET command to provide a positional query of any catalog 
+;   Uses the IDLnetURL object to provide a positional query of any catalog 
 ;   in the the Vizier (http://vizier.u-strasbg.fr/) database over the Web and
 ;   return results in an IDL structure.    
 ; 
@@ -57,7 +57,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ; OUTPUTS: 
 ;   info - Anonymous IDL structure containing information on the catalog  
 ;          sources within the specified distance of the specified center.  The 
-;          structure tag names are identical with the VIZIER  catalog column 
+;          structure tag names are identical with the VIZIER catalog column 
 ;          names, with the exception of an occasional underscore
 ;          addition, if necessary to convert the column name to a valid 
 ;          structure tag.    The VIZIER Web  page should consulted for the 
@@ -139,6 +139,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;         Use IDLnetURL instead of Socket   W.L.    October 2014
 ;         Add Catch, fix problem with /AllColumns W.L. September 2016
 ;         Update Strasbourg Web address  W.L. April 2017
+;         Handle multiple tables, don't remove leading blanks W.L. Feb 2018
 ;-
 
   compile_opt idl2
@@ -159,7 +160,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
       ENDIF   
  
  if keyword_set(cfa) then host = "vizier.cfa.harvard.edu" $
-                       else  host = "vizier.u-strasbg.fr" 
+                     else host = "vizier.u-strasbg.fr" 
  silent = keyword_set(silent)
  
   if N_elements(catalog) EQ 0 then $
@@ -218,14 +219,17 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
        search + '&-out.max=unlimited'
 
  if keyword_set(allcolumns) then query += '&-out.all=1'
- if keyword_set(verbose) then message,query,/inf
+ if keyword_set(verbose) then begin
+      message,'http://' + host + '/' + path,/inf
+      message,query,/inf
+ endif     
   
   oURL = obj_new('IDLnetURL')
   oURL -> SetProperty, URL_Scheme='http',URL_host=host,URL_query=query, $
                     URL_PATH = path
   result = oURL -> GET(/STRING_ARRAY)
 ; 
-  t = strtrim(result,2)
+  t = strtrim(result)        ;Feb 2018 don't remove leading blanks
   keyword = strtrim(strmid(t,0,7),2)
   N = N_elements(t)
 
@@ -242,9 +246,20 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 
   rcol = where(keyword Eq '#RESOUR', Nfound) 
   if N_elements(rcol) GT 1 then begin 
+       if keyword_set(verbose) then $
+        message,/inf,'Warning - more than one catalog found -- only returning first one'
        t = t[0:rcol[1]-1 ]
        keyword = keyword[0:rcol[1]-1]
-  endif     
+  endif   
+  
+  tcol = where(keyword Eq '#Table', Nfound) 
+  if N_elements(tcol) GT 1 then begin 
+       if keyword_set(verbose) then $
+        message,/inf,'Warning - more than table found in catalog-- only returning first one'
+       t = t[0:tcol[1]-1 ]
+       keyword = keyword[0:tcol[1]-1]
+  endif   
+    
   lcol = where(keyword EQ "#Column", Nfound)
   if Nfound EQ 0 then begin
        if max(strpos(strlowcase(t),'errors')) GE 0 then begin 
@@ -280,6 +295,8 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
   remchar,fmt,'('
   remchar,fmt,')' 
   remchar,colname,')'
+  remchar,colname,'<'
+  remchar,colname,'>'
   colname = IDL_VALIDNAME(colname,/convert_all)
  
 ; Find the vector tags (Format begins with a number) and remove them 
@@ -298,7 +315,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
   'A': cval = ' '
   'I': cval = (val[i] LE 4) ? 0 : 0L         ;16 bit integer if 4 chars or less
   'F': cval = (val[i] LE 7) ? 0. : 0.0d      ;floating point if 7 chars or less
-   'E': cval = (val[i] LE 7) ? 0. : 0.0d 
+  'E': cval = (val[i] LE 7) ? 0. : 0.0d 
   'D': cval = (val[i] LE 7) ? 0. : 0.0d 
    else: message,'ERROR - unrecognized format ' + fmt[i]
  
@@ -329,13 +346,14 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
   t = t[i0:iend-1]
 
   for j=0,Ntag-1 do begin
+
       x = strtrim( gettok(t,string(9b),/exact ),2)
        dtype = size(info[0].(j),/type)
-       if dtype NE 7 then begin
-       bad = where(strlen(x) EQ 0, Nbad)
-      if (Nbad GT 0) then $
-           if (dtype EQ 4) || (dtype EQ 5) then x[bad] = 'NaN' $
-                                           else x[bad] = -1
+       if (dtype NE 7) then begin
+             bad = where(~strlen(x), Nbad)
+             if (Nbad GT 0) then $
+             if (dtype EQ 4) || (dtype EQ 5) then x[bad] = 'NaN' $
+                                            else x[bad] = -1
       endif
       info.(j) = x 
    endfor
