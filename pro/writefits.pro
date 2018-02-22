@@ -155,7 +155,6 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
   
 ; If necessary,convert unsigned to signed.    Do not destroy the original data
 
-  unsigned = 0
   if naxis NE 0 then begin
               
         unsigned = (type EQ 12) || (type EQ 13) || (type EQ 15)
