@@ -1,6 +1,6 @@
 PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
                AFTER=AFTER, FORMAT=FORMAT, EXTENSION=EXTENSION, ERRMSG=ERRMSG,$
-               NOGROW=NOGROW
+               NOGROW=NOGROW, NEW_HEADER=NEW_HEADER
 ;+
 ; NAME: 
 ;       FXHMODIFY
@@ -66,6 +66,10 @@ PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
 ;                       FXHMODIFY, ERRMSG=ERRMSG, ...
 ;                       IF ERRMSG NE '' THEN ...
 ;
+;       NEW_HEADER = If defined and passed, then ignore NAME, VALUE,
+;                    and COMMENT. Instead replace the old file header
+;                    with the strarr given.
+;
 ; Calls       : 
 ;       FXHREAD, FXPAR, FXADDPAR, BLKSHIFT
 ; Restrictions: 
@@ -95,14 +99,15 @@ PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
 ;               Added ERRMSG keyword.
 ;       Version 3, William Thompson, GSFC, 23 June 1994
 ;               Modified so that ERRMSG is not touched if not defined.
-;      Version 3.1 Wayne Landsman GSFC   17 March 2006
+;       Version 3.1 Wayne Landsman GSFC   17 March 2006
 ;               Fix problem in BLKSHIFT call if primary header  extended
 ;       Version 3.2 W. Landsman 14 November 204 
 ;               Allow for need for 64bit number of bytes
 ;       Version 4, William Thompson, GSFC, 22-Dec-2014
 ;               Modified test for keyword EXTEND to only issue warning.
+;       Version 5, Mats Löfdahl, ISP, 11-Oct-2017  
 ;; Version     :
-;       Version 4, 22-Dec-2014
+;       Version 5, 11-Oct-2017
 ;-
 ;
         COMPILE_OPT IDL2
@@ -110,7 +115,7 @@ PRO FXHMODIFY, FILENAME, NAME, VALUE, COMMENT, BEFORE=BEFORE,   $
 ;
 ;  Check the number of parameters.
 ;
-        IF N_PARAMS() LT 3 THEN BEGIN
+        IF (N_ELEMENTS(NEW_HEADER) EQ 0) && (N_PARAMS() LT 3) THEN BEGIN
                 MESSAGE = $     ;Need at least 3 parameters
                     'Syntax:  FXHMODIFY, FILENAME, NAME, VALUE [, COMMENT ]'
                 IF N_ELEMENTS(ERRMSG) NE 0 THEN BEGIN
@@ -229,17 +234,21 @@ DONE:
         ENDIF ELSE POINT_LUN, -UNIT, END_HEADER
 
 ;
-;  Add or modify the keyword parameter in the header, keeping track of the
-;  initial size of the header array.
+;  Add or modify the keyword parameter in the header (or replace the
+;  header), keeping track of the initial size of the header array.
 ;
         IEND = WHERE(STRMID(HEADER,0,8) EQ 'END     ')
         N_INITIAL = 1 + IEND[0]/36
-        IF N_PARAMS() EQ 4 THEN BEGIN
-                FXADDPAR, HEADER, NAME, VALUE , COMMENT, BEFORE=BEFORE, $
-                        AFTER=AFTER, FORMAT=FORMAT
-        END ELSE BEGIN
-                FXADDPAR, HEADER, NAME, VALUE, BEFORE=BEFORE, AFTER=AFTER, $
-                        FORMAT=FORMAT
+        IF N_ELEMENTS(NEW_HEADER) EQ 0 THEN BEGIN
+                IF N_PARAMS() EQ 4 THEN BEGIN
+                    FXADDPAR, HEADER, NAME, VALUE , COMMENT, BEFORE=BEFORE, $
+                              AFTER=AFTER, FORMAT=FORMAT
+                END ELSE BEGIN
+                    FXADDPAR, HEADER, NAME, VALUE, BEFORE=BEFORE, $
+                              AFTER=AFTER, FORMAT=FORMAT
+                ENDELSE
+        END ELSE BEGIN 
+                HEADER = NEW_HEADER
         ENDELSE
 ;
 ;  If the length of the header has changed, then print an error message.
@@ -251,9 +260,9 @@ DONE:
                 MESSAGE, /CONTINUE, 'Adding parameter would increase ' + $
                         'header length, no action taken.'
             ENDIF ELSE BEGIN
-                ;; Increase size of the file by inserting multiples of
-                ;; 2880 bytes at the end of the current header.  Then
-                ;; resume normal operations.
+                ;; Change size of the file by inserting/removing
+                ;; multiples of 2880 bytes at the end of the current
+                ;; header. Then resume normal operations.
                 BLKSHIFT, UNIT, END_HEADER, (N_FINAL-N_INITIAL)*36L*80L
                 GOTO, WRITE_HEADER
             ENDELSE
