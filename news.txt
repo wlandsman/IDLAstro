@@ -1,3 +1,5 @@
+22-Feb-2018: FXHMODFY - Added NEW_HEADER keyword to completely update FITS header
+
 18-Feb-2018: QUERYVIZIER() - Handle multiple tables, don't remove leading blanks
 
 25-Jan-2018: SXPAR(), FXPAR() - Return ULONG64 if LONG64 would overflow
