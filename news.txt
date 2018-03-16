@@ -1,3 +1,5 @@
+16-Mar-2018: ZENPOS - Removed unneeded time zone parameter,
+
 22-Feb-2018: FXHMODIFY - Added NEW_HEADER keyword to completely update FITS header
 
 18-Feb-2018: QUERYVIZIER() - Handle multiple tables, don't remove leading blanks
