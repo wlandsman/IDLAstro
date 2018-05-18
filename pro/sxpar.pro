@@ -148,6 +148,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       W. Landsman Oct 2017   Added DUP keyword,  Needed to support distortion
 ;			table lookup parameters
 ;       W. Landsman Jan 2018 Return ULONG64 integer if LONG64 will overflow
+;       W. Landsman/Y. Yang May 2018 MISSING keyword was always returning 0
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -172,7 +173,6 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
         VALUE = MISSING_VALUE
 ;
  
- VALUE = 0
  if N_params() LE 2 then begin
       abort_return = 0
       abort = 'FITS Header'
