@@ -24,13 +24,13 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;
 ;            Popular VIZIER catalogs include 
 ;            'II/328'- AllWISE Data Release (Cutri+ 2013)
-;            'V/139' - Sloan SDSS photometric catalog Release 9 (2012)
+;            'V/147' - Sloan SDSS photometric catalog Release 12 (2015)
 ;            '2MASS-PSC' - 2MASS point source catalog (2003)
 ;            'GSC2.3' - Version 2.3.2 of the HST Guide Star Catalog (2006)
 ;            'USNO-B1' - Verson B1 of the US Naval Observatory catalog (2003)
 ;            'UCAC5'  - 5th U.S. Naval Observatory CCD Astrograph Catalog (2017)
 ;            'B/DENIS/DENIS' - 2nd Deep Near Infrared Survey of southern Sky (2005)
-;            'I/337/gaia' - Gaia DR1 Data Release 1 (2016)
+;            'I/345/gaia' - Gaia DR2 Data Release 2 (2018)
 ;            'I/311/HIP2' - Hipparcos main catalog, new reduction (2007)
 ;
 ;          Note that some names will prompt a search of multiple catalogs
