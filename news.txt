@@ -1,3 +1,5 @@
+18-May-2018: SXPAR() - Missing keyword always returned a value of 0
+
 16-Mar-2018: ZENPOS - Removed unneeded time zone parameter,
 
 22-Feb-2018: FXHMODIFY - Added NEW_HEADER keyword to completely update FITS header
