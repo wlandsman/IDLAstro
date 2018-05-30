@@ -77,7 +77,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 ;        IDL> xyad, hdr, 23.3, 100.2, /GALACTIC
 ;
 ; PROCEDURES CALLED
-;       ADSTRING(), EULER, EXTAST, GET_EQUINOX, GSSSXYAD, REPCHR(),  XY2AD
+;       ADSTRING(), EULER, EXTAST, GET_EQUINOX(), GSSSXYAD, REPCHR(),  XY2AD
 ;
 ; REVISION HISTORY:
 ;       W. Landsman                 STX          Jan, 1988
@@ -95,9 +95,9 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 ;       Fix display when no equinox in header W.L. Dec 2007
 ;       Fix header display for noncelestial coords W.L. Jan 2008
 ;       Check for non-standard projections, set FK4 flag. J. P. Leahy Jul 2013
+;       Use CATCH instead of ON_ERROR, 2  W. Landsman May 2018
 ;-
  compile_opt idl2
- On_error,2
 
  npar = N_params()
  if ( npar EQ 0 ) then begin
@@ -107,8 +107,15 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
         print,'X,Y - Input X and Y positions (scalar or vector)'
         print,'A,D - Output RA and Dec in decimal degrees'
         return
- endif                                                         
-
+ endif 
+ 
+  Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
+                                                    
   extast, hdr, astr, noparams, ALT = alt       ;Extract astrometry structure
 
   if ( noparams LT 0 ) then begin
