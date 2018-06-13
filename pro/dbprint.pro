@@ -165,6 +165,8 @@ pro dbprint,list,items, FORMS=forms, TEXTOUT=textout, NoHeader = noheader, $
 
 ; Open output text file
 
+ defsysv,'!TEXTOUT',exist=exist
+ if ~exist then astrolib           ;Define system variables if not already present
  if ~keyword_set(TEXTOUT) then textout = !textout  ;use default output dev.
 textopen, dbname, TEXTOUT = textout, more_set = more_set
  if size(TEXTOUT,/TNAME) EQ 'STRING' then text_out = 5 else text_out = textout
