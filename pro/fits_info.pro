@@ -161,7 +161,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
      hdr = bytarr(80, 36, /NOZERO)
      N_hdrblock = 1
      readu, lun1, hdr
-     ptr += 2880
+     ptr += 2880LL
      hd = string( hdr > 32b)
      
 ;                               Get values of BITPIX, NAXIS etc.
@@ -265,7 +265,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ; Check for EOF
 ; Skip the headers and data records
 
-     ptr += nrec*2880L
+     ptr += nrec*2880LL
      if compress[nf] then mrd_skip,lun1,nrec*2880LL else point_lun,lun1,ptr
      if ~eof(lun1) then goto, START
 ;
