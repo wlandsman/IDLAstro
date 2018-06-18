@@ -67,6 +67,7 @@ FUNCTION  ROBUST_LINEFIT,XIN,YIN,YFIT,SIG,SS, NUMIT=THIS_MANY, BISECT=TYPE, $
 ;       5/94 --added BISECT option. HF.
 ;       8/94 --added Close_Factor and Bisquare_Limit options  Jack Saba.
 ;       4/02 --V5.0 version, use MEDIAN(/EVEN)  W. Landsman
+;       6/18 -- Fix error in computation of coeff_sig[0], W. Landsman/F. Navarate
 ;-
 
 ON_ERROR,2
@@ -259,7 +260,7 @@ IF N_PARAMS(0) GT 2 THEN YFIT = CC[0] + CC[1]*XIN
    SS[0] = SIG/SQRT(DEN1)/1.105 
    SS[1] = SS[0]/SQRT(SX2)
    ; Take the X shift into account:
-   SS[0] = SQRT(SS[0]^2+X0*SS[1]^2)
+   SS[0] = SQRT(SS[0]^2+(X0*SS[1])^2)      ;Typo corrected 6/18
  ENDIF
 
  IF BADFIT EQ 1 THEN CC=[CC,0.]
