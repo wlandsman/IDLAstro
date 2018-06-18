@@ -1,3 +1,5 @@
+18-June-2018: ROBUST_LINEFIT - Fix error in computation of coeff_sig[0]
+
 04-June-2018: PIXWT() - Fix overflow when radius supplied as a short integer
                        larger than sqrt(32767)
 
