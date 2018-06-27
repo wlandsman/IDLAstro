@@ -1,3 +1,6 @@
+27-June-2018: SXADDPAR, FXADDPAR - for backward compatibility, save non-finite values 
+(e.g. NaN) as strings if /NULL not set
+
 18-June-2018: ROBUST_LINEFIT - Fix error in computation of coeff_sig[0]
 
 04-June-2018: PIXWT() - Fix overflow when radius supplied as a short integer
