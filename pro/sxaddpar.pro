@@ -131,6 +131,8 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
 ;       Sep 2015 Added NULL and MISSING keywords W.L.
 ;       Sep 2016 Allow writing of byte or Boolean variables  W.L.
 ;       Nov 2016 Allow value to be a 1 element scalar  W.L.
+;       Jun 2018 W. Thompson, for backward compatibility, save non-finite
+;                values (e.g. NaN) as strings if /NULL not set
 ;       
 ;-
  compile_opt idl2
@@ -187,8 +189,12 @@ Pro sxaddpar, Header, Name, Value, Comment, Location, before=before, $
               if value eq missing then save_as_null = 1
               if ~save_as_null then if ~finite(value) then begin
                 if ((n_elements(missing) eq 1) || keyword_set(null)) then $
-                  save_as_null = 1 else $
-                    message,'Keyword value (third parameter) is not finite'
+                  save_as_null = 1 else begin
+                    message,/continue,'Keyword value (third parameter) ' + $
+                            'is not finite, saving as string.'
+                    stype = 7
+                    save_as_string = 1
+                endelse
             endif
         endif
 ;
@@ -339,25 +345,26 @@ REPLACE:
         h=blank                 ;80 blanks
         strput,h,nn+'= '        ;insert name and =.
         apost = "'"             ;quote a quote
-        type = size(value)      ;get type of value parameter
         if N_elements(value) NE 1 then $
                 message,'Keyword Value (third parameter) must be a scalar'
 
-        case type[1] of         ;which type?
+        case stype of         ;which type?
 
 7:      begin
           upval = strupcase(value)      ;force upper case.
           if (upval eq 'T') || (upval eq 'F') then begin
                 strput,h,upval,29  ;insert logical value.
             end else begin              ;other string?
-                if strlen(value) gt 18 then begin       ;long string
-                    strput, h, apost + strmid(value,0,68) + apost + $
+                if keyword_set(save_as_string) then $
+                  svalue = strtrim(value,2) else svalue = value
+                if strlen(svalue) gt 18 then begin       ;long string
+                    strput, h, apost + strmid(svalue,0,68) + apost + $
                         ' /' + ncomment,10
                     header[i] = h
                     return
                 endif
-                strput, h, apost + value,10       ;insert string val
-                strput, h, apost, 11 + (strlen(value)>8)   ;pad string vals
+                strput, h, apost + svalue,10       ;insert string val
+                strput, h, apost, 11 + (strlen(svalue)>8)  ;pad string vals
           endelse                                          ;to at least 8 chars
           endcase
 
@@ -371,7 +378,7 @@ REPLACE:
 
  else:  begin
         if ~save_as_null then begin
-        if type[1] EQ 1 then begin
+        if stype EQ 1 then begin
              if !VERSION.RELEASE GE '8.4' && ISA(value,/boolean) then begin
                 upval = ['F','T']
                 strput,h,upval[value],29 

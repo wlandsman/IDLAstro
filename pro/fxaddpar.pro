@@ -162,9 +162,12 @@
 ;       Version 8.1, 28-Sep-2016, W. Thompson, use EXECUTE() for pre 8.4
 ;       Version 8.2, 28-Sep-2016, W. Thompson, instead use COMPILE_OPT IDL2
 ;       Version 9, 16-Mar-2017, W. Thompson, include comments in long strings
-;               Use FXPARPOS, /LAST option.  Put space between slash and comment
+;               Use FXPARPOS, /LAST option.  Put space between slash and
+;               comment
+;       Version 10, 21-Jun-2018, W. Thompson, for backward compatibility, save
+;               non-finite values (e.g. NaN) as strings if /NULL not set
 ; Version     : 
-;       Version 9, 16-Mar-2017
+;       Version 10, 21-Jun-2018
 ;-
 ;
 
@@ -351,8 +354,10 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
             IF NOT SAVE_AS_NULL THEN IF NOT FINITE(VALUE) THEN BEGIN
                 IF ((N_ELEMENTS(MISSING) EQ 1) OR KEYWORD_SET(NULL)) THEN $
                   SAVE_AS_NULL = 1 ELSE BEGIN
-                    MESSAGE = 'Keyword Value (third parameter) is not finite'
-                    GOTO, HANDLE_ERROR
+                    MESSAGE, /CONTINUE, 'Keyword Value (third parameter) ' + $
+                             'is not finite, saving as string.'
+                    STYPE = 7
+                    SAVE_AS_STRING = 1
                 ENDELSE
             ENDIF
         ENDIF
@@ -619,7 +624,8 @@ REPLACE:
 ;  Otherwise, remove any tabs, and check for any apostrophes in the string.
 ;
                 END ELSE BEGIN
-                        VAL = DETABIFY(VALUE)
+                        IF KEYWORD_SET(SAVE_AS_STRING) THEN $
+                          VAL = STRTRIM(VALUE,2) ELSE VAL = DETABIFY(VALUE)
                         NEXT_CHAR = 0
                         REPEAT BEGIN
                                 AP = STRPOS(VAL,"'",NEXT_CHAR)
