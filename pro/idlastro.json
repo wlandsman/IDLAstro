@@ -1,0 +1,29 @@
+{
+
+"Name": "IDLAstro",
+
+"Author": "Wayne Landsman",
+
+"Date": "Jul 2018",
+
+"Dependencies": [
+
+{
+
+"Name": "IDL",
+
+"Version": ">6.4"
+
+},
+
+{
+
+"Name": "Coyote",
+
+"URL": "https://github.com/idl-coyote/coyote"
+
+}
+
+]
+
+}
