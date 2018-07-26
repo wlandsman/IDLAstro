@@ -2,7 +2,7 @@
 "Name": "IDLAstro",
 "Version": "v1.0.1",
 "Author": "Wayne Landsman",
-"Date": "Jul 24 2018"
+"Date": "Jul 24 2018",
 "Dependencies": [
     {
       "Name": "IDL"
