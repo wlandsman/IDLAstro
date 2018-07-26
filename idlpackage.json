@@ -5,6 +5,10 @@
 "Date": "Jul 24 2018"
 "Dependencies": [
     {
+      "Name": "IDL"
+      "Version": "^6.4"
+    },
+    {
      "Name": "coyote",
      "Version": ">1.0", 
      "URL":"http://github.com/wlandsman/coyote"
