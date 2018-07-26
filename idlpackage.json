@@ -5,7 +5,7 @@
 "Date": "Jul 24 2018",
 "Dependencies": [
     {
-      "Name": "IDL"
+      "Name": "IDL",
       "Version": "^6.4"
     },
     {
