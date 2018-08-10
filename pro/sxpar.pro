@@ -175,7 +175,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
         VALUE = MISSING_VALUE
 ;
  
- if N_params() LE 2 then begin
+ if N_elements(abort) EQ 0 then begin
       abort_return = 0
       abort = 'FITS Header'
  endif else begin 
