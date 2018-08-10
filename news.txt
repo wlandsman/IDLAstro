@@ -1,3 +1,5 @@
+10-Aug-2018:  SXPAR() - Clean up use of Abort paramete
+
 19-Jul-2018: MATCH - Fix logic error when using epsilon keyword
 
 27-June-2018: SXADDPAR, FXADDPAR - for backward compatibility, save non-finite values 
