@@ -25,8 +25,9 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       ABORT - string specifying that SXPAR should do a RETALL
 ;               if a parameter is not found.  ABORT should contain
 ;               a string to be printed if the keyword parameter is not found.
-;               If not supplied, SXPAR will return quietly with COUNT = 0
-;               (and !ERR = -1) if a keyword is not found.
+;               The default string is 'FITS Header' if abort is a integer or 
+;               single character.     If ABORT is not supplied, SXPAR will return
+;               quietly with COUNT = 0  if a keyword is not found.
 ;
 ; OPTIONAL INPUT KEYWORDS: 
 ;       DUP =  When the FITS keyword exists more than once in a header, set 
@@ -149,6 +150,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;			table lookup parameters
 ;       W. Landsman Jan 2018 Return ULONG64 integer if LONG64 will overflow
 ;       W. Landsman/Y. Yang May 2018 MISSING keyword was always returning 0
+;       W. Landsman/M. Knight Aug 2018 Clean up use of Abort parameter
 ;-
 ;----------------------------------------------------------------------
  compile_opt idl2
@@ -176,7 +178,11 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
  if N_params() LE 2 then begin
       abort_return = 0
       abort = 'FITS Header'
- end else abort_return = 1
+ endif else begin 
+       if strlen(strtrim(abort,2)) LE 1 then abort = 'FITS header'
+       abort_return = 1
+ endelse
+ 
  if abort_return then On_error,1 else begin
       Catch, theError
       if theError NE 0 then begin
@@ -416,8 +422,10 @@ GOT_VALUE:
          return, result
   endif else !ERR = 0
 
-endif  else  begin    
-     if abort_return then message,'Keyword '+nam+' not found in '+abort
+endif  else  begin  
+
+     if abort_return then message,/CON, $
+        'Keyword '+ strtrim(nam,2) + ' not found in '+abort
      !ERR = -1
 endelse     
 
