@@ -112,7 +112,7 @@ function SXPAR, hdr, name, abort, COUNT=matches, COMMENT = comments, $
 ;       The functions SXPAR() and FXPAR() are nearly identical, although
 ;       FXPAR() has slightly more sophisticated parsing, and additional keywords
 ;       to specify positions in the header to search (for speed), and to force
-;       the output to a specified data type..   There is no
+;       the output to a specified data type.   There is no
 ;       particular reason for having two nearly identical functions, but
 ;       both are too widely used to drop either one.
 ;

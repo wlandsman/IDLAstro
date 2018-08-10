@@ -31,7 +31,7 @@ pro match, a, b, suba, subb, COUNT = count, SORT = sort, epsilon=epsilon
   ;               the sort algorithm.
   ;       epsilon - if values are within epsilon, they are considered equal. Used only
   ;               only for non-integer matching.  Note that input vectors should
-  ;               be unique to within epsilon to provide one-to-one mapping..
+  ;               be unique to within epsilon to provide one-to-one mapping.
   ;               Default=0.
   ;
   ; OPTIONAL KEYWORD OUTPUT:

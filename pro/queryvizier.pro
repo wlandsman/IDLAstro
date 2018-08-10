@@ -61,7 +61,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;          names, with the exception of an occasional underscore
 ;          addition, if necessary to convert the column name to a valid 
 ;          structure tag.    The VIZIER Web  page should consulted for the 
-;          column names and their meaning for each particular catalog..
+;          column names and their meaning for each particular catalog.
 ;           
 ;          If the tagname is numeric and the catalog field is blank then either
 ;          NaN  (if floating) or -1 (if integer) is placed in the tag.
