@@ -363,7 +363,7 @@ endelse
   if ngood lt Nlines then for i=0,ncol-1 do $
      (*bigarr[i]) = (*bigarr[i])[0:ngood-1]
 
-; Use SCOPE_VARFETCH to place into output variables..
+; Use SCOPE_VARFETCH to place into output variables...
    for i=0,ncol-1 do $
          (SCOPE_VARFETCH(vv[i],LEVEL=0)) = reform(*bigarr[i])
     ptr_free, bigarr	 
