@@ -1,4 +1,7 @@
-10-Aug-2018:  SXPAR() - Clean up use of Abort paramete
+28-Aug-2018: WRITEFITS - Fix case where header but no data supplied, and CHECKSUM keywords
+                    present
+                    
+10-Aug-2018:  SXPAR() - Clean up use of Abort parameter
 
 19-Jul-2018: MATCH - Fix logic error when using epsilon keyword
 
