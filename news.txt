@@ -1,5 +1,7 @@
+29-Aug-2018: FXBREAD - Preserve original dimensionality
+
 28-Aug-2018: WRITEFITS - Fix case where header but no data supplied, and CHECKSUM keywords
-                    present
+                    present (bug introduced Feb 2018)
                     
 10-Aug-2018:  SXPAR() - Clean up use of Abort parameter
 
