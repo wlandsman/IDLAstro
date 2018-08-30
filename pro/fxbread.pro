@@ -131,8 +131,10 @@
 ;       Version 15, W. Landsman GSFC 10 Dec 2009
 ;                Fix Dimension keyword, remove  IEEE_TO_HOST
 ;       Version 16, William Thompson, 18-May-2016, change POINTER to ULONG
+;       Version 17, William Thompson/Terje Fredvik, 30-Aug-2018, preserve
+;               original dimensionality
 ; Version     :
-;       Version 16, 18-May-2016
+;       Version 17, 30-Aug-2018
 ;-
 ;
 @fxbintable
@@ -366,6 +368,8 @@ CHECK_ROW:
 		BSCALE = TSCAL[ICOL,ILUN]
 		IF (BSCALE NE 0) AND (BSCALE NE 1) THEN DATA *= BSCALE
 		IF BZERO NE 0 THEN DATA += BZERO
+                IF (N_ELEMENTS(DIMS) NE 1) THEN $
+                  DATA = REFORM(DATA, DIMS, /OVERWRITE)
 	ENDIF
 ;
 ;  Store NANVALUE everywhere where the data corresponded to IEE NaN.
