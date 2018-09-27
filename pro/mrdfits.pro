@@ -9,7 +9,6 @@
 ;      Further information on MRDFITS is available at
 ;      http://idlastro.gsfc.nasa.gov/mrdfits.html 
 ;
-;      **This version requires a post March 2009 version of fxposit.pro**
 ; CALLING SEQUENCE:
 ;      Result = MRDFITS( Filename/FileUnit,[Exten_no/Exten_name, Header],
 ;                       /FPACK, /NO_FPACK, /FSCALE , /DSCALE , /UNSIGNED,
@@ -384,6 +383,7 @@
 ;              only in having a different case   R. McMahon/WL   March 2013
 ;       V2.22  Handle 64 bit variable length binary tables WL   April 2014
 ;       V2.23  Use 64 bit for  very large files  WL  April 2014
+;       V2.24  Binary table is allowed to have zero columns  WL  September 2018
 ;-
 PRO mrd_fxpar, hdr, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
 compile_opt idl2, hidden
@@ -2261,7 +2261,6 @@ pro mrd_table, header, structyp, use_colnum,           $
     ; Header                FITS header for table. 
     ; Structyp              IDL structure type to be used for 
     ;                       structure. 
-    ; N_call                Number of times this routine has been called. 
     ; Table                 Structure to be defined. 
     ; Status                Return status.
     ; No_tdim               Disable TDIM processing.
@@ -2293,6 +2292,11 @@ pro mrd_table, header, structyp, use_colnum,           $
 
     mrd_fxpar, header, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
     nnames = n_elements(fnames)
+    if nnames EQ 0 then begin
+          if ~keyword_set(silent) then $
+            print, 'MRDFITS: Binary table.  0 columns ', strtrim(nfld,2),' rows'
+          return  
+    endif       
 
     tname = fnames
     ;; nrow will change later

@@ -1,3 +1,5 @@
+27-Sep-2018: MRDFITS() - Can now read an empty binary table
+
 29-Aug-2018: FXBREAD - Preserve original dimensionality
 
 28-Aug-2018: WRITEFITS - Fix case where header but no data supplied, and CHECKSUM keywords
