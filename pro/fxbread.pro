@@ -133,8 +133,9 @@
 ;       Version 16, William Thompson, 18-May-2016, change POINTER to ULONG
 ;       Version 17, William Thompson/Terje Fredvik, 30-Aug-2018, preserve
 ;               original dimensionality
+;       Version 18, William Thompson, 31-Aug-2018, correction to v17
 ; Version     :
-;       Version 17, 30-Aug-2018
+;       Version 18, 31-Aug-2018
 ;-
 ;
 @fxbintable
@@ -367,9 +368,15 @@ CHECK_ROW:
 		BZERO  = TZERO[ICOL,ILUN]
 		BSCALE = TSCAL[ICOL,ILUN]
 		IF (BSCALE NE 0) AND (BSCALE NE 1) THEN DATA *= BSCALE
-		IF BZERO NE 0 THEN DATA += BZERO
-                IF (N_ELEMENTS(DIMS) NE 1) THEN $
-                  DATA = REFORM(DATA, DIMS, /OVERWRITE)
+                IF BZERO NE 0 THEN DATA += BZERO
+                IF N_ELEMENTS(DIMS) NE 1 THEN BEGIN
+                    DDIMS = DIMS
+                    IF (SIZE(DATA,/TNAME) EQ 'STRING') AND $
+                      (PRODUCT(DIMS) GT N_ELEMENTS(DATA)) THEN $
+                        DDIMS = DIMS[1:*]
+                    IF N_ELEMENTS(DDIMS) NE 1 THEN $
+                      DATA = REFORM(DATA, DDIMS, /OVERWRITE)
+                ENDIF
 	ENDIF
 ;
 ;  Store NANVALUE everywhere where the data corresponded to IEE NaN.
