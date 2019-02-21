@@ -1,3 +1,5 @@
+8-Feb-2019: FXBREAD - Fix problem reading string arrays in extension
+
 27-Sep-2018: MRDFITS() - Can now read an empty binary table
 
 29-Aug-2018: FXBREAD - Preserve original dimensionality
