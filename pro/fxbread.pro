@@ -350,7 +350,7 @@ CHECK_ROW:
 			AND (IDLTYPE[ICOL,ILUN] LE 6) THEN	$
 			W = WHERENAN(DATA,COUNT) ELSE COUNT = 0
                 IF NOT KEYWORD_SET(NOIEEE) THEN $
-		       SWAP_ENDIAN_INPLACE,DATA,/SWAP_IF_LITTLE
+		       SWAP_ENDIAN_INPLACE,DATA,/SWAP_IF_LITTLE 
 	END ELSE COUNT = 0
 ;
 ;  If DIMS is simply the number 1, then convert DATA either to a scalar or to a
