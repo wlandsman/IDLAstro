@@ -1,3 +1,5 @@
+3-Jun-2019:  MWRFITS - Don't pad with 2880 bytes in ASCII tables, instead set to 0
+
 8-Feb-2019: FXBREAD - Fix problem reading string arrays in extension
 
 27-Sep-2018: MRDFITS() - Can now read an empty binary table
