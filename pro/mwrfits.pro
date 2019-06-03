@@ -289,12 +289,14 @@
 ;               columns with null values
 ;       Version 1.13 W. Landsman 2016-02-24
 ;               Abort if a structure supplied with more than 999 tags 
+;       Version 1.13a W.Landsman  2019-06-03
+;               Don't pad ASCII tables with 2880 byte blocks, instead set to zero
 ;-
 
 ; What is the current version of this program?
 function mwr_version
      compile_opt idl2,hidden
-    return, '1.13'
+    return, '1.13a'
 end
     
 
@@ -604,6 +606,7 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
 
     nbytes = long64(n_elements(input))*offset
     padding = 2880 - nbytes mod 2880
+    if padding eq 2880 then padding = 0    ;Added 6-3-2019
     if padding ne 0 then writeu, lun, replicate(32b, padding)
     
    return
