@@ -1,3 +1,6 @@
+3-Jul-2019: CHECKSUM32 - Add incremental calculation of checksums
+            CHECK_FITS, FXWRITE - New /ALLOW_DEGEN keyword to keep degenerate dimensions
+
 3-Jun-2019:  MWRFITS - Don't pad with 2880 bytes in ASCII tables, instead set to 0
 
 8-Feb-2019: FXBREAD - Fix problem reading string arrays in extension

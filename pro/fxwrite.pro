@@ -1,5 +1,6 @@
-	PRO FXWRITE, FILENAME, HEADER, DATA, NANVALUE=NANVALUE,		$
-		NOUPDATE=NOUPDATE, ERRMSG=ERRMSG, APPEND=APPEND
+	PRO FXWRITE, FILENAME, HEADER, DATA, NANVALUE=NANVALUE, $
+                     NOUPDATE=NOUPDATE, ERRMSG=ERRMSG, APPEND=APPEND, $
+                     ALLOW_DEGEN=ALLOW_DEGEN
 ;+
 ; NAME: 
 ;	FXWRITE
@@ -32,6 +33,8 @@
 ;                Appending to a non-existent file will create it.  If
 ;                a primary HDU already exists then it will be modified
 ;                to have EXTEND = T.
+;       ALLOW_DEGEN = If set, then don't check for degenerate axes in
+;                     CHECK_FITS.
 ;	ERRMSG	 = If defined and passed, then any error messages will be
 ;		   returned to the user in this parameter rather than
 ;		   depending on the MESSAGE routine in IDL.  If no errors are
@@ -109,8 +112,9 @@
 ;               Ability to append to existing files
 ;       Version 7, W. Landsman GSFC, Mar 2014
 ;               Remove HOST_TO_IEEE, Use V6.0 notation
+;       Version 8, William Thompson, 26-Jun-2019, add /ALLOW_DEGEN
 ; Version     : 
-;	Version 6, 30 May 2005
+;	Version 8, 26-Jun-2019
 ;-
 ;
 	ON_ERROR, 2
@@ -135,7 +139,7 @@
 		GOTO, HANDLE_ERROR
 	    ENDIF
 	END ELSE BEGIN
-	    CHECK_FITS, DATA, HEADER, ERRMSG = MESSAGE
+	    CHECK_FITS, DATA, HEADER, ERRMSG=MESSAGE, ALLOW_DEGEN=ALLOW_DEGEN
 	    IF MESSAGE NE '' THEN GOTO, HANDLE_ERROR
 	ENDELSE
 ;

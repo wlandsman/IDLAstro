@@ -1,5 +1,6 @@
 pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
-                   SDAS = sdas, FITS = fits, SILENT = silent, ERRMSG = errmsg
+                SDAS = sdas, FITS = fits, SILENT = silent, ERRMSG = errmsg, $
+                ALLOW_DEGEN=ALLOW_DEGEN
 ;+
 ; NAME:
 ;       CHECK_FITS
@@ -26,7 +27,7 @@ pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
 ; OPTIONAL OUTPUTS:
 ;       dimen - vector containing actual array dimensions
 ;       idltype- data type of the FITS array as specified in the IDL SIZE
-;               function (1 for BYTE, 2 for 16 bit integer, 3 for 32 bit integer, etc.)
+;               function (1 for BYTE, 2 for 16 bit integer, 3 for 32 bit integer etc.)
 ;
 ; OPTIONAL KEYWORD INPUTS:
 ;       /NOTYPE - If this keyword is set, then only agreement of the array
@@ -37,6 +38,7 @@ pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
 ;       /FITS, /SDAS -  these are obsolete keywords that now do nothing 
 ;       /SILENT - If keyword is set and nonzero, the informational messages 
 ;               will not be printed
+;       /ALLOW_DEGEN - Don't check for degenerate axes.
 ; OPTIONAL KEYWORD OUTPUT:
 ;       ERRMSG  = If this keyword is present, then any error messages will be
 ;                 returned to the user in this parameter rather than
@@ -65,7 +67,8 @@ pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
 ;       Remove SDAS support   W. Landsman       November 2006
 ;       Fix dimension errors introduced Nov 2006
 ;       Work again for null arrays W. Landsman/E. Hivon May 2007
-;       Use V6.0 notation  W.L.  Feb. 2011 
+;       Use V6.0 notation  W.L.  Feb. 2011
+;       Add /ALLOW_DEGEN, William Thompson, 26-Jun-2019
 ;- 
  compile_opt idl2
  On_error,2
@@ -124,11 +127,13 @@ pro check_FITS, im, hdr, dimen, idltype, UPDATE = update, NOTYPE = notype, $
         endelse
  endif
 
- last = naxi-1                        ;Remove degenerate dimensions
- while ( (naxis[last] EQ 1) && (last GE 1) ) do last--
- if last NE nax-1 then begin
-     naxis = naxis[ 0:last]
- endif 
+ last = naxi-1                  ;Remove degenerate dimensions
+ if ~keyword_set(allow_degen) then begin
+     while ( (naxis[last] EQ 1) && (last GE 1) ) do last--
+     if last NE nax-1 then begin
+         naxis = naxis[ 0:last]
+     endif
+ endif
 
  if ( ndimen NE last + 1 ) then begin
     if ~keyword_set( UPDATE) THEN begin
