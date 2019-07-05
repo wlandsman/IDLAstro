@@ -11,7 +11,7 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave, increme
 ;       http://fits.gsfc.nasa.gov/registry/checksum.html
 ;
 ; CALLING SEQUENCE:
-;       CHECKSUM32, array, checksum, [/FROM_IEEE, /NoSAVE, checksum_part=checksum_part]
+;       CHECKSUM32, array, checksum, [/FROM_IEEE, /NoSAVE, /Incremental]
 ;
 ; INPUTS:
 ;       array - any numeric idl array.  If the number of bytes in the array is 
@@ -19,16 +19,18 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave, increme
 ;               (the array is returned unchanged).   Convert a string array 
 ;               (e.g. a FITS header) to bytes prior to calling CHECKSUM32.
 ;
-; OUTPUTS:
+; INPUT-OUTPUT:
 ;       checksum - unsigned long scalar, giving sum of array elements using 
-;                  ones-complement arithmetic
+;                ones-complement arithmetic.    This is normally an output
+;                parameter, but can also be an input parameter if /Incremental 
+;                is set.  
 ; OPTIONAL INPUT KEYWORD:
 ;
 ;      /FROM_IEEE - If this keyword is set, then the input is assumed to be in
 ;           big endian format (e.g. an untranslated FITS array).   This keyword
 ;           only has an effect on little endian machines (e.g. Linux boxes).
 ;
-;      incremental - If this keyword is set, use the checksum
+;      /Incremental - If this keyword is set, use the checksum
 ;           parameter as input of a partial checksum from a previous
 ;           call, allowing checksums for large arrays to be calculated 
 ;           incrementally. 
