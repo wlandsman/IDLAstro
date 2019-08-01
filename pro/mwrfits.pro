@@ -33,9 +33,10 @@
 ;               -When writing an ASCII table extension, Input should
 ;                be a structure array where no element of the structure
 ;                is a structure or array (except see below).
-;               --A byte array will be written as A field.  No checking
-;                 is done to ensure that the values in the byte field
-;                 are valid ASCII.
+;               --A byte array will *not* be written as A field.  This
+;                 limitation is because the byte array to string conversion
+;                 will not work with a FORMAT statement.   Please convert
+;                 byte arrays to strings before calling MWRFITS
 ;               --Complex numbers are written to two columns with '_R' and
 ;                 '_I' appended to the TTYPE fields (if present).  The
 ;                 complex number is enclosed in square brackets in the output.
@@ -291,12 +292,14 @@
 ;               Abort if a structure supplied with more than 999 tags 
 ;       Version 1.13a W.Landsman  2019-06-03
 ;               Don't pad ASCII tables with 2880 byte blocks, instead set to zero
+;       Version 1.14 W. Landsman  2019-7-24
+;               Document that MWRFITS can't handle byte arrays in ASCII tables correctly         
 ;-
 
 ; What is the current version of this program?
 function mwr_version
      compile_opt idl2,hidden
-    return, '1.13a'
+    return, '1.14'
 end
     
 
@@ -432,29 +435,35 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
 
         totalFormat = totalFormat + xsep;
     
-        sz = size(i0.(i))
-        if (sz[0] ne 0) && (sz[sz[0]+1] ne 1) then begin
+        sz = size(i0.(i),/Struct)
+        if (sz.N_dimensions ne 0) && (sz.type_name NE 'BYTE') then begin
             print, 'MWRFITS Error: ASCII table cannot contain arrays'
            return
         endif
 
-        ctypes[i] = sz[1]
+        ctypes[i] = sz.type
 
         xtype = mwr_checktype(tags[i], alias=alias)
     
         ttypes = [ttypes, xtype+' ']
 
-        if sz[0] gt 0 then begin
-            ; Byte array to be handled as a string.
-           nelem = sz[sz[0]+2]
-           ctypes[i] = sz[sz[0]+1]
-            tf = 'A'+strcompress(string(nelem))
-            tforms = [tforms, tf]
+        if sz.N_dimensions gt 0 then begin
+
+; Byte array to be handled as a string.
+; need a kluge because byte to strings cannot be done with a format statement.
+      
+ 
+           nelem = sz.N_elements
+           ctypes[i] = sz.Type
+           formlen=4          
+           tf = strcompress(string(nelem),/remo)+'A'+strcompress(string(formlen),/remo)
+           txf='A'+strcompress(string(nelem*formlen),/remo)
+            tforms = [tforms, txf]           
            offsets = [offsets, offset]
             totalFormat = totalFormat + tf
-           offset = offset + nelem
-       
-        endif else if sz[1] eq 7 then begin
+           offset = offset + (nelem*formlen)
+    
+        endif else if sz.type eq 7 then begin
             ; Use longest string to get appropriate size.
            strmax = max(strlen(input.(i)))
            strmaxs[i] = strmax
@@ -465,16 +474,16 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
            ctypes[i] = 7
            offset = offset + strmax
        
-        endif else if (sz[1] eq 6 ) || (sz[1] eq 9) then begin
+        endif else if (sz.type eq 6 ) || (sz.type eq 9) then begin
             ; Complexes handled as two floats.
            offset++
        
-           if sz[1] eq 6 then indx = where(types eq 'C')
-           if sz[1] eq 9 then indx = where(types eq 'M')
+           if sz.type eq 6 then indx = where(types eq 'C')
+           if sz.type eq 9 then indx = where(types eq 'M')
            indx = indx[0]
            fx = formats[indx]
            if strcmp(fx,'g',1,/fold) then begin
-               if (sz[1] eq 6) then begin
+               if (sz.type eq 6) then begin
                    fx = "E"+strmid(fx,1 )
                endif else begin
                   fx = "D"+strmid(fx,1 )
@@ -491,12 +500,12 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
        
         endif else begin
          
-            if sz[1] eq 1 then indx = where(types eq 'B')                      $
-           else if (sz[1] eq 2) || (sz[1] eq 12) then indx = where(types eq 'I')  $
-           else if (sz[1] eq 3) || (sz[1] eq 13) then indx = where(types eq 'L')  $
-           else if sz[1] eq 4 then indx = where(types eq 'F')                 $
-           else if sz[1] eq 5 then indx = where(types eq 'D')                 $
-           else if (sz[1] eq 14) || (sz[1] eq 15) then indx = where(types eq 'K') $
+            if sz.type eq 1 then indx = where(types eq 'B')                      $
+           else if (sz.type eq 2) || (sz.type eq 12) then indx = where(types eq 'I')  $
+           else if (sz.type eq 3) || (sz.type eq 13) then indx = where(types eq 'L')  $
+           else if sz.type eq 4 then indx = where(types eq 'F')                 $
+           else if sz.type eq 5 then indx = where(types eq 'D')                 $
+           else if (sz.type eq 14) || (sz.type eq 15) then indx = where(types eq 'K') $
            else begin
                print, 'MWRFITS Error: Invalid type in ASCII table'
                return
@@ -1623,7 +1632,7 @@ pro mwrfits, xinput, file, header,              $
     compile_opt idl2
     status = -1                     ;Status changes to 0 upon completion
     if keyword_set(Version) then begin
-        print, "MWRFITS V"+mwr_version()+":  February 24, 2016"
+        print, "MWRFITS V"+mwr_version()+":  July 24, 2019"
     endif
 
     if n_elements(file) eq 0 then begin
