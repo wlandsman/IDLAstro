@@ -1,4 +1,5 @@
- pro ksone, data, func_name, d, prob, PLOT = plot, _EXTRA = extra,Window=window
+ pro ksone, data, func_name, d, prob, xval,  $
+            PLOT = plot, _EXTRA = extra, Window=window
 ;+
 ; NAME:
 ;       KSONE
@@ -11,7 +12,7 @@
 ;       the same name in "Numerical Recipes" by Press et al. 2nd edition (1992)
 ;
 ; CALLING SEQUENCE:
-;       ksone, data, func_name, D, prob, [ /PLOT ]
+;       ksone, data, func_name, D, prob, xval, [ /PLOT ]
 ;
 ; INPUT PARAMETERS:
 ;       data -  vector of data values, must contain at least 4 elements for the
@@ -29,11 +30,12 @@
 ;               the K-S statistic.   Small values of PROB show that the 
 ;               cumulative distribution function of DATA is significantly 
 ;               different from FUNC_NAME.
+;       xval - data value at which the maximum deviation occurs
 ;
 ; OPTIONAL INPUT KEYWORD:
 ;       /PLOT - If this keyword is set and non-zero, then KSONE will display a
 ;               plot of the CDF of the data with the supplied function 
-;               superposed.   The data value where the K-S statistic is 
+;               superposed.   The data value xval where the K-S statistic is 
 ;               computed (i.e. at the maximum difference between the data CDF 
 ;               and the function) is indicated by a vertical line.
 ;               KSONE accepts the _EXTRA keyword, so that most plot keywords
@@ -78,6 +80,7 @@
 ;       Pass _EXTRA to func_name  M. Fitzgerald    April, 2005
 ;       Work for functions that do not accept keywords W. Landsman July 2009
 ;       Use Coyote graphics for plotting           Feb 2011
+;       Return xval                     J. Ballet  July 2019 
 ;-
  On_error, 2
  compile_opt idl2
@@ -106,16 +109,20 @@
       ff = call_function( func_name, sortdata)
 
  D = max( [ max( abs(f0-ff), sub0 ), max( abs(fn-ff), subn ) ], msub )
+ 
+ if msub EQ 0 then  $
+   xval = sortdata[sub0]  $
+ else  $
+   xval = sortdata[subn]
 
  if keyword_set(plot) || keyword_set(WINDOW) then begin
 
-     if msub EQ 0 then begin 
-        cgplot, sortdata,f0,psym=10,_EXTRA = extra, window=window
-        cgplots, [sortdata[sub0], sortdata[sub0]], [0,1],window=window
-     endif else begin
+     if msub EQ 0 then  $
+        cgplot, sortdata,f0,psym=10,_EXTRA = extra, window=window  $
+     else  $
         cgplot, sortdata,fn,psym=10,_EXTRA = extra,window=window
-        cgplots, [sortdata[subn], sortdata[subn]], [0,1],window=window
-    endelse 
+
+    cgplots, xval*[1,1], [0,1],window=window
     cgplot,/over, sortdata,ff,lines=1,window=window
 endif
 
