@@ -83,6 +83,14 @@
 ;                 /NULL keyword.  Setting MISSING to a value implies /NULL.
 ;                 Cannot be used with string or complex values.
 ;
+;       MULTIVALUE = Allow multivalue keywords.  This option was added to
+;                    support the DPj, DQi keywords introduced in the WCS
+;                    distortions paper.  With the /MULTIVALUE keyword, each new
+;                    instance of a keyword is added immediately after the
+;                    previous instance, for example:
+;
+;                    FOR I=0,N_ELEMENTS(DQ1) DO FXADDPAR,HEADER,'DQ1',DQ1[I]
+;
 ;	ERRMSG	 = If defined and passed, then any error messages will be
 ;		   returned to the user in this parameter rather than
 ;		   depending on the MESSAGE routine in IDL, e.g.
@@ -166,8 +174,9 @@
 ;               comment
 ;       Version 10, 21-Jun-2018, W. Thompson, for backward compatibility, save
 ;               non-finite values (e.g. NaN) as strings if /NULL not set
+;       Version 11, 03-Jun-2019, W. Thompson, added /MULTIVALUE
 ; Version     : 
-;       Version 10, 21-Jun-2018
+;       Version 11, 03-Jun-2019
 ;-
 ;
 
@@ -286,7 +295,8 @@ END
 
 PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
               AFTER=AFTER, FORMAT=FORMAT, NOCONTINUE = NOCONTINUE, $
-              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL
+              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL, $
+              MULTIVALUE=MULTIVALUE
         COMPILE_OPT IDL2
         ON_ERROR,2                              ;Return to caller
 ;
@@ -437,10 +447,15 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;
 ;  Find location to insert keyword.  If the keyword is already in the header,
 ;  then simply replace it.  If no new comment is passed, then retain the old
-;  one.
+;  one.  When the /MULTIVALUE keyword is set, insert the new keyword
+;  immediately after the previous one.
 ;
         IPOS  = WHERE(KEYWRD EQ NN,NFOUND)
         IF NFOUND GT 0 THEN BEGIN
+                IF KEYWORD_SET(MULTIVALUE) THEN BEGIN
+                    I = MAX(IPOS) + 1
+                    GOTO, INSERT
+                ENDIF
                 I = IPOS[0]
                 IF COMMENT EQ '' THEN BEGIN
                         SLASH = STRPOS(HEADER[I],'/')

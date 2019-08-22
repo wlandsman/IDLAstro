@@ -1,7 +1,8 @@
         FUNCTION FXPAR, HDR, NAME, ABORT, COUNT=MATCHES, COMMENT=COMMENTS, $
                         START=START, PRECHECK=PRECHECK, POSTCHECK=POSTCHECK, $
                         NOCONTINUE = NOCONTINUE, DATATYPE=DATATYPE, $
-                        NULL=K_NULL, NAN=NAN, MISSING=MISSING
+                        NULL=K_NULL, NAN=NAN, MISSING=MISSING, $
+                        MULTIVALUE=MULTIVALUE
 ;+
 ; NAME: 
 ;        FXPAR()
@@ -116,6 +117,8 @@
 ;                 e.g. MISSING='' for strings, MISSING=-1 for integers, or
 ;                 MISSING=-1.0 or /NAN for floating point.  /NAN should not be
 ;                 used if the datatype would otherwise be integer.
+;       /MULTIVALUE = Allow multiple values to be returned, if found in the
+;                     header.
 ; OPTIONAL OUTPUT KEYWORD:
 ;       COUNT   = Optional keyword to return a value equal to the number of
 ;                 parameters found by FXPAR.
@@ -170,8 +173,10 @@
 ;               Don't convert LONG64 numbers to to double precision
 ;       Version 12, William Thompson, 13-Aug-2014
 ;               Add keywords MISSING, /NAN, and /NULL
-;		Version 13, W. Landsman 25-Jan-2018
-;				Return ULONG64 integer if LONG64 would overflow
+;	Version 13, W. Landsman 25-Jan-2018
+;		Return ULONG64 integer if LONG64 would overflow
+;       Version 14, William Thompson, 03-Jun-2019
+;               Add /MULTIVALUE keyword
 ;-
 ;------------------------------------------------------------------------------
 ;
@@ -274,10 +279,16 @@
             NFOUND = WHERE(KEYWORD EQ NAM, MATCHES)
             IF MATCHES EQ 0 AND START GE 0 THEN GOTO, RESTART
             IF START GE 0 THEN NFOUND = NFOUND + MN
-            IF (MATCHES GT 1) AND (NAM NE 'HISTORY ') AND               $
-                (NAM NE 'COMMENT ') AND (NAM NE '') THEN        $
-                MESSAGE,/INFORMATIONAL, 'WARNING- Keyword ' +   $
-                NAM + 'located more than once in ' + ABORT
+            IF (MATCHES GT 1) THEN BEGIN
+                IF KEYWORD_SET(MULTIVALUE) THEN BEGIN
+                    VECTOR = 1
+                    NUMBER = INDGEN(MATCHES) + 1
+                END ELSE IF (NAM NE 'HISTORY ') AND (NAM NE 'COMMENT ') $
+                  AND (NAM NE '') THEN BEGIN
+                    MESSAGE, /INFORMATIONAL, 'WARNING- Keyword ' +   $
+                             NAM + 'located more than once in ' + ABORT
+                ENDIF
+            ENDIF
             IF (MATCHES GT 0) THEN START = NFOUND[MATCHES-1]
         ENDELSE
 ;
