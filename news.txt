@@ -1,4 +1,6 @@
-22-Aug-2019 FXPAR, FXADDPAR - Added MULTIVALUE keyword to support distortion parameters
+26-Aug-2019: KSONE - Added INTEGER keyword, WINDOW keyword, fix plotting
+
+22-Aug-2019: FXPAR, FXADDPAR - Added MULTIVALUE keyword to support distortion parameters
 
 1-Aug-2019  MWRFITS - Document that MWRFITS can't handle byte arrays in ASCII table
             KSONE - Now returns location of maximum deviation
