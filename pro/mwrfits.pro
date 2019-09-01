@@ -514,7 +514,7 @@ pro mwr_ascii, input, siz, lun, bof, header,     $
            indx = indx[0]
            fx = formats[indx]
            if (strmid(fx, 0, 1) eq 'G' || strmid(fx, 0, 1) eq 'g') then begin
-               if sz[1] eq 4 then begin
+               if sz[1].type eq 4 then begin
                    fx = 'E'+strmid(fx, 1, 99)
                endif else begin
                    fx = 'D'+strmid(fx, 1, 99)
