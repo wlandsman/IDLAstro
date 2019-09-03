@@ -1,3 +1,5 @@
+1-Sep-2019;  MWRFITS - Typo corrected from 1-Aug update
+
 26-Aug-2019: KSONE - Added INTEGER keyword, WINDOW keyword, fix plotting
 
 22-Aug-2019: FXPAR, FXADDPAR - Added MULTIVALUE keyword to support distortion parameters
