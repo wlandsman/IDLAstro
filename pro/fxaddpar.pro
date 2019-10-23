@@ -175,8 +175,10 @@
 ;       Version 10, 21-Jun-2018, W. Thompson, for backward compatibility, save
 ;               non-finite values (e.g. NaN) as strings if /NULL not set
 ;       Version 11, 03-Jun-2019, W. Thompson, added /MULTIVALUE
+;       Version 12, 13-Sep-2019, M Löfdahl, make /MULTIVALUE work for
+;               CONTINUEd keywords.
 ; Version     : 
-;       Version 11, 03-Jun-2019
+;       Version 12, 13-Sep-2019
 ;-
 ;
 
@@ -453,8 +455,18 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
         IPOS  = WHERE(KEYWRD EQ NN,NFOUND)
         IF NFOUND GT 0 THEN BEGIN
                 IF KEYWORD_SET(MULTIVALUE) THEN BEGIN
-                    I = MAX(IPOS) + 1
-                    GOTO, INSERT
+                   I = MAX(IPOS) 
+                   ;; Advance I if the existing keyword is CONTINUEd
+                   REPEAT BEGIN
+                      I++
+                      QUOTE1 = STRPOS(HEADER[I-1],"'")
+                      IF QUOTE1 EQ 10 THEN BEGIN
+                         ;; String value. Continued?
+                         QUOTE2 = STRPOS(STRMID(HEADER[I-1], QUOTE1+1),"'")
+                         NOT_CONTINUED = STRMID(HEADER[I-1], QUOTE1+QUOTE2,1) NE '&'
+                      ENDIF ELSE NOT_CONTINUED = 1
+                   ENDREP UNTIL NOT_CONTINUED
+                   GOTO, INSERT
                 ENDIF
                 I = IPOS[0]
                 IF COMMENT EQ '' THEN BEGIN
