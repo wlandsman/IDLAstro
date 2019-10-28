@@ -1,4 +1,4 @@
-23-Oct-2019: FXADDPAR - Make MULTIVALUE keyword work with continuation convention
+28-Oct-2019: FXADDPAR, FXPAR() - Make MULTIVALUE keyword work with continuation convention
 
 1-Sep-2019;  MWRFITS - Typo corrected from 1-Aug update
 

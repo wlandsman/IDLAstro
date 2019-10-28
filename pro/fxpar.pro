@@ -177,6 +177,8 @@
 ;		Return ULONG64 integer if LONG64 would overflow
 ;       Version 14, William Thompson, 03-Jun-2019
 ;               Add /MULTIVALUE keyword
+;       Version 15, Mats Löfdahl, 11-Sep-2019
+;               Read CONTINUE mechanism multi-line comments.
 ;-
 ;------------------------------------------------------------------------------
 ;
@@ -313,6 +315,7 @@
                     NEXT_CHAR = 0
                     OFF = 0
                     VALUE = ''
+                    COMMENT = ''
 ;
 ;  Find the next apostrophe.
 ;
@@ -335,21 +338,19 @@ NEXT_APOST:
 ;  Extract the comment, if any.
 ;
                     SLASH = STRPOS(TEST, "/", ENDAP)
-                    IF SLASH LT 0 THEN COMMENT = '' ELSE        $
-                        COMMENT = STRMID(TEST, SLASH+1, STRLEN(TEST)-SLASH-1)
-
+                    IF SLASH GE 0 THEN COMMENT += STRMID(TEST, SLASH+1, STRLEN(TEST)-SLASH-1)
 ;
 ; CM 19 Sep 1997
 ; This is a string that could be continued on the next line.  Check this
 ; possibility with the following four criteria: *1) Ends with '&'
 ; (2) Next line is CONTINUE  (3) LONGSTRN keyword is present (recursive call to
-;  FXPAR) 4. /NOCONTINE is not set
+;  FXPAR) 4. /NOCONTINUE is not set
 
-    IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
-                    OFF = OFF + 1
-                    VAL = STRTRIM(VALUE,2)
+                    IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
+                       OFF = OFF + 1
+                       VAL = STRTRIM(VALUE,2)
 
-                    IF (STRLEN(VAL) GT 0) AND $
+                       IF (STRLEN(VAL) GT 0) AND $
                       (STRMID(VAL, STRLEN(VAL)-1, 1) EQ '&') AND $
                       (STRMID(HDR[NFOUND[I]+OFF],0,8) EQ 'CONTINUE') THEN BEGIN
                        IF (SIZE(FXPAR(HDR, 'LONGSTRN',/NOCONTINUE)))[1] EQ 7 THEN BEGIN                    
