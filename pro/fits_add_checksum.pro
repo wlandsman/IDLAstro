@@ -39,10 +39,12 @@ pro fits_add_checksum, hdr, im, no_timestamp = no_timestamp, $
 ;     Don't update DATASUM if not already present and no data array supplied 
 ;                       W.L. July 2008 
 ;     Make sure input header array has 80 chars/line  W.L. Aug 2009
+;     Make sure CHECKSUM is placed right after an already present DATASUM
+;     keyword. Mats Löfdahl October 2019
 ;-
  On_error,2
  compile_opt idl2
- 
+
  if N_params() EQ 0 then begin 
      print,'Syntax - FITS_ADD_CHECKSUM, Hdr, Data, /No_TIMESTAMP, /FROM_IEEE'
      return
@@ -81,8 +83,8 @@ pro fits_add_checksum, hdr, im, no_timestamp = no_timestamp, $
 
  test = sxpar(hdr,'CHECKSUM', Count = N_CHECKSUM)
  if N_CHECKSUM GT 0 then verb = 'updated ' else verb = 'created '
- sxaddpar,hdr,'CHECKSUM','0000000000000000', $
-       ' HDU checksum ' + verb + tm   ;Initialize CHECKSUM keyword
+ sxaddpar,hdr,'CHECKSUM','0000000000000000', after = 'DATASUM', $
+          ' HDU checksum ' + verb + tm ;Initialize CHECKSUM keyword
 ;Make sure each line in header is 80 characters
  if ~array_equal(strlen(hdr),80) then begin
      n = N_elements(hdr)
@@ -98,7 +100,7 @@ pro fits_add_checksum, hdr, im, no_timestamp = no_timestamp, $
                         else hdusum = hsum
  
  ch = FITS_ASCII_ENCODE(not hdusum) ;ASCII encode the complement of the checksum 
- sxaddpar,hdr,'CHECKSUM',ch
+ sxaddpar,hdr,'CHECKSUM',ch, after = 'DATASUM'
 
  return
  end
