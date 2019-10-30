@@ -177,8 +177,10 @@
 ;       Version 11, 03-Jun-2019, W. Thompson, added /MULTIVALUE
 ;       Version 12, 13-Sep-2019, M Löfdahl, make /MULTIVALUE work for
 ;               CONTINUEd keywords.
+;       Version 13, 29-Oct-2019, W. Thompson, M Löfdahl, ensure floating point
+;               uses E instead of e for exponentials.
 ; Version     : 
-;       Version 12, 13-Sep-2019
+;       Version 13, 29-Oct-2019
 ;-
 ;
 
@@ -743,8 +745,8 @@ REPLACE:
                 IF STYPE EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
                 VI = IMAGINARY(VALUE)
                 IF N_ELEMENTS(FORMAT) EQ 1 THEN BEGIN   ;use format keyword
-                        VR = STRING(VR, '('+STRUPCASE(FORMAT)+')')
-                        VI = STRING(VI, '('+STRUPCASE(FORMAT)+')')
+                        VR = STRUPCASE(STRING(VR, '('+FORMAT+')'))
+                        VI = STRUPCASE(STRING(VI, '('+FORMAT+')'))
                  END ELSE BEGIN
                         VR = STRTRIM(VR, 2)
                         VI = STRTRIM(VI, 2)
@@ -777,6 +779,7 @@ REPLACE:
                         V = STRTRIM(SVALUE,2) ;default format
                     ENDELSE
                 ENDELSE
+                IF (STYPE EQ 4) OR (STYPE EQ 5) THEN V = STRUPCASE(V)
                 S = STRLEN(V)                 ;right justify
                 STRPUT,H,V,(30-S)>10          ;insert
             ENDIF
