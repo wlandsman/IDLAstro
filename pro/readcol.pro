@@ -62,7 +62,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
 ;                The file is assumed to be compressed if it ends in '.gz'
 ;       DELIMITER - Character(s) specifying delimiter used to separate 
 ;                columns.   Usually a single character but, e.g. delimiter=':,'
-;                specifies that either a colon or comma as a delimiter. 
+;                specifies either a colon or a comma as the delimiter. 
 ;                Set DELIM = string(9b) to read tab separated data
 ;                The default delimiter is either a comma or a blank.
 ;       /NAN - if set, then an empty field will be read into a floating or 
@@ -125,8 +125,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
 ;       the value 0.13 read with an 'I' format will be converted to 0.
 ;
 ; PROCEDURES CALLED
-;       GETTOK(), STRNUMBER()
-;       The version of STRNUMBER() must be after August 2006.
+;       cgErrorMsg(), GETTOK(), REMCHAR, STRNUMBER()
 ; REVISION HISTORY:
 ;       Written         W. Landsman                 November, 1988
 ;        Added DELIMITER keyword  W. Landsman          Nov. 1999
