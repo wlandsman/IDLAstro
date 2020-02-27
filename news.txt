@@ -1,3 +1,5 @@
+27-Feb-2020: RESISTANT_MEAN - Added output BadVec keyword giving unused indicies
+
 31-Oct-2019: SUNSYMBOL() - Use DejaVuSymbol truetype font for IDL 8.6.1 or later
 
 30-Oct-2019: FITS_ADD_CHECKSUM - Locate CHECKSUM keyword after DATASUM
