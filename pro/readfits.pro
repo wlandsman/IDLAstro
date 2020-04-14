@@ -66,7 +66,9 @@
 ;               first FITS extension.   
 ;
 ;       /FPACK - Signal that the file is compressed with the FPACK software. 
-;               http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ) By default, 
+;               http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ).  In particular,
+;				note that files using the FITS tile compression convention (e.g. 
+;               Pan-Starrs) require the FPACK software.    By default, 
 ;               (READFITS will assume that if the file name extension ends in 
 ;               .fz that it is fpack compressed.     The FPACK software must
 ;               be installed on the system 

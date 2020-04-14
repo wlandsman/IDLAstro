@@ -122,9 +122,10 @@
 ;                This was the only behavior prior to V2.5 for MRDFITS and remains
 ;                the default (see /POINTER_VAR)
 ;       /FPACK - If set, then assume the FITS file uses FPACK compression 
-;                (http://heasarc.gsfc.nasa.gov/fitsio/fpack/).     To read
-;                an FPACK compressed file, either this must be set or the 
-;                file name must end in ".fz"
+;                (http://heasarc.gsfc.nasa.gov/fitsio/fpack/).    In particular, note
+;				 that files using the FITS tile-compression convention should be treated
+;                as FPACK compressed files.    To read an FPACK compressed file, either 
+;                this keyword must be set or the file name must end in ".fz"
 ;       /NO_FPACK - If present, then MRDFITS will not uncompress an extension
 ;                compressed with FPACK (i.e with a .fz extension), but will 
 ;                just read the compressed binary stream. 
