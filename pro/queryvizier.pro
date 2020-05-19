@@ -30,7 +30,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
 ;            'USNO-B1' - Verson B1 of the US Naval Observatory catalog (2003)
 ;            'UCAC5'  - 5th U.S. Naval Observatory CCD Astrograph Catalog (2017)
 ;            'B/DENIS/DENIS' - 2nd Deep Near Infrared Survey of southern Sky (2005)
-;            'I/345/gaia' - Gaia DR2 Data Release 2 (2018)
+;            'I/345/gaia2' - Gaia DR2 Data Release 2 (2018)
 ;            'I/311/HIP2' - Hipparcos main catalog, new reduction (2007)
 ;
 ;          Note that some names will prompt a search of multiple catalogs
