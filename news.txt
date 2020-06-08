@@ -1,3 +1,5 @@
+07-Jun-2020: PUTAST - Don't update PV* keywords if ARC projection
+
 27-Feb-2020: RESISTANT_MEAN - Added output BadVec keyword giving unused indicies
 
 31-Oct-2019: SUNSYMBOL() - Use DejaVuSymbol truetype font for IDL 8.6.1 or later

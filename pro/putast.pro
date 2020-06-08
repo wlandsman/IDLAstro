@@ -149,7 +149,8 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
 ;          TPV projection   WL  December 2015
 ;	    Corrected for case when Equinox is NaN in structure. J. Murthy May 2016
-;       Fix when no structure supplied W. Landsman Oct 2018
+;       Fix no PV update if no structure supplied W. Landsman Oct 2018
+;       No PV update if ARC projection W. Landsman June 2020
 ;-
  compile_opt idl2
  npar = N_params()
@@ -430,7 +431,7 @@ RD_CEN:
     IF astr2 THEN BEGIN
        ctyp = strmid(ctype[0],5,3)
 ; List of WCS types for which no PV1 values should be written	 
-       no_pv1 = ['TPV','TNX','TAN']
+       no_pv1 = ['TPV','TNX','TAN','ARC']
        if total(no_pv1 EQ ctyp,/int) EQ 0 then begin
           pv1str = 'PV'+(astr.reverse ? ax[1] : ax[0])+'_' ; Longitude axis PV 
           FOR i=0,4 DO SXADDPAR, hdr, pv1str + STRTRIM(i,2)+alt, $
