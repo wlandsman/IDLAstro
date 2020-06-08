@@ -167,7 +167,9 @@ endif else message, $
   if N_elements(astr.PV1) EQ 5 then begin
   	astr.pv1[3] = lonpole
   	astr.pv1[4] = latpole
-  endif		
+  endif
+  
+  astr.coord_sys = strmid(conv,0,1)		
 
  if sz.type_name EQ 'STRING' then begin        ;Update FITS header? 
           putast, h_or_astr, astr, alt = alt_out 
