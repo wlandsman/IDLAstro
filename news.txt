@@ -1,4 +1,4 @@
-07-Jun-2020: PUTAST - Don't update PV* keywords if ARC projection
+08-Jun-2020: HEULER - Update PV1 keywords if present with updated LONGPOLE, LATPOLE values
 
 27-Feb-2020: RESISTANT_MEAN - Added output BadVec keyword giving unused indicies
 
