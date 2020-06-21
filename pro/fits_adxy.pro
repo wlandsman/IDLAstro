@@ -82,6 +82,7 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
 ; REVISION HISTORY:
 ;		Adapted from adxy.pro  W. Landsman    October 2017
 ;       Use both D2IMARR and WCSDVARR distortion tables  November  2017
+;       Remove spurious call to gsssFITS_adxy    June 2020
 ;-
  Compile_opt idl2
 
@@ -151,7 +152,7 @@ pro FITS_adxy, filename_or_fcb, a, d, x, y, PRINT = print, ALT = alt, exten_no=e
  
 
  case strmid( astr.ctype[0], 5,3) of
- 'GSS': gsssFITS_adxy, astr, a, d, x, y       ;HST Guide star astrometry
+ 'GSS': gsssadxy, astr, a, d, x, y       ;HST Guide star astrometry
  else:  ad2xy, a, d, astr, x, y          ;All other cases
  endcase
  
