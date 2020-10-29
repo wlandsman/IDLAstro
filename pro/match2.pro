@@ -74,6 +74,7 @@
 ;   More updated documentation (example), 03 Sep 2007
 ;   Bug fix for string arrays with numerical contents; the subset
 ;   string is now 1B and 2B; this is now documented, 2014-10-20 CM
+;   Added warning about problems with LONG64 values WL 2020-10-29
 ;   
 ; 
 ;-
