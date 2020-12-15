@@ -3,7 +3,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 					YOFF_INIT = yoff_init,   $
 					PRINT=print, MONITOR=monitor, $
 					NUMPIX=numpix, MAGNIFICATION=Magf, $
-					PLATEAU_TRESH = plateau
+					PLATEAU_TRESH = plateau, Init_factor  = Init_factor
 ;+
 ; NAME:
 ;	CORREL_OPTIMIZE
@@ -25,6 +25,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 ; OPTIONAL INPUT KEYWORDS:
 ;	XOFF_INIT = initial X pixel offset of image_B relative to image_A,
 ;	YOFF_INIT = Y pixel offset, (default offsets are 0 and 0).
+;   INIT_FACTOR  = Initial factor to reduce image (default = 8)
 ;	MAGNIFICATION = option to determine offsets up to fractional pixels,
 ;			(example: MAG=2 means 1/2 pixel accuracy, default=1).
 ;	/NUMPIX: sqrt( sqrt( # pixels )) used as correlation weighting factor.
@@ -55,7 +56,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 ; MODIFICATION HISTORY:
 ;	Written, July,1991, Frank Varosi, STX @ NASA/GSFC
 ;	Added PLATEAU_THRESH keyword  June 1997,  Wayne Landsman  STX   
-;	Converted to IDL V5.0   W. Landsman   September 1997
+;	Added INIT_FACTOR keyword, default is still 8,  Dec. 2016 W. Landsman 
 ;-
         if N_params() LT 2 then begin
 		print,'Syntax - CORREL_OPTIMIZE, imA, imB, Xoffset, Yoffset'
@@ -63,7 +64,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 		      ', Magnification =, /Numpix'
 		return
         endif
-
+        
 	simA = size( image_A )
 	simB = size( image_B )
 
@@ -78,7 +79,9 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 	xoff = xoff_init
 	yoff = yoff_init
 
-	reducf = min( [simA[1:2],simB[1:2]] ) / 8	;Bin average to about
+    mindim = min( [simA[1:2],simB[1:2]] ) 
+    if N_elements(Init_factor) EQ 0 then Init_factor = 8 
+	reducf = (mindim / Init_factor)	> 1 ;Bin average to about
 							; 8 by 8 pixel image.
 	if N_elements( Magf ) NE 1 then Magf=1
 
@@ -92,7 +95,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 		corrmat = correl_images( image_A, image_B, XOFF=xoff,YOFF=yoff,$
 					       NUM=numpix, XS=xshift,YS=yshift,$
 					       REDUCTION=reducf, MONIT=monitor )
-
+stop
 		corrmat_analyze, corrmat, xoff, yoff, XOFF=xoff, YOFF=yoff, $
 						PRINT=print, REDUCTION=reducf
 		xshift = 2*reducf
