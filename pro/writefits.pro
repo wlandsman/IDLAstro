@@ -86,7 +86,7 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
 ;                                             W. Landsman    September 2002
 ;       Proper call to MRD_HREAD if /APPEND is set  W. Landsman December 2002 
 ;       Added /CHECKSUM keyword              W. Landsman     December 2002
-;	Restored NANvalue keyword, William Thompson,	     October 2003
+;	    Restored NANvalue keyword, William Thompson,	     October 2003
 ;       Write BZERO in beginning of header for unsigned integers WL April 2004
 ;       Added ability to write heap array       WL             October 2004
 ;       Correct checksum if writing heap array   WL           November 2004
@@ -101,14 +101,23 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
 ;       Bug fix when /CHECKSUM used with unsigned data  W.L. June 2013
 ;       June 2013 bug fix introduced problem when NAXIS=0  W.L. July 2013
 ;       Added /Silent keyword W.L. April 2016
+;		Support unsigned 64 bit data type  W.L.  January 2018
+;       Fix case of header with no data and checksum  W.L.   August 2018
 ;-
-  On_error, 2
+
   compile_opt idl2  
 
   if N_params() LT 2 then begin 
        print,'Syntax - WRITEFITS, filename, data,[ header, /APPEND, /CHECKSUM]'
        return
   endif
+  
+  Catch, theError
+  IF theError NE 0 then begin
+	Catch,/Cancel
+	void = cgErrorMsg(/quiet)
+	RETURN
+  ENDIF
 
 ; Get information about data
 
@@ -124,7 +133,7 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
                 if keyword_set(append) then mkhdr, header, data, /IMAGE  $
                                        else mkhdr, header, data, /EXTEND
         endif else if naxis GT 0 then $         
-              check_FITS, data, header, /UPDATE, /FITS, Silent= silent
+              check_FITS, data, header, /UPDATE, Silent= silent
 
   hdr = header     ;Don't modify supplied header
   
@@ -150,18 +159,24 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
   unsigned = 0
   if naxis NE 0 then begin
               
-        unsigned = (type EQ 12) || (type EQ 13)
+        unsigned = (type EQ 12) || (type EQ 13) || (type EQ 15)
         if  unsigned then begin
              if type EQ 12 then begin
-                     sxaddpar,hdr,'BZERO',32768,'Data is Unsigned Integer', $
+                     sxaddpar,hdr,'BZERO',32768,' Data is Unsigned Integer', $
                               before = 'DATE'
                      newdata = fix(data - 32768)
              endif else if type EQ 13 then begin 
-                    sxaddpar,hdr,'BZERO',2147483648,'Data is Unsigned Long', $
+                    sxaddpar,hdr,'BZERO',2147483648,' Data is Unsigned Long', $
                               before = 'DATE'
                     newdata = long(data - 2147483648)
-             endif
-         endif 
+             endif else if type EQ 15 then begin
+                offset = ulong64(2)^63
+             	sxaddpar,hdr,'BZERO',offset,' Data is 64 bit Unsigned Long', $
+             			before = 'DATE'
+             	newdata = long64(data - offset )
+             endif	
+        endif
+
 
 ; For floating or double precision test for NaN values to write
 
@@ -230,7 +245,6 @@ pro writefits, filename, data, header, heap, Append = Append, Silent = Silent, $
    
     do_Checksum = keyword_set(checksum)
     if ~do_checksum then test = sxpar(hdr,'CHECKSUM',count=do_checksum)
-  
      if do_checksum then begin 
                if unsigned then begin 
 	       if N_elements(heap) GT 0 then $

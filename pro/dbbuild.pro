@@ -54,6 +54,8 @@ pro dbbuild,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18, $
 ;	DBBUILD checks that each value vector matches the idl type given in the
 ;	database definition (..dbd) file, and that character strings are the 
 ;	proper length. 
+;
+;   The database is closed after DBBUILD exits.
 ; PROCEDURE CALLS:
 ;       DBCLOSE, DBINDEX, DBXPUT, DBWRT, IS_IEEE_BIG()
 ; REVISION HISTORY:

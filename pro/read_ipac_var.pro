@@ -1,20 +1,21 @@
-FUNCTION read_ipac_var, textvar, change_null=change_null, debug=debug
+FUNCTION read_ipac_var, textvar, table_col_info=table_col_info, table_hdr=table_hdr, change_null=change_null, debug=debug
 
 ;+
 ; NAME: 
 ;   READ_IPAC_VAR
 ;
 ; PURPOSE: 
-;   Read an IPAC ascii table from a variable into an IDL structure.
+;   Read an IPAC ascii table from a variable into IDL structures.
 ;   Used by query_irsa_cat.pro.
 ;
 ; EXPLANATION:
-;   Reads an IPAC ascii table from a variable into an IDL structure.  The
+;   Reads an IPAC ASCII table from a variable into IDL structures.  The
 ;   definition of an IPAC-format table is currently here:
-;      http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
+;      https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
 ;
 ; CALLING SEQUENCE: 
-;      info = read_ipac_var(textvar, [change_null=change_null, /debug])
+;      info = read_ipac_var(textvar, table_col_info=table_col_info, 
+;             table_hdr=table_hdr, [change_null=change_null, /debug])
 ;
 ; INPUTS:  
 ;      TEXTVAR -- a text variable with the table returned from the query
@@ -22,25 +23,27 @@ FUNCTION read_ipac_var, textvar, change_null=change_null, debug=debug
 ; OPTIONAL INPUT:
 ;      CHANGE_NULL -- an integer value to be used when the IPAC table
 ;                     has a non-numeric string for null values in an 
-;                     integer column.  The default is -9999.  For
-;                     floating-point columns, this is 'NaN'.
+;                     integer column.  The default is -9999.
 ;
 ;      DEBUG -- enables some debugging statements
 ;
 ; OUTPUTS: 
-;      info - Anonymous IDL structure containing information on the catalog.  The structure
-;           tag names are taken from the column names.  The structure will put header
-;           information in tags starting with "HEADER", e.g.
-;           HEADER_TABLE_HEADER, HEADER_DATA_UNITS, and HEADER_NULL_VALUES.
-;           Since the table column names may be altered if they are
-;           not valid IDL variable names, the original column names
-;           are saved as HEADER_COL_NAMES_ORIG.  The original data
-;           type names are also saved as HEADER_COL_TYPES_ORIG.
+;      info - IDL array structure with the data.  The structure
+;           tag names are taken from the column names, with possible
+;           changes needed by IDL.  
 ;
 ;           If the table is not valid, or contains no data, the function returns a value of -1
 ;
+;       table_col_info - A structure with table column headers
+;           in tags starting with "HEADER": HEADER_Col_Names, 
+;           HEADER_Col_Names_Orig, HEADER_Col_Types_Orig, and, 
+;           if present, HEADER_Data_Units and HEADER_Null_Values.
+;
+;       table_hdr - A string array with whatever comment and keyword
+;                   lines precede the column headers.
+;
 ; PROCEDURES USED:
-;   GET_DATE, VALID_NUM
+;   VALID_NUM
 ;
 ; NOTES:
 ;   Uses some unnecessary looping, but it's kept this way to stay
@@ -51,6 +54,7 @@ FUNCTION read_ipac_var, textvar, change_null=change_null, debug=debug
 ;      Allow long integer, convert blanks in numeric fields to null
 ;      value - T. Brooke, IPAC May 2011
 ;      Allow 64bit long; use valid_num to check - TB June 2013
+;      Re-do structures to separate out the data - TB Aug 2017 
 ;-
 
 ;Copyright © 2013, California Institute of Technology
@@ -108,17 +112,28 @@ ENDIF ELSE null_num = -9999
 
 line=''
 inline=''
-inheader=''
 
 already_read = 0
 lines_read = 0
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; create the header string array
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+igotone = 0
 firstchar = '\'
 WHILE ( (firstchar ne '|') and (lines_read lt n_lines) ) DO BEGIN 
    inline = textvar[lines_read]
    lines_read = lines_read+1
    firstchar = strmid(inline,0,1)
-   IF firstchar EQ '\' THEN inheader = [inheader,inline]
+   IF firstchar EQ '\' THEN BEGIN
+      IF igotone eq 0 THEN BEGIN
+        table_hdr = inline
+        igotone = 1
+      ENDIF ELSE BEGIN
+        table_hdr = [table_hdr, inline]
+     ENDELSE
+   ENDIF
 ENDWHILE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -283,30 +298,19 @@ FOR i = 0, ncol-1 DO BEGIN
 ENDFOR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; create the basic structure
+;;;; create the column info structure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-get_date, dte, /time
-info = create_struct('HEADER_Date_Created', string(dte))
-n_header_lines = 1
-
-n_header = n_elements(inheader)
-IF n_header GT 1 THEN BEGIN 
-   current = info
-   info = create_struct(current, 'HEADER_TABLE_HEADER', inheader[1:n_header-1])
-   n_header_lines = n_header_lines+1
-ENDIF
+table_col_info = create_struct('HEADER_Col_Names', IDL_VALIDNAME(col_names, /convert_all))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Save the original column names and column types.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-current = info
-info = create_struct(current, 'HEADER_Col_Names_Orig', col_names_orig)
-n_header_lines = n_header_lines+1
-current = info
-info = create_struct(current, 'HEADER_Col_Types_Orig', col_types_orig)
-n_header_lines = n_header_lines+1
+current = table_col_info
+table_col_info = create_struct(current, 'HEADER_Col_Names_Orig', col_names_orig)
+current = table_col_info
+table_col_info = create_struct(current, 'HEADER_Col_Types_Orig', col_types_orig)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; Read next line.  If it starts with a pipe, it should be the units line.
@@ -329,10 +333,9 @@ IF strmid(inline,0,1) EQ '|' THEN BEGIN
          return, -1
       ENDIF   
    endfor
-   current = info
-   info = create_struct(current, 'HEADER_Data_Units', data_units_string)
-   n_header_lines = n_header_lines+1
-;   remember to add lines to structure and to increment lines_read
+   current = table_col_info
+   table_col_info = create_struct(current, 'HEADER_Data_Units', data_units_string)
+;   remember to increment lines_read
 ENDIF $
 ELSE already_read = 1
 
@@ -396,27 +399,35 @@ ENDIF ELSE BEGIN
    if (nwant gt 0) then new_null_value_string[iwant] = strn(null_num)
 ENDELSE 
 
-current = info
-info = create_struct(current, 'HEADER_Null_Values', new_null_value_string)
-n_header_lines = n_header_lines+1
+current = table_col_info
+table_col_info = create_struct(current, 'HEADER_Null_Values', new_null_value_string)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;; set up data structure.  length of vectors is number of lines in 
+;;;;; set up data structure.  length is number of lines in 
 ;;;;; file minus lines read so far
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ndata = n_lines - lines_read
 
 IF ndata LE 0 THEN BEGIN
-   print, 'ERROR:  no data'
+   print, 'QUIT: No data found.'
    return, -1
 ENDIF
 
-FOR i = 0, ncol-1 DO BEGIN 
-   current = info
-   info = create_struct(current, $
-            IDL_VALIDNAME(col_names[i],/convert_all),make_array(ndata, type=col_type_code[i]))                     
+FOR i = 0, ncol-1 DO BEGIN
+  case col_type_code[i] of
+    7: cval = ' '
+    3: cval = 0L
+   14: cval = 0LL
+    4: cval = 0.0
+    5: cval = 0.0d
+  endcase     
+  if (i eq 0) then info = create_struct(IDL_VALIDNAME(col_names[0],/convert_all), cval) else begin
+    current = info  
+    info = create_struct(current, IDL_VALIDNAME(col_names[i],/convert_all), cval)
+  endelse                     
 ENDFOR
+info = replicate(info, ndata)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; read data lines to put into structure
@@ -514,7 +525,7 @@ FOR j = 0, ndata-1 DO BEGIN
            ENDIF 
          ENDELSE
       ENDIF
-      info.(i+n_header_lines)[j] = data_string
+      info[j].(i) = data_string
    ENDFOR   
    already_read=0
 ENDFOR

@@ -12,7 +12,8 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;    See notes below for comparison with the intrinsic IDL function PCOMP.
 ;
 ;    Harris Geospatial has a video/blog post  on using pca.pro at 
-;    http://tinyurl.com/h6ky6qy
+;    http://tinyurl.com/h6ky6qy .     Also see David Fanning's discussion of
+;    PCA analysis with IDL ( http://www.idlcoyote.com/code_tips/pca.html )
 ;
 ; CALLING SEQUENCE:
 ;    PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, 
@@ -77,8 +78,8 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      PCA uses the non-standard system variables !TEXTOUT and !TEXTUNIT.
 ;      These are automatically added if not originally present.
 ;
-;      The intrinsic IDL function PCOMP  duplicates most
-;      most of the functionality of PCA, but uses different conventions and
+;      The intrinsic IDL function PCOMP duplicates most of the 
+;      functionality of PCA, but uses different conventions and
 ;      normalizations.   Note the following:
 ;
 ;   (1) PCOMP requires a N_ATTRIB x N_OBJ input array; this is the transpose
@@ -113,10 +114,9 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 ;      Fix MATRIX output, remove GOTO statements   W. Landsman August 1998      
 ;      Changed some index variable to type LONG    W. Landsman March 2000
 ;      Fix error in computation of proj_atr, see Jan 1990 fix in 
-;       http://astro.u-strasbg.fr/~fmurtagh/mda-sw/pca.f   W. Landsman Feb 2008
+;       http://www.classification-society.org/csna/mda-sw/pca.f   W. Landsman Feb 2008
 ;- 
   compile_opt idl2
-  On_Error,2     ;return to user if error
 
 ; Constants
   TOLERANCE = 1.0E-5       ; are array elements near-zero ?
@@ -128,15 +128,19 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
   print,'               [MATRIX =, /COVARIANCE, /SSQ, /SILENT, TEXTOUT=]'
   RETURN
  ENDIF 
+ 
+ ; Constants
+  TOLERANCE = 1.0E-5       ; are array elements near-zero ?
 
-;Define nonstandard system variables if not already present
 
-  defsysv, '!TEXTUNIT', exist = exist
-     if ~exist then  defsysv, '!TEXTUNIT', 0
-  defsysv, '!TEXTOUT', exist = exist
-     if ~exist then defsysv, '!TEXTOUT', 1
+ Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
 
-  
+
   if size(data,/N_dimen)  NE 2 THEN BEGIN 
     HELP,data
     MESSAGE,'ERROR - Data matrix is not two-dimensional'
@@ -201,7 +205,6 @@ PRO PCA, data, eigenval, eigenvect, percentages, proj_obj, proj_atr, $
 
   if ~keyword_set(SILENT) then begin
 ;       Open output file 
-        if ~keyword_set( TEXTOUT ) then TEXTOUT = textout
         textopen,'PCA', TEXTOUT = textout
         printf,!TEXTUNIT,'PCA: ' + systime()
         sz1 = strtrim( Nobj,2) & sz2 = strtrim( Mattr, 2 )

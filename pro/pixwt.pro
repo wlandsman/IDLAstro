@@ -43,6 +43,8 @@
 ; MODIFICATION HISTORY:
 ;     Ported by Doug Loucks, Lowell Observatory, 1992 Sep, from the
 ;    routine pixwt.c, by Marc Buie.
+;      Fix problem when radius supplied as short integer > sqrt(32767)
+;              W. Landsman June 2018
 ;-
 ; ---------------------------------------------------------------------------
 ; Function Arc( x, y0, y1, r )
@@ -253,5 +255,5 @@ END
 ; the unit pixel (length of sides = 1) is at (x, y).
 ; ---------------------------------------------------------------------------
 FUNCTION Pixwt, xc, yc, r, x, y
-RETURN, Intarea( xc, yc, r, x-0.5, x+0.5, y-0.5, y+0.5 )
+RETURN, Intarea( xc, yc, float(r), x-0.5, x+0.5, y-0.5, y+0.5 )
 END

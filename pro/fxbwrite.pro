@@ -77,9 +77,10 @@
 ;               Modified so that ERRMSG is not touched if not defined.
 ;	Version 5, Wayne Landsman, GSFC, 12 Aug 1997
 ;		Recognize IDL double complex data type
+;	Version 6, Converted to IDL V5.0   W. Landsman   September 1997
+;       Version 7, William Thompson, 18-May-2016, change POINTER to ULONG
 ; Version     :
-;       Version 5, 12 August 1997
-;	Converted to IDL V5.0   W. Landsman   September 1997
+;       Version 7, 18-May-2016
 ;-
 ;
 @fxbintable
@@ -213,7 +214,7 @@
 ;  Write out the number of elements, and the pointer to the variable length
 ;  array.
 ;
-		POINTER = LONARR(2)
+		POINTER = ULONARR(2)
 		POINTER[0] = N_ELEM0
 		POINTER[1] = DHEAP[ILUN]
 		SWAP_ENDIAN_INPLACE,POINTER,/SWAP_IF_LITTLE

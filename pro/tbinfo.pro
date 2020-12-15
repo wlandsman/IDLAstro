@@ -61,6 +61,7 @@ pro tbinfo,h,tb_str, errmsg = errmsg, NOSCALE= noscale
 ;       Treat logical as character string 'T' or 'F' W. Landsman  October 2006
 ;       Added NOSCALE keyword  W. Landsman   March 2007
 ;       Make .numval 64 bit for very large tables  W. Landsman   April 2014
+;       Make sure XTENSION is for a FITS binary table W. Landsman  May 2017
 ;-
 ;----------------------------------------------------------------------------
  On_error,2
@@ -70,6 +71,13 @@ pro tbinfo,h,tb_str, errmsg = errmsg, NOSCALE= noscale
         return
  endif
  save_err = arg_present(errmsg)
+ 
+;Make sure a FITS binary table 
+  ext_type = strmid( strtrim( sxpar( h, 'XTENSION'), 2 ), 0, 8)
+  if (ext_type NE 'A3DTABLE') && (ext_type NE 'BINTABLE') then begin 
+  message,/INF, $
+       'WARNING - XTENSION value of ' + ext_type + ' is not for a FITS Binary Table'
+ endif	
 
 ; get number of fields
 

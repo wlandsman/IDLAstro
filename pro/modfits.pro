@@ -72,7 +72,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;           FITS file.    Explicitly open with FITS_OPEN to save compute time.
 ;
 ;               fits_open,'test.fits',io,/update    ;Faster to explicity open
-;               for i = 1,nextend do begin          ;Loop over extensions
+;               for i = 1,io.nextend do begin          ;Loop over extensions
 ;                   fits_read,io,0,h,/header_only,exten_no=i,/No_PDU ;Get header     
 ;                   date= sxpar(h,'OBSDATE')         ;Save keyword value
 ;                   sxaddpar,h,'OBS-DATE',date,after='OBSDATE' 
@@ -98,7 +98,8 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ; RESTRICTIONS:
 ;       (1) Cannot be used to modify the data in FITS files with random 
 ;           groups or variable length binary tables.   (The headers in such
-;           files *can* be modified.)
+;           files *can* be modified.)     Cannot be used to modify individual
+;           columns in binary or ASCII tables.
 ;
 ;       (2) If a data array but no FITS header is supplied, then MODFITS does 
 ;           not check to make sure that the existing header is consistent with
@@ -141,8 +142,9 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;       Don't try to update Checksums when structure supplied W.L. April 2011
 ;       Allow structure with only 1 element  W.L.  Feb 2012
 ;       Don't require that a FITS header is supplied W.L.  Feb 2016
+;       Use CATCH rather than ON_IOError, 2  W. L  July 2018
 ;-
-  On_error,2                    ;Return to user
+
   compile_opt idl2
 
 ; Check for filename input
@@ -152,6 +154,13 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
         'MODFITS, Filename, Data, [ Header, EXTEN_NO=, EXTNAME=, ERRMSG= ]'
       return
    endif
+   
+  Catch, theError
+  if theError NE 0 then begin
+       Catch,/Cancel
+       void = cgErrorMsg(/quiet)
+  return
+  endif
 
    setdefaultvalue, exten_no, 0
    setdefaultvalue, Header, 0
@@ -175,7 +184,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
    fcbsupplied = size(filename,/TNAME) EQ 'STRUCT'
 
    if (nheader GT 1) && (ndata GT 1) && (dtype NE 'STRUCT') then begin
-        check_fits, data, header, /FITS, ERRMSG = MESSAGE
+        check_fits, data, header, ERRMSG = MESSAGE
         if message NE '' then goto, BAD_EXIT
    endif
 
@@ -284,7 +293,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
         endif
       
         if (nheader EQ 0) && (dtype NE 'STRUCT') then begin
-                check_fits,data,oldheader,/FITS,ERRMSG = message
+                check_fits,data,oldheader,ERRMSG = message
                 if message NE '' then goto, BAD_EXIT
         endif
  
@@ -309,7 +318,6 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
    if ~fcbsupplied then FITS_CLOSE,io  else filename = io
    if ~updated then message,'FITS file not modified',/INF    
    
-         
    return 
 
 BAD_EXIT:

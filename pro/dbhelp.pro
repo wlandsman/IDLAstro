@@ -73,12 +73,18 @@ pro dbhelp,flag,TEXTOUT=textout,sort=sort
 ;       Recognize 64 bit, unsigned integer datatypes W. Landsman September 2001
 ;       Fix display of number of bytes with /SORT W. Landsman February 2002
 ;       Assume since V5.2                 W. Landsman February 2002  
-;       Assume since V5.5                 W. Landsman   
+;       Assume since V5.5                 W. Landsman 
+;       Define !TEXTOUT if not already defined W. Landsman  April 2016  
 ;-
 ;****************************************************************************
+
+   defsysv,'!TEXTUNIT',exist=i
+  if i EQ 0 then astrolib
+  
 ;
 ; get flag value
 ;
+
   stn=''
   if N_params() GT 0 then begin
       if size(flag,/TNAME) EQ 'STRING' then $   ;item name or db name
@@ -129,7 +135,7 @@ if opened then begin                    ;data base opened?
      dbnumber = db_item_info('DBNUMBER',itnums)  ;opened data base number
      pnumber = db_item_info('PNUMBER',itnums)    ;opened data base it points to
      nvalues = db_item_info('NVALUES',itnums)    ;number of values for vector
-     if keyword_set(sort) and (max(dbnumber) EQ 0) then begin 
+     if keyword_set(sort) && (max(dbnumber) EQ 0) then begin 
           nsort = sort(names)
           names = names[nsort]
           idltype = idltype[nsort]
@@ -181,7 +187,7 @@ if opened then begin                    ;data base opened?
 ;
 ; print index information -----------------------------------------
 ;
-        if (xtype EQ 1) and (total(index) GT 0) then begin
+        if (xtype EQ 1) && (total(index) GT 0) then begin
                 if xtype EQ 1 then begin
                         printf,!textunit,' '
                         printf,!textunit,'-------  Indexed Items ------'
@@ -194,7 +200,7 @@ if opened then begin                    ;data base opened?
 ;
 ; print pointer information ----------------------------------------
 ;
-        if (total(pflag) GT 0) and (xtype EQ 1) then begin
+        if (total(pflag) GT 0) && (xtype EQ 1) then begin
                 good = where( pflag, n)
                 printf,!textunit,' '
                 printf,!textunit,'----- Pointer Information ----'

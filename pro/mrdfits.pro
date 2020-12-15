@@ -9,7 +9,6 @@
 ;      Further information on MRDFITS is available at
 ;      http://idlastro.gsfc.nasa.gov/mrdfits.html 
 ;
-;      **This version requires a post March 2009 version of fxposit.pro**
 ; CALLING SEQUENCE:
 ;      Result = MRDFITS( Filename/FileUnit,[Exten_no/Exten_name, Header],
 ;                       /FPACK, /NO_FPACK, /FSCALE , /DSCALE , /UNSIGNED,
@@ -120,7 +119,7 @@
 ;                to 2).
 ;       /FIXED_VAR- Translate variable length columns into fixed length columns
 ;                and provide a length column for truly varying columns.
-;                This was only behavior prior to V2.5 for MRDFITS and remains
+;                This was the only behavior prior to V2.5 for MRDFITS and remains
 ;                the default (see /POINTER_VAR)
 ;       /FPACK - If set, then assume the FITS file uses FPACK compression 
 ;                (http://heasarc.gsfc.nasa.gov/fitsio/fpack/).     To read
@@ -138,14 +137,11 @@
 ;                is specified MRDFITS will ignore TDIM keywords in
 ;                binary tables.
 ;       /POINTER_VAR- Use pointer arrays for variable length columns.
-;                In addition to changing the format in which
-;                variable length arrays are stored, if the pointer_var
-;                keyword is set to any value other than 1 this also disables
-;                the deletion of variable length columns. (See /FIXED_VAR)
-;                Note that because pointers may be present in the output
-;                structure, the user is responsible for memory management
-;                when deleting or reassigning the structure (e.g. use HEAP_FREE
-;                first).
+;                The pointer tag must be dereferenced in the output structure
+;                to access the variable length column.   Prior to IDL V8.0, the user 
+;                was responsible for memory management when deleting or reassigning 
+;                the structure (e.g. using HEAP_FREE), but memory management of pointer
+;                arrays is now automatic.         
 ;       RANGE  - A scalar or two element vector giving the start
 ;                and end rows to be retrieved.  For ASCII and BINARY
 ;                tables this specifies the row number.  For GROUPed data
@@ -386,7 +382,9 @@
 ;       V2.21  Create unique structure tags when FITS column names differ 
 ;              only in having a different case   R. McMahon/WL   March 2013
 ;       V2.22  Handle 64 bit variable length binary tables WL   April 2014
-;       V2.23  Test version for very large files   
+;       V2.23  Use 64 bit for  very large files  WL  April 2014
+;       V2.24  Binary table is allowed to have zero columns  WL  September 2018
+;       V2.25  Use long64 for ASCII table integers longer than I12 WL   October 2020
 ;-
 PRO mrd_fxpar, hdr, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
 compile_opt idl2, hidden
@@ -730,15 +728,6 @@ end
 function mrd_chkunsigned, bitpix, scale, zero, unsigned=unsigned
 compile_opt idl2, hidden
     if ~keyword_set(unsigned) then return, 0
-    
-    ; This is correct but we should note that
-    ; FXPAR returns a double rather than a long.
-    ; Since the offset is a power of two
-    ; it is an integer that is exactly representable
-    ; as a double.  However, if a user were to use
-    ; 64 bit integers and an offset close to but not
-    ; equal to 2^63, we would erroneously assume that
-    ; the dataset was unsigned...
 
     if scale eq 1 then begin
 	if (bitpix eq 16 && zero eq 32768L) ||                   $
@@ -762,7 +751,7 @@ end
 ; Return the currrent version string for MRDFITS
 function mrd_version
 compile_opt idl2, hidden
-    return, '2.23 '
+    return, '2.25 '
 end
 ;=====================================================================
 ; END OF GENERAL UTILITY FUNCTIONS ===================================
@@ -855,9 +844,9 @@ compile_opt idl2, hidden
                 
         endif else begin
                 
-   
 
            if typarr[i] eq 'I' then begin
+                    if lenarr[i] GT 12 then table.(i) = long64(flds) else $
                     table.(i) =  long(flds)
             endif else if typarr[i] eq 'E' || typarr[i] eq 'F' then begin
                     table.(i) = float(flds)
@@ -866,6 +855,7 @@ compile_opt idl2, hidden
              endif else if typarr[i] eq 'A' then begin
                     table.(i) = flds
             endif
+            
         endelse
     endfor
 
@@ -987,16 +977,17 @@ compile_opt idl2, hidden
 		    strtrim(i+1,2),/CON
                 status = -1
                 return
-       endif	       
+       endif
+; Special test for long64 integers       
+       if (ftype EQ 'I') && (lenarr[i]	GT 12)  then sclstr[j] = -9223372036854775808LL   
        fvalues[i] = ftype NE 'A' ? sclstr[j] : $
 	                  'string(replicate(32b,'+strtrim(flen,2)+'))'
                                                
-         
     endfor
     
     if scaling then $
         scaling = ~array_equal(scales,1.0d0) || ~array_equal(offsets,0.0)
-   
+
     if ~scaling && ~keyword_set(columns) then begin
         table = mrd_struct(fnames, fvalues, nrows, structyp=structyp, $
            silent=silent)
@@ -2273,7 +2264,6 @@ pro mrd_table, header, structyp, use_colnum,           $
     ; Header                FITS header for table. 
     ; Structyp              IDL structure type to be used for 
     ;                       structure. 
-    ; N_call                Number of times this routine has been called. 
     ; Table                 Structure to be defined. 
     ; Status                Return status.
     ; No_tdim               Disable TDIM processing.
@@ -2305,6 +2295,11 @@ pro mrd_table, header, structyp, use_colnum,           $
 
     mrd_fxpar, header, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
     nnames = n_elements(fnames)
+    if nnames EQ 0 then begin
+          if ~keyword_set(silent) then $
+            print, 'MRDFITS: Binary table.  0 columns ', strtrim(nfld,2),' rows'
+          return  
+    endif       
 
     tname = fnames
     ;; nrow will change later
@@ -2569,7 +2564,7 @@ function mrdfits, file, extension, header,      $
     compile_opt idl2    
     ;   Let user know version if MRDFITS being used.
     if keyword_set(version) then $
-        print,'MRDFITS: Version '+mrd_version() + 'April 24, 2014'
+        print,'MRDFITS: Version '+mrd_version() + 'October 29, 2020'
         
       
     if N_elements(error_action) EQ 0 then error_action = 2

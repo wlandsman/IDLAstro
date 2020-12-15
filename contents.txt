@@ -1,4 +1,4 @@
-        Contents of IDL Astronomy User's Library             Mar 2016
+        Contents of IDL Astronomy User's Library             Jan 2018
         (also see http://idlastro.gsfc.nasa.gov/contents.html)
 
 Astronomical Utilities    in pro/astro
@@ -187,7 +187,9 @@ CONS_DEC() - Obtain the X and Y coordinates of a line of constant
 CONS_RA() - Obtain the X and Y coordinates of a line of constant right
         ascension
 EXTAST- EXTract ASTrometry parameters from a FITS header into an IDL structure
-FITS_CD_FIX - Update obsolete representations of the CD matrix in a FITS header
+FITS_ADXY - Use a FITS file to convert from world to pixel coordinates
+FITS_CD_FIX - Update obsolete representations of the CD matrix
+FITS_XYAD - Use a FITS file to convert from pixel to world coordinates
 GET_EQUINOX() - Return a numeric equinox value from a FITS header
 GETROT - GET ROTation and plate scale from a FITS header
 GSSS_STDAST - Insert the closest tangent projection astrometry into an STScI

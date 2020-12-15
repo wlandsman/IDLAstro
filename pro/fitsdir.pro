@@ -58,7 +58,9 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
 ;               textout=7       Append to existing <program>.prt file
 ;               textout = filename (default extension of .prt)
 ;       EXTEN - Specifies an extension number (/EXTEN works for first extension)
-;               which is  checked for the  desired keywords.    
+;               which is checked for the  desired keywords.      FITSDIR searches
+;               both the extension header and the primary header when an extension
+;               number is specified.
 ;       /NOTELESCOPE - If set, then if the default keywords are used, then the
 ;                TELESCOPE (or TELNAME, OBSERVAT, INSTRUME) keywords are omitted
 ;                to give more room for display other keywords.   The /NOTELESCOP
@@ -68,7 +70,7 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
 ;
 ; EXAMPLES:  
 ;  (1) Print info on all'*.fits' files in the current  directory using default
-;          keywords.   Include information from the extension header     
+;          keywords.   Include information from the first extension    
 ;       IDL> fitsdir,/exten
 ;
 ;  (2) Write a driver program to display selected keywords in HST/ACS drizzled
@@ -85,7 +87,7 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
 ;       IDL> fitsdir ,'/usr2/smith/*.fits',t='smith.txt', /NoTel 
 ;
 ; PROCEDURE:
-;       FILE_SEARCH()  is used to find the specified FITS files.   The 
+;       FILE_SEARCH() is used to find the specified FITS files.   The 
 ;       header of each file is read, and the selected keywords are extracted.
 ;       The formatting is adjusted so that no value is truncated on display.        
 ;
@@ -97,8 +99,7 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
 ;       DEFSYSV,'!TEXTUNIT',0
 ;
 ; PROCEDURES USED:
-;       FDECOMP, FXMOVE, MRD_HREAD, REMCHAR
-;       TEXTOPEN, TEXTCLOSE
+;       FDECOMP, FXMOVE(), MRD_HREAD, REMCHAR, SPEC_DIR(), TEXTOPEN, TEXTCLOSE
 ; MODIFICATION HISTORY:
 ;       Written, W. Landsman,  HSTX    February, 1993
 ;       Search alternate keyword names    W.Landsman    October 1998
@@ -118,6 +119,7 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
 ;       Don't assume all images compressed or uncompressed W. L. Apr 2010
 ;       Use V6.0 notation W.L. Feb 2011
 ;       Don't let a corrupted file cause an abort    W.L. Feb 2014
+;       Let textopen.pro define !TEXTUNIT            W.L. Sep 2016
 ;-
 ; On_error,2
 
@@ -193,14 +195,6 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
   if Ngood EQ 0 then message,'No FITS files found on '+ directory $
                  else files = files[good]
 
-; Set output device according to keyword TEXTOUT or system variable !TEXTOUT
-
-  defsysv,'!TEXTOUT',exists=ex                  ; Check if !TEXTOUT exists.
-  if ex eq 0 then defsysv,'!TEXTOUT',1          ; If not define it.
-  defsysv,'!TEXTUNIT',exists=ex                  ; Check if !TEXTOUT exists.
-  if ex eq 0 then defsysv,'!TEXTUNIT',1          ; If not define it.
-  if ~keyword_set( TEXTOUT ) then textout= !TEXTOUT
-
  dir = 'dummy'
  num = 0
 
@@ -224,7 +218,7 @@ pro fitsdir ,directory, TEXTOUT = textout, Keywords = keywords, $
             openr, unit, files[i], error = error, compress = compress   
          stat = fxmove(unit, exten, /silent)
          mrd_hread, unit, h1, extstatus, /silent, ERRMSG = errmsg
-         if extstatus EQ 0 then h = [h1,h] 
+         if extstatus EQ 0 then h = [h1,h]    ;Merge primary & extension header
     endif 
 
    keyword = strtrim( strmid(h,0,8),2 )       ;First 8 chars is FITS keyword

@@ -1,4 +1,5 @@
 PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
+                  badvec = badvec, $
                   dimension=dimension, double=double,sumdim=sumdim, $
 		  wused=wused, Silent = silent
 ;+
@@ -15,7 +16,7 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
 ;
 ; CALLING SEQUENCE:
 ;    RESISTANT_Mean, ARRAY, Sigma_CUT, Mean, Sigma_Mean, Num_RejECTED
-;                         [/DOUBLE, DIMENSION= , GOODVEC = ]
+;                         [/DOUBLE, DIMENSION= , GOODVEC =, BADVEC = ]
 ; INPUT ARGUMENT:
 ;       ARRAY    = Vector or array to average, NaN values will be ignored
 ;       Sigma_CUT = Data more than this number of standard deviations from the
@@ -46,6 +47,7 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
 ;            are NaN
 ;      SUMDIM - Obsolete synonym for DIMENSION
 ; OPTIONAL OUTPUT KEYWORD:
+;       Badvec -  Indices of trimmed elements of the input vector
 ;       Goodvec -  Indices of non-trimmed elements of the input vector
 ;       Wused - synonym for Goodvec (for solarsoft compatibility)
 ; EXAMPLE:
@@ -75,6 +77,7 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
 ;       Allow a row/column to be all NaN values N. Crouzet/WL  April 2013
 ;       Use of DIMENSION keyword yielded wrong answer for non-square arrays
 ;                       D. Cottingham  December 2014
+;       Use Complement arg in Where to generate BADVEC, Rschwartz70@gmail.com, Feb 2020
 ;-
 
  On_Error,2
@@ -180,9 +183,8 @@ PRO RESISTANT_Mean,Y,CUT,Mean,Sigma,Num_Rej,goodvec = goodvec, $
 
  Cutoff = Cut*Sigma 
 
- goodvec = where( AbsDev LE Cutoff, Num_Good) 
+ goodvec = where( AbsDev LE Cutoff, Num_Good, comp= badvec, ncomp=Num_rej) 
 
- Num_Rej = Npts - Num_Good
  GoodPts = Y[ goodvec ]
  if arg_present(wused) then wused = goodvec
  Mean    = mean( GoodPts, DOUBLE= double)

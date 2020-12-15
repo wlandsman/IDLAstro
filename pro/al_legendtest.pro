@@ -41,18 +41,22 @@ lineitems = ['solid','dotted','DASHED']
 linestyle = [0,1,2]
 citems = 'color '+strtrim(string(indgen(8)),2)
 colors = ['red','blue','violet','green','yellow','brown','black','cyan']
+fillcolors = ['pink', 'purple', '', '', 'black', '', '', 'gray']
+orientation = [-45, 45, 0, 0, 0, 0, 0, -999]
 usersym,[-1,1,1,-1,-1],[-1,-1,1,1,-1],/fill
-z =	['al_legend,explanation,charsize=1.5' $
+z = ['al_legend,explanation,charsize=1.5' $
 	,'al_legend,items,psym=[4,2,6]' $
 	,'cgplot,findgen(10) & al_legend,items,psym=[4,2,6] & al_legend,items,psym=[4,2,6],/bottom,/right' $
 	,'al_legend,lineitems,linestyle=linestyle,/right,/bottom' $
 	,'al_legend,items,psym=psym,/horizontal,chars=1.5	; horizontal format' $
-	,'al_legend,[items,lineitems],psym=[psym,0,0,0],line=[0,0,0,linestyle],/center,box=0		; sans border' $
+	,'al_legend,[items,lineitems],psym=[psym,0,0,0],linestyle=[0,0,0,linestyle],/center,box=0		; sans border' $
 	,'al_legend,items,psym=psym,margin=1,spacing=2,chars=2,delimiter="=",/top,/center; delimiter & larger margin' $
-	,'al_legend,lineitems,line=linestyle,pos=[.3,.5],/norm,chars=2,number=4	; position of legend' $
-	,'al_legend,items,psym=-psym,number=2,line=linestyle,/right; plot two symbols, not one' $
+	,'al_legend,lineitems,linestyle=linestyle,pos=[.3,.5],/norm,chars=2,number=4	; position of legend' $
+	,'al_legend,items,psym=-psym,number=2,linestyle=linestyle,/right; plot two symbols, not one' $
 	,'al_legend,citems,/fill,psym=15+intarr(8),colors=colors,chars=2; 8 filled squares' $
-	,'al_legend,[citems[0:4],lineitems],/fill,psym=[15+intarr(5),0*psym],line=[intarr(5),linestyle],colors=colors,chars=2,text=colors' $
+	,'al_legend,citems,/poly_fill,colors=colors,polycolor=fillcolors,line_orientation=orientation' $
+ ,'al_legend,citems,colors=colors,polycolor=fillcolors' $
+ ,'al_legend,[citems[0:4],lineitems],/fill,psym=[15+intarr(5),0*psym],linestyle=[intarr(5),linestyle],colors=colors,chars=2,text=colors' $
 	,"al_legend,['Absurd','Sun Lover','Lucky Lady','Fishtail Palm'],vector=['ab!9r!3','!9nu!3','!9Wf!3','!9cN!20K!3'],charsize=2,/pos,psp=3"$
 	]
 prompt = 'Hit return to continue:'
@@ -74,7 +78,7 @@ c1_psym = indgen(7)+1
 c2_items = ['Solid','Dotted','Dashed','Dash Dot','Dash Dot Dot Dot','Long Dashes']
 c2_line = indgen(6)
 al_legend,c1_items,psym=c1_psym,corners=c1,box=0
-al_legend,c2_items,line=c2_line,corners=c2,box=0,pos=[c1[2],c1[3]],/norm
+al_legend,c2_items,linestyle=c2_line,corners=c2,box=0,pos=[c1[2],c1[3]],/norm
 c = [c1[0]<c2[0],c1[1]<c2[1],c1[2]>c2[2],c1[3]>c2[3]]
 cgplots,[c[0],c[0],c[2],c[2],c[0]],[c[1],c[3],c[3],c[1],c[1]],/norm
 !p.charsize=0

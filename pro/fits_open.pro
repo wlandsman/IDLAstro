@@ -451,7 +451,7 @@ done_headers:
 ioerror: 
         message = !ERROR_STATE.msg
 error_exit:
-        free_lun,unit
+        if N_elements(unit) EQ 1 && (unit GE 1) then free_lun,unit
         !err = -1
         if keyword_set(no_abort) then return
         message,' ERROR: '+message,/CON

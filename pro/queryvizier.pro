@@ -1,6 +1,5 @@
-function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
-               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent, $
-	       CFA = CFA
+function Queryvizier, catalog, target, dis, VERBOSE=verbose, CFA=CFA,  $
+               CONSTRAINT = constraint, ALLCOLUMNS=allcolumns, SILENT=silent
 ;+
 ; NAME: 
 ;   QUERYVIZIER
@@ -9,7 +8,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;   Query any catalog in the Vizier database by position
 ; 
 ; EXPLANATION:
-;   Uses the IDL SOCKET command to provide a positional query of any catalog 
+;   Uses the IDLnetURL object to provide a positional query of any catalog 
 ;   in the the Vizier (http://vizier.u-strasbg.fr/) database over the Web and
 ;   return results in an IDL structure.    
 ; 
@@ -25,13 +24,13 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;
 ;            Popular VIZIER catalogs include 
 ;            'II/328'- AllWISE Data Release (Cutri+ 2013)
-;            'V/139' - Sloan SDSS photometric catalog Release 9 (2012)
+;            'V/147' - Sloan SDSS photometric catalog Release 12 (2015)
 ;            '2MASS-PSC' - 2MASS point source catalog (2003)
 ;            'GSC2.3' - Version 2.3.2 of the HST Guide Star Catalog (2006)
 ;            'USNO-B1' - Verson B1 of the US Naval Observatory catalog (2003)
-;            'UCAC4'  - 4th U.S. Naval Observatory CCD Astrograph Catalog (2012)
+;            'UCAC5'  - 5th U.S. Naval Observatory CCD Astrograph Catalog (2017)
 ;            'B/DENIS/DENIS' - 2nd Deep Near Infrared Survey of southern Sky (2005)
-;            'I/259/TYC2' - Tycho-2 main catalog (2000)
+;            'I/345/gaia2' - Gaia DR2 Data Release 2 (2018)
 ;            'I/311/HIP2' - Hipparcos main catalog, new reduction (2007)
 ;
 ;          Note that some names will prompt a search of multiple catalogs
@@ -58,11 +57,11 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ; OUTPUTS: 
 ;   info - Anonymous IDL structure containing information on the catalog  
 ;          sources within the specified distance of the specified center.  The 
-;          structure tag names are identical with the VIZIER  catalog column 
+;          structure tag names are identical with the VIZIER catalog column 
 ;          names, with the exception of an occasional underscore
 ;          addition, if necessary to convert the column name to a valid 
 ;          structure tag.    The VIZIER Web  page should consulted for the 
-;          column names and their meaning for each particular catalog..
+;          column names and their meaning for each particular catalog.
 ;           
 ;          If the tagname is numeric and the catalog field is blank then either
 ;          NaN  (if floating) or -1 (if integer) is placed in the tag.
@@ -72,9 +71,6 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ; OPTIONAL KEYWORDS:
 ;          /ALLCOLUMNS - if set, then all columns for the catalog are returned
 ;                 The default is to return a smaller VIZIER default set. 
-;
-;          /CANADA - obsolete, the Canadian Vizier site no longer seems 
-;                  supported.
 ;
 ;          /CFA - By default, the query is sent to the main VIZIER site in
 ;            Strasbourg, France.   If /CFA is set then the VIZIER site
@@ -128,34 +124,11 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;         IDL> str = queryvizier('I/259/TYC2','NONE',constrain='BTmag=13+/-0.1')
 ;
 ; PROCEDURES USED:
-;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2(), WEBGET()
+;          GETTOK(), REMCHAR, REPSTR(), STRCOMPRESS2(), ZPARCHECK
 ; TO DO:
 ;       (1) Allow specification of output sorting
 ; MODIFICATION HISTORY: 
 ;         Written by W. Landsman  SSAI  October 2003
-;         Give structure name returned by VIZIER not that given by user
-;                    W. Landsman   February 2004 
-;         Don't assume same format for all found sources W. L. March 2004
-;         Added CONSTRAINT keyword for non-positional constraints WL July 2004
-;         Remove use of EXECUTE() statement WL June 2005
-;         Make dis optional as advertised WL August 2005
-;         Update for change in Vizier output format WL February 2006
-;         Fix problem in Feb 2006 update when only 1 object found
-;                     WL/D.Apai        March 2006
-;         Accept 'E' format for floating point. M. Perrin April 2006
-;         Added /ALLCOLUMNS option to return even more data.  M. Perrin, May 2006
-;         Return anonymous structure W. Landsman  May 2006
-;         Removed V6.0 notation to restore V5 compatibility W.Landsman July2006
-;         Accept target='NONE' for all-sky search, allow '+/-' constraints
-;                W. Landsman  October 2006
-;         Use HTTP 1.0 protocol in call to webget.pro
-;         Use vector form of IDL_VALIDNAME if V6.4 or later W.L. Dec 2007
-;         Update Strasbourg Web address for target name W.L. 3 March 2008
-;         Also update Web address for coordinate search W.L. 7 March 2008 
-;         Allow for 'D' specification format  R. Gutermuth/W.L.  June 2008
-;         Allow for possible lower-case returned formats  W.L. July 2008
-;         Use STRCOMPRESS2()to remove blanks around operators in constraint
-;              string  W.L.  August 2008
 ;         Added /SILENT keyword  W.L.  Jan 2009
 ;         Avoid error if output columns but not data returned W.L. Mar 2010
 ;         Ignore vector tags (e.g. SED spectra) W.L.   April 2011
@@ -163,8 +136,12 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 ;         Assume since IDL V6.4 W.L. Aug 2013
 ;         Update HTTP syntax for /CANADA    W. L.  Feb 2014
 ;         Add CFA keyword, remove /CANADA keyword  W.L. Oct 2014
+;         Use IDLnetURL instead of Socket   W.L.    October 2014
+;         Add Catch, fix problem with /AllColumns W.L. September 2016
+;         Update Strasbourg Web address  W.L. April 2017
+;         Handle multiple tables, don't remove leading blanks W.L. Feb 2018
 ;-
-  On_error,2
+
   compile_opt idl2
   if N_params() LT 2 then begin
        print,'Syntax - info = QueryVizier(catalog, targetname_or_coord, dis,'
@@ -175,12 +152,20 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
        if N_elements(info) GT 0 then return,info else return, -1
   endif
 
- if keyword_set(CFA) then root = "http://vizier.hia.nrc.ca/viz-bin/" $
-                       else  root = "http://webviz.u-strasbg.fr/viz-bin/" 
+ Catch, theError
+ IF theError NE 0 THEN BEGIN
+       Catch,/CANCEL
+      void = cgErrorMsg(/Quiet)
+      return, -1
+      ENDIF   
+ 
+ if keyword_set(cfa) then host = "vizier.cfa.harvard.edu" $
+                     else host = "vizier.u-strasbg.fr" 
  silent = keyword_set(silent)
  
   if N_elements(catalog) EQ 0 then $
             message,'ERROR - A catalog name must be supplied as a keyword'
+  zparcheck,'QUERYVIZIER',catalog,1,7,0,'Catalog Name'         
   targname = 0b
  if N_elements(dis) EQ 0 then dis = 5
  if min(dis) LE 0 then $
@@ -207,6 +192,9 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
  if strlen(constraint) GT 0 then begin
      urlconstrain = strtrim(constraint,2)
      urlconstrain = strcompress2(constraint,['<','>','='])
+;Note that one cannot uses the URLENCODE method of IDLnetURL
+;because of the "=" needed when encoding "<" and ">" characters.
+;I am not sure why this is so.  ---WL    
       urlconstrain = repstr(urlconstrain, ',','&')
      urlconstrain = repstr(urlconstrain, '<','=%3C')
      urlconstrain = repstr(urlconstrain, '>','=%3E')
@@ -217,25 +205,38 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
                      search = search + '&' + urlconstrain
  endif
  ;
+ path = 'viz-bin/asu-tsv'
  if nopoint then $
-  QueryURL = root + "asu-tsv/?-source=" + catalog + '&' + $
+  Query = "-source=" + catalog + '&' + $
               search + '&-out.max=unlimited' else $
  if targname then $
-  QueryURL = $
-   root + "asu-tsv/?-source=" + catalog + $
+  Query = $
+          "-source=" + catalog + $
      "&-c=" + object + search + '&-out.max=unlimited' else $
-  queryURL = $
-   root + "asu-tsv/?-source=" + catalog + $
+  query = $
+          "-source=" + catalog + $
        "&-c.ra=" + strtrim(ra,2) + '&-c.dec=' + strtrim(dec,2) + $
        search + '&-out.max=unlimited'
 
-  if keyword_set(allcolumns) then queryURL = queryURL + '&-out.all=1'
- if keyword_set(verbose) then message,queryurl,/inf
-
-  Result = webget(QueryURL,/http10, silent=silent)
-;
-  t = strtrim(result.text,2)
+ if keyword_set(allcolumns) then query += '&-out.all=1'
+ if keyword_set(verbose) then begin
+      message,'http://' + host + '/' + path,/inf
+      message,query,/inf
+ endif     
+  
+  oURL = obj_new('IDLnetURL')
+  oURL -> SetProperty, URL_Scheme='http',URL_host=host,URL_query=query, $
+                    URL_PATH = path
+  result = oURL -> GET(/STRING_ARRAY)
+; 
+  t = strtrim(result)        ;Feb 2018 don't remove leading blanks
   keyword = strtrim(strmid(t,0,7),2)
+  N = N_elements(t)
+
+  if strmid(keyword[n-1],0,5) EQ '#INFO' then begin      ;Error finding catalog?
+      message,/INF,t[n-1]
+      return, -1
+  endif    
 
   linecon = where(keyword EQ '#---Lis', Ncon)
   if Ncon GT 0 then remove,linecon, t, keyword
@@ -245,9 +246,20 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
 
   rcol = where(keyword Eq '#RESOUR', Nfound) 
   if N_elements(rcol) GT 1 then begin 
+       if keyword_set(verbose) then $
+        message,/inf,'Warning - more than one catalog found -- only returning first one'
        t = t[0:rcol[1]-1 ]
        keyword = keyword[0:rcol[1]-1]
-  endif     
+  endif   
+  
+  tcol = where(keyword Eq '#Table', Nfound) 
+  if N_elements(tcol) GT 1 then begin 
+       if keyword_set(verbose) then $
+        message,/inf,'Warning - more than table found in catalog-- only returning first one'
+       t = t[0:tcol[1]-1 ]
+       keyword = keyword[0:tcol[1]-1]
+  endif   
+    
   lcol = where(keyword EQ "#Column", Nfound)
   if Nfound EQ 0 then begin
        if max(strpos(strlowcase(t),'errors')) GE 0 then begin 
@@ -283,6 +295,8 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
   remchar,fmt,'('
   remchar,fmt,')' 
   remchar,colname,')'
+  remchar,colname,'<'
+  remchar,colname,'>'
   colname = IDL_VALIDNAME(colname,/convert_all)
  
 ; Find the vector tags (Format begins with a number) and remove them 
@@ -301,7 +315,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
   'A': cval = ' '
   'I': cval = (val[i] LE 4) ? 0 : 0L         ;16 bit integer if 4 chars or less
   'F': cval = (val[i] LE 7) ? 0. : 0.0d      ;floating point if 7 chars or less
-   'E': cval = (val[i] LE 7) ? 0. : 0.0d 
+  'E': cval = (val[i] LE 7) ? 0. : 0.0d 
   'D': cval = (val[i] LE 7) ? 0. : 0.0d 
    else: message,'ERROR - unrecognized format ' + fmt[i]
  
@@ -320,7 +334,7 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
   i0 = max(lcol) + 4  
   if i0 GT (N_elements(t)-1) then begin 
        message,'No sources found within specified radius',/INF
-       return,-1
+       return, -1
   endif
   
   iend = where( t[i0:*] EQ '', Nend)
@@ -332,13 +346,14 @@ function Queryvizier, catalog, target, dis, VERBOSE=verbose, CANADA = canada, $
   t = t[i0:iend-1]
 
   for j=0,Ntag-1 do begin
+
       x = strtrim( gettok(t,string(9b),/exact ),2)
        dtype = size(info[0].(j),/type)
-       if dtype NE 7 then begin
-       bad = where(strlen(x) EQ 0, Nbad)
-      if (Nbad GT 0) then $
-           if (dtype EQ 4) || (dtype EQ 5) then x[bad] = 'NaN' $
-                                           else x[bad] = -1
+       if (dtype NE 7) then begin
+             bad = where(~strlen(x), Nbad)
+             if (Nbad GT 0) then $
+             if (dtype EQ 4) || (dtype EQ 5) then x[bad] = 'NaN' $
+                                            else x[bad] = -1
       endif
       info.(j) = x 
    endfor

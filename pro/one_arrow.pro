@@ -28,7 +28,7 @@ pro one_arrow,xcen,ycen,angle,label, linestyle = linestyle, $
 ;               long and inclined 35 degrees from arrow shaft.     For 
 ;               normalized coordinates the default is divided by 512., for 
 ;               data coordinates the default is multiplied by 
-;               (!X.crange[1] - !X.crange[0])/512..
+;               (!X.crange[1] - !X.crange[0])/512.
 ;       CHARSIZE   = usual IDL meaning, default = 2.0
 ;       COLOR      = name or number give the color to draw the arrow.  See
 ;             cgCOLOR for a list of color names.

@@ -29,6 +29,9 @@
 ;                 may be continued over more than one line using the OGIP 
 ;                 CONTINUE standard.
 ;
+;                 The special BOOLEAN datatype introduced in IDL 8.4 is also
+;                 recognized, and recorded as either 'T' or 'F' in the header.
+;
 ; Opt. Inputs : 
 ;       COMMENT = String field.  The '/' is added by this routine.  Added
 ;                 starting in position 31.  If not supplied, or set equal to ''
@@ -79,6 +82,14 @@
 ;                 would result in the valueless line described above for the
 ;                 /NULL keyword.  Setting MISSING to a value implies /NULL.
 ;                 Cannot be used with string or complex values.
+;
+;       MULTIVALUE = Allow multivalue keywords.  This option was added to
+;                    support the DPj, DQi keywords introduced in the WCS
+;                    distortions paper.  With the /MULTIVALUE keyword, each new
+;                    instance of a keyword is added immediately after the
+;                    previous instance, for example:
+;
+;                    FOR I=0,N_ELEMENTS(DQ1) DO FXADDPAR,HEADER,'DQ1',DQ1[I]
 ;
 ;	ERRMSG	 = If defined and passed, then any error messages will be
 ;		   returned to the user in this parameter rather than
@@ -155,14 +166,27 @@
 ;       Version 7, 13-Aug-2015, William Thompson, allow null values
 ;               Add keywords /NULL, MISSING.  Catch non-finite values (e.g. NaN)
 ;       Version 7.1, 22-Sep-2015, W. Thompson, No slash if null & no comment
+;       Version 8, 15-Sep-2016, W. Thompson, treat byte and boolean values
+;       Version 8.1, 28-Sep-2016, W. Thompson, use EXECUTE() for pre 8.4
+;       Version 8.2, 28-Sep-2016, W. Thompson, instead use COMPILE_OPT IDL2
+;       Version 9, 16-Mar-2017, W. Thompson, include comments in long strings
+;               Use FXPARPOS, /LAST option.  Put space between slash and
+;               comment
+;       Version 10, 21-Jun-2018, W. Thompson, for backward compatibility, save
+;               non-finite values (e.g. NaN) as strings if /NULL not set
+;       Version 11, 03-Jun-2019, W. Thompson, added /MULTIVALUE
+;       Version 12, 13-Sep-2019, M Löfdahl, make /MULTIVALUE work for
+;               CONTINUEd keywords.
+;       Version 13, 29-Oct-2019, W. Thompson, M Löfdahl, ensure floating point
+;               uses E instead of e for exponentials.
 ; Version     : 
-;       Version 7.1, 22-Sep-2015
+;       Version 13, 29-Oct-2019
 ;-
 ;
 
 ; This is a utility routine, which splits a parameter into several
 ; continuation bits.
-PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
+PRO FXADDPAR_CONTPAR, VALUE, COMMENT, CONTINUED
   
   APOST = "'"
   BLANK = STRING(REPLICATE(32B,80)) ;BLANK line
@@ -181,7 +205,7 @@ PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
   ENDELSE
 
   ;; Split out the remaining values.
-  WHILE( STRLEN(VALUE) GT 0 ) DO BEGIN
+  WHILE (STRLEN(VALUE) GT 0) OR (STRLEN(COMMENT) GT 0) DO BEGIN
       H = BLANK
 
       ;; Add CONTINUE keyword
@@ -190,9 +214,40 @@ PRO FXADDPAR_CONTPAR, VALUE, CONTINUED
       IF(STRLEN(VALUE) GT 68) THEN BEGIN
           STRPUT, H, STRMID(VALUE, 0, 67)+'&'+APOST, 11
           VALUE = STRMID(VALUE, 67, STRLEN(VALUE)-67)
+      ENDIF ELSE IF (STRLEN(VALUE)+STRLEN(COMMENT)) GT 66 THEN BEGIN
+          IF STRLEN(VALUE) GT 67 THEN BEGIN
+              STRPUT, H, STRMID(VALUE, 0, 67)+'&'+APOST, 11
+              VALUE = STRMID(VALUE, 67, STRLEN(VALUE)-67)
+          ENDIF ELSE BEGIN
+              TEMP = VALUE+'&'+APOST+' /'
+              VALUE = ''
+              NTEMP = STRLEN(TEMP)
+              IF NTEMP LT 68 THEN BEGIN
+                  NCOM = 68 - NTEMP
+                  WORDS = STRSPLIT(COMMENT, ' ', /EXTRACT)
+                  IF STRLEN(WORDS[0]) GT NCOM THEN BEGIN
+                      TEMP = TEMP + ' ' + STRMID(COMMENT,0,NCOM)
+                      COMMENT = STRMID(COMMENT, NCOM, STRLEN(COMMENT)-NCOM)
+                  ENDIF ELSE BEGIN
+                      WHILE STRLEN(WORDS[0]) LT NCOM DO BEGIN
+                          TEMP = TEMP + ' ' + WORDS[0]
+                          NTEMP = STRLEN(TEMP)
+                          NCOM = 69 - NTEMP
+                          WORDS = WORDS[1:*]
+                      ENDWHILE
+                      COMMENT = WORDS[0]
+                      FOR IWORD = 1,N_ELEMENTS(WORDS)-1 DO $
+                        COMMENT = COMMENT + ' ' + WORDS[IWORD]
+                  ENDELSE
+              ENDIF
+              STRPUT, H, TEMP, 11
+          ENDELSE
       ENDIF ELSE BEGIN
-          STRPUT, H, VALUE+APOST, 11
+          TEMP = VALUE+APOST
+          IF N_ELEMENTS(COMMENT) GT 0 THEN TEMP = TEMP + ' / ' + COMMENT
+          STRPUT, H, TEMP, 11
           VALUE = ''
+          COMMENT = ''
       ENDELSE
 
       CONTINUED = [ CONTINUED, H ]
@@ -219,23 +274,23 @@ PRO FXADDPAR_CONTWARN, HEADER, NAME
     RETURN
 
   FXADDPAR, HEADER, 'LONGSTRN', 'OGIP 1.0', $
-    ' The OGIP long string convention may be used.', $
+    'The OGIP long string convention may be used.', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    ' This FITS file may contain long string keyword values that are', $
+    'This FITS file may contain long string keyword values that are', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    " continued over multiple keywords.  This convention uses the  '&'", $
+    "continued over multiple keywords.  This convention uses the  '&'", $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    ' character at the end of a string which is then continued', $
+    'character at the end of a string which is then continued', $
     BEFORE=NAME
 
   FXADDPAR, HEADER, 'COMMENT', $
-    " on subsequent keywords whose name = 'CONTINUE'.", $
+    "on subsequent keywords whose name = 'CONTINUE'.", $
     BEFORE=NAME
 
   RETURN
@@ -244,8 +299,9 @@ END
 
 PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
               AFTER=AFTER, FORMAT=FORMAT, NOCONTINUE = NOCONTINUE, $
-              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL
-
+              ERRMSG=ERRMSG, NOLOGICAL=NOLOGICAL, MISSING=MISSING, NULL=NULL, $
+              MULTIVALUE=MULTIVALUE
+        COMPILE_OPT IDL2
         ON_ERROR,2                              ;Return to caller
 ;
 ;  Check the number of parameters.
@@ -312,8 +368,10 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
             IF NOT SAVE_AS_NULL THEN IF NOT FINITE(VALUE) THEN BEGIN
                 IF ((N_ELEMENTS(MISSING) EQ 1) OR KEYWORD_SET(NULL)) THEN $
                   SAVE_AS_NULL = 1 ELSE BEGIN
-                    MESSAGE = 'Keyword Value (third parameter) is not finite'
-                    GOTO, HANDLE_ERROR
+                    MESSAGE, /CONTINUE, 'Keyword Value (third parameter) ' + $
+                             'is not finite, saving as string.'
+                    STYPE = 7
+                    SAVE_AS_STRING = 1
                 ENDELSE
             ENDIF
         ENDIF
@@ -354,7 +412,9 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;  Format the record.
 ;
                 NEWLINE = BLANK
-                STRPUT,NEWLINE,NN+STRING(VALUE),0
+                IF STYPE EQ 1 THEN SVALUE = STRING(FIX(VALUE)) ELSE $
+                  SVALUE = STRING(VALUE)
+                STRPUT,NEWLINE,NN+SVALUE,0
 ;
 ;  If a history record, then append to the record just before the end.
 ;
@@ -391,10 +451,25 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;
 ;  Find location to insert keyword.  If the keyword is already in the header,
 ;  then simply replace it.  If no new comment is passed, then retain the old
-;  one.
+;  one.  When the /MULTIVALUE keyword is set, insert the new keyword
+;  immediately after the previous one.
 ;
         IPOS  = WHERE(KEYWRD EQ NN,NFOUND)
         IF NFOUND GT 0 THEN BEGIN
+                IF KEYWORD_SET(MULTIVALUE) THEN BEGIN
+                   I = MAX(IPOS) 
+                   ;; Advance I if the existing keyword is CONTINUEd
+                   REPEAT BEGIN
+                      I++
+                      QUOTE1 = STRPOS(HEADER[I-1],"'")
+                      IF QUOTE1 EQ 10 THEN BEGIN
+                         ;; String value. Continued?
+                         QUOTE2 = STRPOS(STRMID(HEADER[I-1], QUOTE1+1),"'")
+                         NOT_CONTINUED = STRMID(HEADER[I-1], QUOTE1+QUOTE2,1) NE '&'
+                      ENDIF ELSE NOT_CONTINUED = 1
+                   ENDREP UNTIL NOT_CONTINUED
+                   GOTO, INSERT
+                ENDIF
                 I = IPOS[0]
                 IF COMMENT EQ '' THEN BEGIN
                         SLASH = STRPOS(HEADER[I],'/')
@@ -404,9 +479,12 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
                                 IF QUOTE LT 0 THEN SLASH = -1 ELSE      $
                                         SLASH = STRPOS(HEADER[I],'/',QUOTE+1)
                         ENDIF
-                        IF SLASH NE -1 THEN     $
-                                COMMENT = STRMID(HEADER[I],SLASH+1,80) ELSE $
-                                COMMENT = STRING(REPLICATE(32B,80))
+                        IF SLASH NE -1 THEN BEGIN
+                            SPOS = SLASH + 1
+                            IF STRMID(HEADER[I],SPOS,1) EQ ' ' THEN $
+                              SPOS = SLASH + 2
+                            COMMENT = STRMID(HEADER[I],SPOS,80)
+                        END ELSE COMMENT = STRING(REPLICATE(32B,80))
                 ENDIF
                 GOTO, REPLACE
         ENDIF
@@ -536,13 +614,11 @@ PRO FXADDPAR, HEADER, NAME, VALUE, COMMENT, BEFORE=BEFORE,      $
 ;
 ;  At this point the location has not been determined, so a new line is added
 ;  at the end of the FITS header, but before any blank, COMMENT, or HISTORY
-;  keywords, unless overridden by the BEFORE or AFTER keywords.
+;  keywords at the end of the header, unless overridden by the BEFORE or AFTER
+;  keywords.
 ;
         I = FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE=BEFORE)
-        IF I EQ IEND THEN I =                                     $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='')         < $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='COMMENT')  < $
-            FXPARPOS(KEYWRD,IEND,AFTER=AFTER,BEFORE='HISTORY')
+        IF I EQ IEND THEN I = FXPARPOS(KEYWRD,IEND,AFTER=AFTER,/LAST)
 ;
 ;  A new line needs to be added.  First check to see if the length of the
 ;  header array needs to be extended.  Then insert a blank record at the proper
@@ -563,13 +639,12 @@ REPLACE:
         H=BLANK                 ;80 blanks
         STRPUT,H,NN+'= '        ;insert name and =.
         APOST = "'"             ;quote (apostrophe) character
-        TYPE = SIZE(VALUE)      ;get type of value parameter
 ;
 ;  Store the value depending on the data type.  If a character string, first
 ;  check to see if it is one of the logical values "T" (true) or "F" (false).
 ;
 
-        IF TYPE[1] EQ 7 THEN BEGIN              ;which type?
+        IF STYPE EQ 7 THEN BEGIN              ;which type?
                 UPVAL = STRUPCASE(VALUE)        ;force upper case.
                 IF ~KEYWORD_SET(NOLOGICAL)  $ 
 		   &&  ((UPVAL EQ 'T') OR (UPVAL EQ 'F')) THEN BEGIN
@@ -578,7 +653,8 @@ REPLACE:
 ;  Otherwise, remove any tabs, and check for any apostrophes in the string.
 ;
                 END ELSE BEGIN
-                        VAL = DETABIFY(VALUE)
+                        IF KEYWORD_SET(SAVE_AS_STRING) THEN $
+                          VAL = STRTRIM(VALUE,2) ELSE VAL = DETABIFY(VALUE)
                         NEXT_CHAR = 0
                         REPEAT BEGIN
                                 AP = STRPOS(VAL,"'",NEXT_CHAR)
@@ -597,9 +673,10 @@ REPLACE:
 ; CM 24 Sep 1997
 ;  Separate parameter if it needs to be CONTINUEd.
 ;
-                        IF NOT KEYWORD_SET(NOCONTINUE) THEN $
-                             FXADDPAR_CONTPAR, VAL, CVAL  ELSE $
-                             CVAL = STRMID(VAL,0,68)
+                        IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
+                            CCOM = STRTRIM(COMMENT)
+                            FXADDPAR_CONTPAR, VAL, CCOM, CVAL
+                        ENDIF ELSE CVAL = STRMID(VAL,0,68)
                         K = I + 1
                         ;; See how many CONTINUE lines there already are
                         WHILE K LT IEND DO BEGIN
@@ -634,7 +711,7 @@ REPLACE:
 
                         IF STRLEN(CVAL[0]) GT 18 THEN BEGIN
                             STRPUT,H,APOST+STRMID(CVAL[0],0,68)+APOST+ $
-                              ' /'+COMMENT,10
+                              ' / '+COMMENT,10
                             HEADER[I]=H
                                 
 ;  There might be a continuation of this string.  CVAL would contain
@@ -664,19 +741,19 @@ REPLACE:
 ;  If complex, then format the real and imaginary parts, and add the comment
 ;  beginning in column 51.
 ;
-        END ELSE IF (TYPE[1] EQ 6) OR (TYPE[1] EQ 9) THEN BEGIN
-                IF TYPE[1] EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
+        END ELSE IF (STYPE EQ 6) OR (STYPE EQ 9) THEN BEGIN
+                IF STYPE EQ 6 THEN VR = FLOAT(VALUE) ELSE VR = DOUBLE(VALUE)
                 VI = IMAGINARY(VALUE)
                 IF N_ELEMENTS(FORMAT) EQ 1 THEN BEGIN   ;use format keyword
-                        VR = STRING(VR, '('+STRUPCASE(FORMAT)+')')
-                        VI = STRING(VI, '('+STRUPCASE(FORMAT)+')')
+                        VR = STRUPCASE(STRING(VR, '('+FORMAT+')'))
+                        VI = STRUPCASE(STRING(VI, '('+FORMAT+')'))
                  END ELSE BEGIN
                         VR = STRTRIM(VR, 2)
                         VI = STRTRIM(VI, 2)
                 ENDELSE
                 SR = STRLEN(VR)  &  STRPUT,H,VR,(30-SR)>10
                 SI = STRLEN(VI)  &  STRPUT,H,VI,(50-SI)>30
-                STRPUT,H,' /'+COMMENT,50
+                STRPUT,H,' / '+COMMENT,50
                 HEADER[I] = H
                 RETURN
 ;
@@ -686,11 +763,23 @@ REPLACE:
         END ELSE BEGIN
             IF NOT SAVE_AS_NULL THEN BEGIN
                 IF (N_ELEMENTS(FORMAT) EQ 1) THEN $ ;use format keyword
-                        V = STRING(VALUE,'('+STRUPCASE(FORMAT)+')' ) ELSE BEGIN
-			IF TYPE[1] EQ 5 THEN $
-			V = STRING(VALUE,FORMAT='(G19.12)') ELSE $
-                        V = STRTRIM(strupcase(VALUE),2)    ;default format
-			ENDELSE
+                  V = STRING(VALUE,'('+STRUPCASE(FORMAT)+')' ) ELSE BEGIN
+                    IF STYPE EQ 5 THEN V = STRING(VALUE,FORMAT='(G19.12)') $
+                    ELSE BEGIN
+                        IF STYPE GT 1 THEN SVALUE = STRING(VALUE) ELSE BEGIN
+                            SVALUE = STRING(FIX(VALUE))
+                            IF !VERSION.RELEASE GE '8.4' THEN BEGIN
+                                ISBOOL = ISA(VALUE, /BOOLEAN)
+                                IF ISBOOL THEN BEGIN
+                                    FT = ['F','T']
+                                    SVALUE = FT[VALUE]
+                                ENDIF
+                            ENDIF
+                        ENDELSE
+                        V = STRTRIM(SVALUE,2) ;default format
+                    ENDELSE
+                ENDELSE
+                IF (STYPE EQ 4) OR (STYPE EQ 5) THEN V = STRUPCASE(V)
                 S = STRLEN(V)                 ;right justify
                 STRPUT,H,V,(30-S)>10          ;insert
             ENDIF
@@ -700,8 +789,8 @@ REPLACE:
 ;  add the slash if the value is null and there is no comment.
 ;
         IF (NOT SAVE_AS_NULL) OR (STRLEN(STRTRIM(COMMENT)) GT 0) THEN BEGIN
-            STRPUT,H,' /',30    ;add ' /'
-            STRPUT,H,COMMENT,32 ;add comment
+            STRPUT,H,' / ',30   ;add ' / '
+            STRPUT,H,COMMENT,33 ;add comment
         ENDIF
         HEADER[I]=H             ;save line
 ;

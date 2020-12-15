@@ -5,9 +5,9 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
                  FORIENTATION=Forientation, NAN = NAN, $
                  _EXTRA = _extra, Halfbin = halfbin, AUTOBin = autobin, $
                  Boxplot = boxplot, xlog = xlog, ylog = ylog, $
-                 yrange = yrange, Color = color,axiscolor=axiscolor, $
+                 xrange=xrange,yrange = yrange, Color = color,axiscolor=axiscolor, $
                  rotate = rotate, WINDOW=window,XSTYLE=xstyle, YSTYLE = ystyle,$
-		 THICK= thick, LINESTYLE = linestyle
+		 THICK= thick, LINESTYLE = linestyle, SQRT=SQRT
 ;+
 ; NAME:
 ;      PLOTHIST
@@ -27,10 +27,12 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;      yhist - Y vector used in making the plot  (= histogram(arr/bin))
 ;
 ; OPTIONAL INPUT-OUTPUT KEYWORD:
-;      BIN -  The size of each bin of the histogram, scalar (not necessarily
+;      BIN -  The size of each bin of the histogram, positive scalar (not necessarily
 ;             integral).  If not present (or zero), then the default is to 
-;             automatically determine the binning size as the square root of 
-;             the number of samples
+;             automatically determine the binning size using Scott's normal
+;             reference rule (see https://en.wikipedia.org/wiki/Histogram )
+;             Prior to July 2016, the default was to use the square root of the
+;             number of data points (see /sqrt keyword).
 ;             If undefined on input, then upon return BIN will contain the 
 ;             automatically computing bin factor.
 ; OPTIONAL INPUT KEYWORDS:
@@ -49,10 +51,11 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;              the bin for values of 6 will go from 5.5 to 6.5.   The default
 ;              is to set the HALFBIN keyword for integer data, and not for
 ;              non-integer data.     
-;      /NAN - If set, then check for the occurence of IEEE not-a-number values
-;             This is the default for floating point or Double data
-;      /NOPLOT - If set, will not plot the result.  Useful if intention is to
-;             only get the xhist and yhist outputs.
+;      /NAN - The default is to check for the occurrence of IEEE not-a-number 
+;             values for non-integer input.   Set NAN=0 for PLOTHIST to give
+;             a traceback error if NaN values are present.
+;      /NOPLOT - If set, will not plot the result.  Useful if the intention is
+;             to only get the xhist and yhist outputs.
 ;      /OVERPLOT - If set, will overplot the data on the current plot.  User
 ;            must take care that only keywords valid for OPLOT are used.
 ;      PEAK - if non-zero, then the entire histogram is normalized to have
@@ -63,6 +66,9 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;             extend from left to right.  Xaxis corresponds to the count within 
 ;             in each bin.      Useful for placing a histogram plot
 ;             at the side of a scatter plot.
+;       /SQRT - if set, and the BIN keyword is not supplied, then the bin size
+;             is computed as the square root of the number of data points.  This
+;             was the default prior to July 2016. 
 ;       WINDOW - Set this keyword to plot to a resizeable graphics window
 ;
 ;
@@ -122,6 +128,10 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;        Fix FILL to work when axis is inverted (xcrange[0] >
 ;          xcrange[1]) T.Ellsworth-Bowers July 2014
 ;        Make /NaN,/AUTOBIN and BOXPLOT the default  W. Landsman   April 2016
+;        Speed up COLOR processing W. Landsman  July 2016
+;        Use Scott's normal reference rule for bin size W. Landsman  July 2016
+;        Check for NaN values when computing min and max W. Landsman  Jan 2017
+;        Always set a minimum number of bins   W. Landsman   Feb 2017
 ;-
 ;			Check parameters.
 
@@ -136,28 +146,42 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 	return
  endif
 
+
  Catch, theError
  if theError NE 0 then begin 
      Catch,/Cancel
- ;    void = cgErrorMsg(/quiet)
+     void = cgErrorMsg(/quiet)
      return
  endif
 
- if N_elements( arr ) LT 2 then message, $
-      'ERROR - Input array must contain at least 2 elements'
- arrmin = min( arr, MAX = arrmax)
- if ( arrmin EQ arrmax ) then message, $
+if N_elements( arr ) LT 2 then message, $
+      'ERROR - Input array must contain at least 2 elements',/noname
+
+ 
+ minarr = min( arr, MAX = maxarr,/NaN)
+ if ( minarr EQ maxarr ) then message, /noname, $
        'ERROR - Input array must contain distinct values'
   if N_elements(boxplot) EQ 0 then boxplot=1     
 
+ dtype = size(arr,/type)
+ floatp = (dtype EQ 4) || (dtype EQ 5)
+
  ;Determining how to calculate bin size:
  if ~keyword_set(BIN) then begin
-       bin = (max(arr)-min(arr))/sqrt(N_elements(arr))
+
+;    Compute bin size using Scott's normal reference rule?
+
+       if keyword_set(sqrt) then $
+        bin = (maxarr-minarr)/sqrt(N_elements(arr)) else $   ;Square root rule
+       bin = (3.5D * StdDev(arr, /NAN))/N_Elements(arr)^(1./3.0D) 
+       if ~floatp then bin = bin > 1
+; If xrange is set, make sure we have at least 4 bins       
+        if keyword_set(xrange) then bin = bin < (xrange[1] - xrange[0])/4.
+       
  endif else begin
     bin = float(abs(bin))
  endelse
-     dtype = size(arr,/type)
-     floatp = (dtype EQ 4) || (dtype EQ 5)
+
  
 
 ; Compute the histogram and abscissa.    
@@ -183,7 +207,7 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
  
  ;Positions of each bin:
  xhist = lindgen( N_hist ) * bin + min(y*bin) 
- 
+
  if ~halfbin then xhist = xhist + 0.5*bin
 
 ;;;
@@ -197,7 +221,6 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
  if keyword_set(NoPlot) then return
  
  ;JRM;;;;;
- xra_set = keyword_set(XRANGE)?1:0
  xst_set = keyword_set(xstyle)?1:0
  yst_set = keyword_set(ystyle)?1:0
 ;JRM;;;;;
@@ -237,7 +260,6 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
     
     ;If xrange is not set.
     ;Then the auto x- range by setting xrange to [0,0].
-    if ~xra_set then xrange=[0,0]
     if ~xst_set then xstyle=0
     if ~yst_set then ystyle=1
     
@@ -321,12 +343,14 @@ if keyword_set(Peak) then yhist = yhist * (Peak / float(max(yhist)))
            color=color,Thick = thick, LINESTYLE = linestyle, ADDCMD=window
     cgplots, xdata[0]<xcrange[1], ycrange[1]<(ydata[1]-bin/2)>ycrange[0], $
            color=color,THICK = thick, LINESTYLE= linestyle, ADDCMD=window
-    FOR i=1, n_elements(xdata)-2 DO BEGIN
+   
+ FOR i=1, n_elements(xdata)-2 DO BEGIN
+       sColor = cgcolor(color)
        cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i]-bin/2)>ycrange[0], $
-              color=color, THICK=thick, LINESTYLE= linestyle, $
+              color=sColor, THICK=thick, LINESTYLE= linestyle, $
 	      /CONTINUE,ADDCMD=window
        cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i+1]-bin/2)>ycrange[0], $
-              color=color, /CONTINUE,THICK=thick, LINESTYLE=linestyle, $
+              color=sColor, /CONTINUE,THICK=thick, LINESTYLE=linestyle, $
 	       ADDCMD=window
     ENDFOR
     cgplots, xdata[i]<xcrange[1], ycrange[1]<(ydata[i]-bin/2)>ycrange[0], $
@@ -344,18 +368,22 @@ if keyword_set(boxplot) then begin
    ;JRM;;;;;;;;;;;
    IF n_elements(rotate) EQ 0 THEN BEGIN
       ycrange = keyword_set(ylog)? 10^!Y.CRANGE : !Y.CRANGE
-      FOR j =0 ,N_Elements(xhist)-1 DO BEGIN
-         cgPlotS, [xhist[j], xhist[j]]-bin/2, [YCRange[0], yhist[j], Ycrange[1]], $
-                Color=Color,noclip=0, THICK=thick, LINESTYLE = linestyle, $
+      scolor = cgcolor(color)
+      tabinv,xhist,!x.crange[1],imax
+      FOR j =0 ,ceil(imax) DO BEGIN
+         cgplotS, [xhist[j], xhist[j]]-bin/2, [YCRange[0], yhist[j], Ycrange[1]], $
+                Color=sColor,noclip=0, THICK=thick, LINESTYLE = linestyle, $
 		_Extra=extra,ADDCMD=window
+
       ENDFOR 
       
    ENDIF ELSE BEGIN
       xcrange = keyword_set(xlog)? 10^!X.CRANGE : !X.CRANGE
+      scolor = cgcolor(color)
       FOR j =0 ,N_Elements(xhist)-1 DO BEGIN
          cgPlotS, [xcrange[0], xhist[j]<xcrange[1]], [yhist[j], $
 	            yhist[j]]-bin/2, ADDCMD=window, THICK=thick, $
-                    LINESTYLE = linestyle, Color=Color, noclip=0
+                    LINESTYLE = linestyle, Color=sColor, noclip=0
       ENDFOR 
    ENDELSE
    ;JRM;;;;;;;;;;;

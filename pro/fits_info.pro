@@ -105,7 +105,9 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ;          OPENR,/COMPRESS  B. Roukema/WL    Apr 2010
 ;       Increased nmax (max number of extensions) from 400 to 2000   Sept 2012
 ;       Correctly fills EXTNAME when SILENT is set    EH   Jan 2013
-;       Turned ptr to long64 in order to read very large files EH Dec 2013
+;       Turned ptr to long64 for very large files EH Dec 2013
+;       Replace 2880L with 2880LL for very large files  EH  Mar 2015
+;       Let TEXTOPEN test for !TEXTOUT  WL Sep 2016
 ;-
  On_error,2
  compile_opt idl2
@@ -116,9 +118,6 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
      return
  endif
 
- defsysv,'!TEXTOUT',exists=ex   ; Check if !TEXTOUT exists.
- if ex eq 0 then defsysv,'!TEXTOUT',1 ; If not define it.
-
  fil = file_search( filename, COUNT = nfiles) 
  if nfiles EQ 0 then message,'No files found'
 ; File is gzip compressed if it ends in .gz or .ftz 
@@ -127,10 +126,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
  compress = (ext EQ '.gz') || (ext EQ 'ftz')
 
  silent = keyword_set( SILENT )
- if ~silent then begin 
-     if ~keyword_set( TEXTOUT ) then textout = !TEXTOUT    
-     textopen, 'FITS_INFO', TEXTOUT=textout
- endif
+ if ~silent then textopen, 'FITS_INFO', TEXTOUT=textout
 
  for nf = 0, nfiles-1 do begin
 
@@ -165,7 +161,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
      hdr = bytarr(80, 36, /NOZERO)
      N_hdrblock = 1
      readu, lun1, hdr
-     ptr += 2880
+     ptr += 2880LL
      hd = string( hdr > 32b)
      
 ;                               Get values of BITPIX, NAXIS etc.
@@ -224,7 +220,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
      hdr = bytarr(80, 36, /NOZERO)
      while (end_rec[0] EQ -1) && (~eof(lun1) ) do begin
          readu,lun1,hdr
-         ptr = ptr + 2880L
+         ptr += 2880LL
          hd1 = string( hdr > 32b)
          end_rec = where( strtrim(strmid(hd1,0,8),2) EQ  'END')
          n_hdrblock++ 
@@ -269,8 +265,8 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ; Check for EOF
 ; Skip the headers and data records
 
-     ptr += nrec*2880L
-     if compress[nf] then mrd_skip,lun1,nrec*2880L else point_lun,lun1,ptr
+     ptr += nrec*2880LL
+     if compress[nf] then mrd_skip,lun1,nrec*2880LL else point_lun,lun1,ptr
      if ~eof(lun1) then goto, START
 ;
      END_OF_FILE:  

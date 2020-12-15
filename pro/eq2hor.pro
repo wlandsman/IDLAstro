@@ -59,7 +59,7 @@
 ;               altitude).  See CO_REFRACT for more details.
 ;
 ; OUTPUT VARIABLES: (all double precision)
-;       alt    : altitude (in degrees)
+;       alt    : altitude, also known as elevation (in degrees)
 ;       az     : azimuth angle (in degrees, measured EAST from NORTH, but see
 ;                keyword WS above.)
 ;       ha     : hour angle (in degrees) (optional)
@@ -116,7 +116,7 @@
 ;
 ; The program produces this output (because the VERBOSE keyword was set)
 ;
-;Latitude = +50 31 36.0   Longitude = +06 51 18.0
+; Latitude = +50 31 36.0   Longitude = +06 51 18.0
 ; ************************** 
 ;Julian Date =  2460107.250000
 ;LMST = +11 46 42.0
@@ -146,6 +146,7 @@
 ;    August 2012  Use Strict_Extra to flag spurious keywords W. Landsman
 ;    May 2013   Fix case of scalar JD but vector RA, Dec W. Landsman
 ;    Jun 2014   Fix case of vector JD but scalar RA, Dec W. Landsman
+;    Sep 2017  Work with /verbose and vector JD W. Landsman
 ;-
 
 pro eq2hor, ra, dec, jd, alt, az, ha, lat=lat, lon=lon, WS=WS, obsname=obsname,$
@@ -272,19 +273,21 @@ hadec2altaz, ha, dec_, lat, alt, az, WS=WS
 if v then alt_app = alt
 if refract_ then alt = $
       co_refract(alt, altitude=altitude, _strict_extra=_extra, /to_observed)
-if v then begin 
+if v then begin
+     bothvector = (njd GT 1) && (npos EQ njd) 
      print, 'Latitude = ', adstring(lat), '   Longitude = ', adstring(lon)
      for j=0,njd-1 do begin 
 	  print,' ************************** '
 
         print, 'Julian Date = ', jd[j], format='(A,f15.6)'
-        print, 'LMST = ', adstring(lmst/15.)
-        print, 'LAST = ', adstring(last/15.)
+        print, 'LMST = ', adstring(lmst[j]/15.)
+        print, 'LAST = ', adstring(last[j]/15.)
 	print,' '
           for i=0,npos-1 do begin
+               if bothvector then i = j
                print, 'Ra, Dec: ', adstring(ra[i],dec[i]), s_now
                print, 'Ra, Dec: ', adstring(rap[i],decp[i]), '   (J' + $
-                       strcompress(string(J_now),/rem)+')'
+                       strcompress(string(J_now[i]),/rem)+')'
 		      
                print, 'Ra, Dec: ', adstring(ra_[i],dec_[i]), $
 	               '   (fully corrected)'
@@ -293,6 +296,7 @@ if v then begin
 	       print,'Az, El = ', adstring(az[i],alt_app[i]), '   (Apparent Coords)'       
                print,'Az, El = ', adstring(az[i],alt[i]), '   (Observer Coords)'
                print,' '
+               if bothvector then break
 	  endfor 
 	  endfor
   endif   

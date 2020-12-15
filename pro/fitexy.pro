@@ -8,7 +8,7 @@
 ;       when both x and y data have errors   Users might be interested in 
 ;       Michael Williams MPFITEXY routines which include a number of 
 ;       enhancements to FITEXY. 
-;       ( http://user.astro.columbia.edu/~williams/mpfitexy/ )
+;       ( https://github.com/williamsmj/mpfitexy )
 ;               
 ;
 ; CALLING EXAMPLE:

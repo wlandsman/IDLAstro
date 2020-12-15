@@ -4,17 +4,18 @@
 ; PURPOSE:
 ;       Read a FITS file into IDL data and header variables. 
 ; EXPLANATION:
-;       READFITS() can read FITS files compressed with gzip or Unix (.Z) 
-;       compression.  FPACK ( http://heasarc.gsfc.nasa.gov/fitsio/fpack/ )
+;       READFITS() can read FITS files compressed with gzip (.gz), Unix (.Z) 
+;       or BZip (.bz2) compression.  FPACK ( http://heasarc.gsfc.nasa.gov/fitsio/fpack/ )
 ;       compressed FITS files can also be read provided that the FPACK software
 ;       is installed.
+;
 ;       See http://idlastro.gsfc.nasa.gov/fitsio.html for other ways of
 ;       reading FITS files with IDL.   
 ;
 ; CALLING SEQUENCE:
 ;       Result = READFITS( Filename/Fileunit,[ Header, heap, /NOSCALE, EXTEN_NO=,
 ;                     NSLICE=, /SILENT , STARTROW =, NUMROW = , HBUFFER=,
-;                     /CHECKSUM, /COMPRESS, /FPACK, /No_Unsigned, NaNVALUE = ]
+;                     /CHECKSUM, /COMPRESS, /FPACK, /No_Unsigned ]
 ;
 ; INPUTS:
 ;       Filename = Scalar string containing the name of the FITS file  
@@ -41,10 +42,7 @@
 ;
 ; OPTIONAL OUTPUT:
 ;       Header = String array containing the header from the FITS file.
-;              If you don't need the header, then the speed may be improved by
-;              not supplying this parameter.    Note however, that omitting 
-;              the header can imply /NOSCALE, i.e. BSCALE and BZERO values
-;              may not be applied.
+;
 ;       heap = For extensions, the optional heap area following the main
 ;              data array (e.g. for variable length binary extensions).
 ;
@@ -60,14 +58,17 @@
 ;               READFITS will assume that if the file name extension ends in 
 ;               '.gz' then the file is gzip compressed.   The /COMPRESS keyword
 ;               is required only if the the gzip compressed file name does not 
-;               end in '.gz' or .ftz
+;               end in '.gz' or .ftz.   BZip compressed files must have a .bz2
+;               extension.
 ;              
 ;       EXTEN_NO - non-negative scalar integer specifying the FITS extension to
 ;               read.  For example, specify EXTEN = 1 or /EXTEN to read the 
 ;               first FITS extension.   
 ;
 ;       /FPACK - Signal that the file is compressed with the FPACK software. 
-;               http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ) By default, 
+;               http://heasarc.gsfc.nasa.gov/fitsio/fpack/ ).  In particular,
+;				note that files using the FITS tile compression convention (e.g. 
+;               Pan-Starrs) require the FPACK software.    By default, 
 ;               (READFITS will assume that if the file name extension ends in 
 ;               .fz that it is fpack compressed.     The FPACK software must
 ;               be installed on the system 
@@ -151,7 +152,7 @@
 ;               (1) the system variable !ERROR_STATE.CODE is set negative 
 ;                   (via the MESSAGE facility)
 ;               (2) the error message is displayed (unless /SILENT is set),
-;                   and the message is also stored in !!ERROR_STATE.MSG
+;                   and the message is also stored in !ERROR_STATE.MSG
 ;               (3) READFITS returns with a value of -1
 ; RESTRICTIONS:
 ;       (1) Cannot handle random group FITS
@@ -222,6 +223,9 @@
 ;      First header is not necessarily primary if unit supplied WL Jan 2011
 ;      Fix test for 'SIMPLE' at beginning of header WL November 2012
 ;      Fix problem passing extensions with > 2GB WL, M. Carlson August 2013
+;      Always read entire header, even if header variable not supplied W. Landsman May 2017
+;      Support BZip compression   W. Landsman Aug 2017
+;	Support unsigned long64 data W. Landsman Jan 2018 
 ;-
 function READFITS, filename, header, heap, CHECKSUM=checksum, $ 
                    COMPRESS = compress, HBUFFER=hbuf, EXTEN_NO = exten_no, $
@@ -230,7 +234,6 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
                    POINTLUN = pointlun, SILENT = silent, STARTROW = startrow, $
                    NaNvalue = NaNvalue, FPACK = fpack, UNIXpipe=unixpipe
 
-  On_error,2                    ;Return to user
   compile_opt idl2
   On_IOerror, BAD
 
@@ -242,8 +245,15 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
       print,'                 HBUFFER = ,/NO_UNSIGNED, /CHECKSUM, /COMPRESS]'
       return, -1
    endif
+   
+Catch, theError
+if theError NE 0 then begin
+	Catch,/Cancel
+	void = cgErrorMsg(/quiet)
+	return, -1
+endif
 
-   unitsupplied = size(filename,/TNAME) NE 'STRING'
+unitsupplied = size(filename,/TNAME) NE 'STRING'
 
 ; Set default keyword values
 
@@ -266,8 +276,9 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
     gzip = (ext EQ '.gz') || (ext EQ 'ftz')
     compress = keyword_set(compress) || gzip[0]
     unixZ =  (strmid(filename, len-2, 2) EQ '.Z') 
+    bzip = ext EQ 'bz2'
     fcompress = keyword_set(fpack) || ( ext EQ '.fz') 
-    unixpipe = unixZ || fcompress	      
+    unixpipe = unixZ || fcompress || bzip      
 
  
 ;  Go to the start of the file.
@@ -282,10 +293,10 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
 ;  Handle Unix or Fpack compressed files which will be opened via a pipe using
 ;  the SPAWN command.     
 
-        if unixZ then begin
+        if unixZ || bzip then begin
                 free_lun, unit
-                spawn, 'gzip -cd '+filename, unit=unit                 
-                gzip = 1b
+                if bzip then cmd = 'bunzip2' else cmd = 'gzip'
+                spawn, cmd + ' -cd '+filename, unit=unit                 
 
         endif else if fcompress then begin 
 	        free_lun, unit
@@ -299,13 +310,11 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
   endelse
   if N_elements(POINTLUN) GT 0 then mrd_skip, unit, pointlun
 
-  doheader = arg_present(header) || do_checksum
-  if doheader  then begin
-          if N_elements(hbuf) EQ 0 then hbuf = 180 else begin
+
+  if N_elements(hbuf) EQ 0 then hbuf = 180 else begin
                   remain = hbuf mod 36
                   if remain GT 0 then hbuf = hbuf + 36-remain
-           endelse
-  endif else hbuf = 36
+  endelse
 
   for ext = 0L, exten_no do begin
                
@@ -313,8 +322,8 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
 
        block = string(replicate(32b,80,36))
        w = [-1]
-       if ((ext EQ exten_no) && (doheader)) then header = strarr(hbuf) $
-                                             else header = strarr(36)
+       if (ext EQ exten_no)  then header = strarr(hbuf) $
+                             else header = strarr(36)
        headerblock = 0L
        i = 0L      
 
@@ -336,7 +345,7 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
       endif
 
       w = where(strcmp(block,'END     ',8), Nend)
-      if (headerblock EQ 1) || ((ext EQ exten_no) && (doheader)) then begin
+      if (headerblock EQ 1) || (ext EQ exten_no) then begin
               if Nend GT 0 then  begin
              if headerblock EQ 1 then header = block[0:w[0]]   $
                                  else header = [header[0:i-1],block[0:w[0]]]
@@ -367,7 +376,7 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
                 
        if naxis GT 0 then begin 
             dims = sxpar( header,'NAXIS*')           ;Read dimensions
-	    ndata = product(dims,/integer)
+	    ndata = product(dims[0:naxis-1],/integer)    ;Update 7-31-2017
        endif else ndata = 0
                 
        nbytes = byte_elem * gcount * (pcount + ndata)
@@ -532,22 +541,30 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
        
  
  
-; Check for unsigned integer (BZERO = 2^15) or unsigned long (BZERO = 2^31)
+; Check for unsigned integer (BZERO = 2^15) or unsigned long (BZERO = 2^31) or
+; unsigned long 64 bit (BZERO = 2^63)
 
           if ~keyword_set(No_Unsigned) then begin
+
             no_bscale = (Bscale EQ 1) || (N_bscale EQ 0)
             unsgn_int = (bitpix EQ 16) && (Bzero EQ 32768) && no_bscale
             unsgn_lng = (bitpix EQ 32) && (Bzero EQ 2147483648) && no_bscale
-            unsgn = unsgn_int || unsgn_lng
+            unsgn_lng64 = (bitpix EQ 64) && (Bzero EQ 9223372036854775808) && no_bscale
+            
+            unsgn = unsgn_int || unsgn_lng || unsgn_lng64
            endif else unsgn = 0
 
           if unsgn then begin
-                    if unsgn_int then begin  
+                if unsgn_int then begin  
                         data =  uint(data) - 32768US
-			if N_blank then blank = uint(blank) - 32768US 
-		   endif else  begin 
+			            if N_blank then blank = uint(blank) - 32768US 
+		   		endif else if unsgn_lng then begin 
                          data = ulong(data) - 2147483648UL
-			if N_blank then blank = ulong(blank) - 2147483648UL
+			             if N_blank then blank = ulong(blank) - 2147483648UL
+		   		endif else begin
+		                offset = ulong64(9223372036854775808)
+		   				data = ulong64(data) - offset
+		   				if N_blank then blank = ulong64(blank) - offset
 		   endelse 
 		   if N_blank then sxaddpar,header,'BLANK',blank
                    sxaddpar, header, 'BZERO', 0

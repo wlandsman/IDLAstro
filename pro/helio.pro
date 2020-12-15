@@ -38,15 +38,15 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
 ;        IDL> GET_JULDATE, jd      ;Get current Julian date
 ;        IDL> HELIO,jd,indgen(9)+1,hrad,hlong,hlat  ;Get radius, long, and lat
 ;
-;       (2) Find heliocentric position of Mars on August 23, 2000 
-;         IDL> JDCNV, 2000,08,23,0,jd
-;         IDL> HELIO,JD,2,HRAD,HLONG,HLAT
+;       (2) Find heliocentric position of Mars on August 23, 2018 
+;         IDL> JDCNV, 2018,08,23,0,jd
+;         IDL> HELIO,JD,4,HRAD,HLONG,HLAT
 ;                  ===> hrad = 1.6407 AU hlong = 124.3197 hlat = 1.7853
 ;         For comparison, the JPL ephemeris gives
 ;                       hrad = 1.6407 AU hlong = 124.2985 hlat = 1.7845
 ;       (3) Find the heliocentric positions of Mars and Venus for every day in
-;           November 2000
-;        IDL> JDCNV, 2000, 11, 1, 0, jd    ;Julian date of November 1, 2000
+;           November 2018
+;        IDL> JDCNV, 2018, 11, 1, 0, jd    ;Julian date of November 1, 2000
 ;        IDL> helio, jd+indgen(30), [4,2], hrad,hlong,hlat   ;Mars=4, Venus=2 
 ;                   hrad, hlong, and hlat will be dimensioned [2,30]
 ;                   first column contains Mars data, second column Venus
@@ -58,9 +58,9 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
 ;       (1) The calling sequence for this procedure was changed in August 2000
 ;       (2) This program is based on the two-body model and thus neglects 
 ;           interactions between the planets.   This is why the worst results
-;           are for Saturn.  Use the procedure JPLEPHINTERp for more accurate
-;           positions using the JPL ephemeris.   Also see 
-;           http://ssd.jpl.nasa.gov/cgi-bin/eph for a more accurate ephemeris 
+;           are for Saturn.  Use the procedure JPLEPHINTERP for more accurate
+;           positions using the JPL ephemeris.   Also see JPL Horizons
+;           ( https://ssd.jpl.nasa.gov/horizons.cgi ) for a more accurate ephemeris 
 ;           generator online.     
 ;       (3) The coordinates are given for equinox 2000 and *not* the equinox
 ;           of the supplied date(s)
@@ -71,6 +71,7 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
 ;         solution to Kepler's equation          W. Landsman August 2000
 ;       Wasn't working for planet vectors        W. Landsman August 2000
 ;       Work for more than 32767 positions       S. Leach Jan 2009
+;       Use data from https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt   W. Landsman Jun 2017
 ;-
  On_error,2
  compile_opt idl2
@@ -84,40 +85,42 @@ PRO HELIO, JD, LIST, HRAD, HLONG, HLAT, RADIAN = radian
      return
   endif
 
-; Mean orbital elements taken from http://ssd.jpl.nasa.gov/elem_planets.html
+; Mean orbital elements taken from https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
 ; (1) semi-major axis in AU, (2) eccentricity, (3) inclination (degrees),
-; (4) longitude of the ascending node (degrees), (5) longitude of perihelion
-; (degrees) and (6) mean longitude (degrees)
-;Mercury 
-PD = [ [ 0.38709893d, 0.20563069, 7.00487,  48.33167,  77.45645, 252.25084 ], $
-;Venus  
-     [ 0.72333199d, 0.00677323, 3.39471,  76.68069, 131.53298, 181.97973 ], $ 
-;Earth
-     [ 1.00000011d, 0.01671022, 0.00005, -11.26064, 102.94719, 100.46435], $
+; (4) mean longitude (degrees), (5) longitude of perihelion (degrees)
+; and (6) longitude of the ascending node (degrees)
+
+;Mercury   
+PD = [ [0.38709927d, 0.20563593d, 7.00497902d, 252.25032350d, 77.45779628d , 48.33076593d], $
+;Venus     
+[ 0.72333566d, 0.00677672d, 3.39467605d, 181.97909950d, 131.60246718d, 76.67984255d], $
+;EMBary   
+[ 1.00000261d, 0.01671123d, -0.00001531d, 100.46457166d, 102.93768193d,  0.0], $
 ;Mars 
-     [ 1.52366231d, 0.09341233, 1.85061,  49.57854, 336.04084, 355.45332], $
+[ 1.52371034d, 0.09339410d, 1.84969142d, -4.55343205d, -23.94362959d, 49.55953891d], $
 ;Jupiter
-     [ 5.20336301d, 0.04839266, 1.30530, 100.55615,  14.75385,  34.40438], $ 
+[ 5.20288700d, 0.04838624d, 1.30439695d, 34.39644051d, 14.72847983d, 100.47390909d], $
 ;Saturn
-     [ 9.53707032d, 0.05415060, 2.48446, 113.71504,  92.43194,  49.94432], $
+[ 9.53667594d, 0.05386179d, 2.48599187d, 49.95424423d, 92.59887831d, 113.66242448d], $
 ;Uranus
-     [19.19126393d, 0.04716771, 0.76986,  74.22988, 170.96424, 313.23218], $ 
+[ 19.18916464d, 0.04725744d, 0.77263783d, 313.23810451d, 170.95427630d, 74.01692503d], $
 ;Neptune
-     [30.06896348d, 0.00858587, 1.76917, 131.72169,  44.97135, 304.88003], $
+[ 30.06992276d, 0.00859048d, 1.77004347d,  -55.12002969d, 44.96476227d, 131.78422574d], $
 ;Pluto
-     [39.48168677d, 0.24880766,17.14175, 110.30347, 224.06676, 238.92881] ]
+[ 39.48211675d, 0.24882730d, 17.14001206d, 238.92903833d, 224.06891629d, 110.30393684d]]
+        
 
-; DPD gives the time rate of change of the above quantities ("/century)
+ DPD = [[ 0.00000037d, 0.00001906d, -0.00594749d, 149472.67411175d, 0.16047689d, -0.12534081 ], $
+         [0.00000390d, -0.00004107d, -0.00078890d,  58517.81538729d, 0.00268329d, -0.27769418 ], $
+          [0.00000562d, -0.00004392d, -0.01294668d,  35999.37244981d, 0.32327364d,      0.0d], $
+        [ 0.00001847d,  0.00007882d, -0.00813131d, 19140.30268499d,  0.44441088d, -0.29257343d], $
+        [ -0.00011607d, -0.00013253d, -0.00183714d, 3034.74612775d, 0.21252668d, 0.20469106d],$
+        [  -0.00125060d, -0.00050991d, 0.00193609d, 1222.49362201d, -0.41897216d, -0.28867794d], $
+        [  -0.00196176d, -0.00004397d, -0.00242939d, 428.48202785d,  0.40805281d, 0.04240589d], $
+        [   0.00026291d,  0.00005105d,  0.00035372d, 218.45945325d, -0.32241464d, -0.00508664d], $
+        [ -0.00031596d,   0.00005170d,  0.00004818d, 145.20780515d, -0.04062942d,  -0.01183482d]]
 
-DPD = [  [0.00000066d, 0.00002527, -23.51, -446.30, 573.57, 538101628.29 ], $
- [ 0.00000092d, -0.00004938, -2.86, -996.89, -108.80, 210664136.06], $
- [-0.00000005d, -0.00003804, -46.94, -18228.25, 1198.28, 129597740.63], $ 
- [-0.00007221d, 0.00011902, -25.47, -1020.19, 1560.78, 68905103.78 ], $
- [0.00060737d, -0.00012880, -4.15, 1217.17, 839.93, 10925078.35 ], $
- [-0.00301530d, -0.00036762, 6.11, -1591.05, -1948.89, 4401052.95],  $
- [0.00152025d, -0.00019150, -2.09, -1681.40, 1312.56, 1542547.79 ], $
- [-0.00125196d, 0.0000251, -3.64, -151.25, -844.43, 786449.21 ], $
- [-0.00076912d, 0.00006465, 11.07, -37.33, -132.25, 522747.90] ] 
+
 
  JD0 = 2451545.0d    ;Julian Date for Epoch 2000.0
  radeg = 180/!DPI
@@ -128,7 +131,6 @@ DPD = [  [0.00000066d, 0.00002527, -23.51, -446.30, 573.57, 538101628.29 ], $
  
 
         ip = list-1
-        dpd[2:5,ip] = dpd[2:5,ip]/3600.0d       ;Convert arc seconds to degrees
         ntime = N_elements(t)
         nplanet = N_elements(list)
         hrad = fltarr(nplanet,ntime) & hlong = hrad & hlat = hrad
@@ -141,11 +143,11 @@ DPD = [  [0.00000066d, 0.00002527, -23.51, -446.30, 573.57, 538101628.29 ], $
         
         a = pd1[0,*]                            ;semi-major axis
         eccen = pd1[1,*]                        ;eccentricity
-        n = 0.9856076686/a/sqrt(a)/RADEG      ;mean motion, in radians/day
-        L =  pd1[5,*]/RADEG                     ;mean longitude
-        pi = pd1[4,*]/RADEG                  ;longitude of the perihelion
-        omega = pd1[3,*]/RADEG               ;longitude of the ascending node
         inc = pd1[2,*]/RADEG          ;inclination in radians
+        L =  pd1[3,*]/RADEG                     ;mean longitude
+        pi = pd1[4,*]/RADEG                  ;longitude of the perihelion
+        omega = pd1[5,*]/RADEG               ;longitude of the ascending node
+    
         
         m = L - pi
         cirrange,m,/RADIAN
@@ -153,11 +155,11 @@ DPD = [  [0.00000066d, 0.00002527, -23.51, -446.30, 573.57, 538101628.29 ], $
         e = e1 + (m + eccen*sin(e1) - e1)/(1 - eccen*cos(e1) )
         maxdif = max(abs(e-e1))
         niter = 0
-        while (maxdif GT 1e-5) and (niter lt 10) do begin        
+        while (maxdif GT 1e-7) && (niter lt 10) do begin        
              e1 = e
              e = e1 + (m + eccen*sin(e1) - e1)/(1 - eccen*cos(e1) )
              maxdif = max(abs(e-e1))
-             niter = niter+1
+             niter++
         endwhile       
         
       
@@ -169,7 +171,7 @@ DPD = [  [0.00000066d, 0.00002527, -23.51, -446.30, 573.57, 538101628.29 ], $
  endfor 
 
        cirrange,hlong,/RADIAN
-       if not keyword_set(RADIAN) then begin 
+       if ~keyword_set(RADIAN) then begin 
            hlong = hlong*RADEG
            hlat = hlat*RADEG
        endif

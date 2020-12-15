@@ -76,11 +76,11 @@ pro imlist, image, xc, yc, DX=dx, DY = DY, WIDTH=width, TEXTOUT = textout, $
 ;       Treat LONG image as integer when possible, call TEXTOPEN with /STDOUT
 ;       keyword, W. Landsman   April, 1996
 ;       Use SYSTIME() instead of !STIME  August 1997
-;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Recognize new integer types, added OFFSET keyword  W. Landsman Jan. 2000
 ;       Replace DATATYPE() with size(/TNAME)  W. Landsman Nov. 2001
 ;       Handle NAN values in output display W. Landsman June 2004
 ;       Use V6.0 notation  W. Landsman April 2011
+;       Remove unnecessary checks if system variable defined W. Landsman May 2016
 ;-
  On_error,2                                   ;Return to caller
  compile_opt idl2
@@ -92,10 +92,8 @@ pro imlist, image, xc, yc, DX=dx, DY = DY, WIDTH=width, TEXTOUT = textout, $
     return
  endif
 
-  defsysv,'!TEXTOUT',exists=ex			; Check if !TEXTOUT exists.
-  if ex eq 0 then defsysv,'!TEXTOUT',1		; If not define it.
-  defsysv,'!TEXTUNIT',exists=ex			; Check if !TEXTUNIT exists.
-  if ex eq 0 then defsysv,'!TEXTUNIT',0		; If not define it.
+  defsysv,'!TEXTUNIT',exist=i
+  if i EQ 0 then astrolib
 
  if N_elements( TEXTOUT ) EQ 0 then textout = !TEXTOUT      ;Use default
  if N_elements( OFFSET) NE 2 then offset = [0,0]
@@ -105,8 +103,7 @@ pro imlist, image, xc, yc, DX=dx, DY = DY, WIDTH=width, TEXTOUT = textout, $
         hardcopy =  (textout GE 3) && (textout NE 5) 
  endif else hardcopy = 1
 
- defsysv,'!TEXTUNIT',exist=i
- if i EQ 0 then astrolib
+
  textopen, 'IMLIST', TEXTOUT = textout, /STDOUT            ;Open output device
 
  sz = size(image)

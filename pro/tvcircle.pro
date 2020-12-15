@@ -37,7 +37,7 @@ Pro Tvcircle, radius, xc, yc, color, COLOR = TheColor, Device=device, $
 ;              circle, in order to maintain optimal smoothness.    The default
 ;              is to assume data coordinates if !X.CRANGE is set.    Force
 ;              device coordinates by setting DATA = 0 or /DEVICE
-;       /DEVICE - If set, then force use of device coordinates..
+;       /DEVICE - If set, then force use of device coordinates.
 ;       /FILL  - If set, fill the circle using cgCOLORFILL
 ;
 ;               Any keyword recognized by cgPLOTS (or cgCOLORFILL if /FILL is 

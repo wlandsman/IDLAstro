@@ -3,7 +3,7 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ; NAME:
 ;       DIST_ELLIPSE
 ; PURPOSE:
-;       Create a mask array useful for elliptical aperture photemetry
+;       Create a mask array useful for elliptical aperture photometry
 ; EXPLANATION:
 ;       Form an array in which the value of each element is equal to the
 ;       semi-major axis of the ellipse of specified center, axial ratio, and 
@@ -49,7 +49,7 @@ pro dist_ellipse,im,n,xc,yc,ratio,pos_ang, DOUBLE = double
 ;       GETROT, H, rot, cdelt        ;CDELT gives plate scale degrees/pixel
 ;       cdelt = abs( cdelt)*3600.    ;CDELT now in arc seconds/pixel
 ;       DIST_ELLIPSE, ell, 200, x, y, 2.3, 25  ;Create a elliptical image mask
-;       ell = ell*cdelt(0)           ;Distances now given in arcseconds
+;       ell = ell*cdelt[0]           ;Distances now given in arcseconds
 ;       good = where( ell lt 180 )   ;Within 3 arc minutes
 ;       print,total( im(good) )      ;Total pixel values within 3'
 ;

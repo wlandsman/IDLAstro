@@ -148,15 +148,16 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;                   WL, August 2014
 ;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
 ;          TPV projection   WL  December 2015
+;	    Corrected for case when Equinox is NaN in structure. J. Murthy May 2016
+;       Fix when no structure supplied W. Landsman Oct 2018
 ;-
-
  compile_opt idl2
  npar = N_params()
 
  if ( npar EQ 0 ) then begin    ;Was header supplied?
         print,'Syntax: PUTAST, Hdr, astr, [ EQUINOX= , CD_TYPE=, ALT= ,/NAXIS]'
         print,'       or'
-        print,'Syntax: PUTAST, Hdr, [ cd, crpix, crval, EQUINOX = , CD_TYPE =]'   
+        print,'Syntax: PUTAST, Hdr, [ cd, crpix, crval, ctype, EQUINOX = , CD_TYPE =]'   
         return
  endif
  
@@ -174,7 +175,7 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
                 ctype = ['RA---TAN','DEC--TAN']
    read,'Enter plate scale in arc seconds/pixel: ',cdelt
    inp =''
-   print,'Reference pixel position should be in FORTRAN convention'
+   print,'Reference pixel position should be in FITS convention'
    print,'(First pixel has coordinate (1,1) )'
 
 GETCRPIX: print, $
@@ -219,7 +220,8 @@ RD_CEN:
         astr2 = TAG_EXIST(astr,'AXES')
         IF astr2 THEN BEGIN ; version 2 astrometry structure
            ax = STRTRIM(STRING(astr.axes),2)
-           IF N_ELEMENTS(equinox) EQ 0 THEN equinox = astr.equinox
+           IF N_ELEMENTS(equinox) EQ 0 THEN $
+              if (finite(astr.equinox)) then equinox = astr.equinox
         ENDIF
    endif else  begin
         cd = astr
@@ -384,11 +386,12 @@ RD_CEN:
      sxaddpar, hdr, 'CRVAL'+ax[1]+alt, double(crval[1]), comm[1], 'HISTORY'
      hist = ' World Coordinate System parameters written'
   endif
-
+  
 ; We don't want to update PV keywords if they are being used for TPV projection
+     if size(astr,/tname) EQ 'STRUCT' then begin
      pv_update = ~tag_exist(astr,'DISTORT') ||  $
                   (tag_exist(astr,'DISTORT') &&  astr.distort.name NE 'TPV')
-
+    endif else pv_update = 0
     if N_elements(longpole) EQ 1 then begin
         if pv_update then astr.pv1[3] = longpole
         test = sxpar(hdr,'LONPOLE',count=N_lonpole)

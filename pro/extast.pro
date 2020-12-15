@@ -1,4 +1,4 @@
-pro extast,hdr,astr,noparams, alt=alt
+pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d2imdis
 ;+
 ; NAME:
 ;     EXTAST
@@ -82,6 +82,20 @@ pro extast,hdr,astr,noparams, alt=alt
 ;              Greisen & Calabretta (2002, A&A, 395, 1061) for information about
 ;              alternate astrometry keywords.    If not set on input, then
 ;              ALT is set to ' ' on output.
+; OPTIONAL OUTPUT KEYWORD:
+;		HAS_D2IMDIS = set to 1 if the FITS header includes a D2IMDISi keyword indicating that 
+;			there is an array of (detector to image) pixel distortion corrections located in
+;           another extension.  This use of a distortion lookup table is used by a couple of 
+;           Hubble instruments.     If this keyword is not supplied, but the header 
+;           contains D2IMDISi keywords then a warning message will be supplied, since
+;           this distortion information will be missing from the astrometry structure.
+;		HAS_CPDIS = set to 1 if the FITS header includes a CPDISi keyword indicating that 
+;			there is an array of pixel distortion corrections located in another extension.
+;			This use of a distortion lookup table is based on the draft proposal 
+;           https://fits.gsfc.nasa.gov/wcs/dcs_20040422.pdf and is used by a couple of 
+;           Hubble instruments.     If this keyword is not supplied, but the header 
+;           contains CPDISi keywords then a warning message will be supplied, since
+;           this distortion information will be missing from the astrometry structure.
 ; PROCEDURE:
 ;       EXTAST checks for astrometry parameters in the following order:
 ;
@@ -141,21 +155,24 @@ pro extast,hdr,astr,noparams, alt=alt
 ;      Allow obsolete CD matrix representations W. Landsman May 2012
 ;      Work for Paritel headers with extra quotes R. Gutermuth/WL  April 2013
 ;
-;      Version 2:  J. P. Leahy, July 2013
-;        - Support long & lat axes not being the first 2.
-;        - Implemented PV1 and hence non-default phi0 and theta0
-;        - Added AXES, REVERSE, COORD_SYS, PROJECTION, RADECSYS, EQUINOX,
-;          DATEOBS, MJDOBS, PV1, and X0Y0 tags to the structure.
-;        - More checks for inconsistencies in the keywords.
-;      v2.1 21/7/13 Missing mjdobs & equinox changed to NaN (was -1 & 0);
-;          Converts GLS to SFL if possible; added KNOWN tag.
-;      v2.2 21/9/13 GLS conversion fixed.
-;      v2.3 1 Dec 13 Add warning if distortions from SCAMP astrometry present
-;      v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2014
-;      v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
-;      v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
+;	Version 2:  J. P. Leahy, July 2013
+;		- Support long & lat axes not being the first 2.
+;		- Implemented PV1 and hence non-default phi0 and theta0
+;		- Added AXES, REVERSE, COORD_SYS, PROJECTION, RADECSYS, EQUINOX,
+;			DATEOBS, MJDOBS, PV1, and X0Y0 tags to the structure.
+;		- More checks for inconsistencies in the keywords.
+;	v2.1 21/7/13 Missing mjdobs & equinox changed to NaN (was -1 & 0);
+;		Converts GLS to SFL if possible; added KNOWN tag.
+;	v2.2 21/9/13 GLS conversion fixed.
+;	v2.3 1 Dec 13 Add warning if distortions from SCAMP astrometry present
+;	v2.4.  Extract SCAMP or TPV distortion astrometry, if present Jan 2014
+;	v2.5  Fix bug when SIP parameters not recognized when NAXIS=0 May 2014
+;	v2.5.1 Make sure CROTA defined for GLS projection WL Sep 2015
+;	v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
+;	v2.5.3 Add warning if CPDIS1 keyword present WL Nov 2016
+;	v2.5.4 Add HAS_CPDIS and HAS_D2IMDIS keywords WL Nov 2017
 ;-
- On_error, 0
+
  compile_opt idl2
  ;
  ; List of known map types copied from wcsxy2sph. Needs to be kept up
@@ -166,12 +183,17 @@ pro extast,hdr,astr,noparams, alt=alt
             'PAR','AIT','MOL','CSC','QSC','TSC','SZP','HPX','HCT','XPH']
 
  if ( N_params() LT 2 ) then begin
-     print,'Syntax - EXTAST, hdr, astr, [ noparams, ALT = ]'
+     print,'Syntax - EXTAST, hdr, astr, [ noparams, ALT =, HAS_CPDIS= ]'
      return
  endif
+ 
+ Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF                                                      
 
- proj0 = ['CYP','CEA','CAR','MER','SFL','PAR','MOL','AIT','BON','PCO', $
-          'TSC','CSC','QSC']
  radeg = 180.0D0/!DPI
  keyword = STRUPCASE(strtrim(strmid( hdr, 0, 8), 2))
 
@@ -247,6 +269,7 @@ pro extast,hdr,astr,noparams, alt=alt
  if N_ctype2 GT 0 then ctype[1] = lvalue[l[N_ctype2-1]]
  ctype = strtrim(ctype,2)
 
+
  badco = lon_form NE lat_form 
  CASE lon_form OF
      -1: coord = 'X'  ; unknown type of coordinate
@@ -298,7 +321,6 @@ pro extast,hdr,astr,noparams, alt=alt
                 if gsssparams EQ 0 then noparams = 4
                 return
         endif
-        ctype = ['RA---TAN','DEC--TAN']
  endif
 
  if (ctype[0] EQ 'PIXEL') then return
@@ -324,6 +346,32 @@ pro extast,hdr,astr,noparams, alt=alt
  cd = dblarr(2,2)
  cdelt = [1.0d,1.0d]
 
+; Look for distortion keywords pointing to another FITS extension
+ 
+ cpdis1 = ''
+ l = where(keyword EQ 'CPDIS1',  N_cpdis1)
+ if N_cpdis1 GT 0 then cpdis1 = strtrim(lvalue[l[N_cpdis1-1]],2)
+ haslookup =  strupcase(cpdis1) EQ 'LOOKUP'
+ if arg_present(has_cpdis) then has_cpdis = haslookup else begin 
+	if haslookup then begin 
+	    message, /inf, $
+		'Warning - FITS header may point to table lookup distortions (CPDIS1)'
+		 message,/inf, 'Use FITS_XYAD or FITS_ADXY to include distortion lookup table'
+    endif
+   endelse
+ 
+ d2imdis1 = ''  
+ l = where(keyword EQ 'D2IMDIS1',  N_d2imdis1)
+ if N_d2imdis1 GT 0 then d2imdis1 = strtrim(lvalue[l[N_cpdis1-1]],2)
+ haslookup =  strupcase(d2imdis1) EQ 'LOOKUP'
+ if arg_present(has_d2imdis) then has_d2imdis =haslookup else begin 
+	if haslookup then begin 
+	    message, /inf, $
+		'Warning - FITS header may point to table lookup distortions (D2IMDIS1)'
+		 message,/inf, 'Use FITS_XYAD or FITS_ADXY to include distortion lookup table'
+    endif
+   endelse
+   
 GET_CD_MATRIX:
 
  l = where(keyword EQ 'PC'+lonc+'_'+lonc + alt,  N_pc11) 
@@ -354,6 +402,9 @@ GET_CD_MATRIX:
         if N_cd21 GT 0 then cd[1,0]  = lvalue[l[N_cd21-1]]
         l = where(keyword EQ 'CD'+latc+'_'+latc + alt,  N_cd22) 
         if N_cd22 GT 0 then cd[1,1]  = lvalue[l[N_cd22-1]]
+        det = cd[0,0]*cd[1,1] - cd[0,1]*cd[1,0]
+        if det LT 0 then sgn = -1 else sgn = 1
+        crota  = atan(  sgn*cd[0,1],  sgn*cd[0,0] ) 
         noparams = 2
     endif else begin
 

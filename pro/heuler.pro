@@ -67,6 +67,7 @@ pro heuler,h_or_astr, Galactic = galactic, celestial = celestial, $
 ;       Use PV2 tag in astrometry structure rather than PROJP1 W. L. May 2004
 ;       Use double precision to compute new North pole  W.L. Aug 2005
 ;       Check for non-standard CTYPE value W.L. Sep 2012
+;		Also update PV1 values with LONPOLE, LATPOLE if present W.L. June 2020
 ;-
 compile_opt idl2
 if N_params() LT 1 then begin
@@ -153,12 +154,22 @@ endif else message, $
  EULER,0.0d,90.0d,lon1,lat1,iselect
  WCS_ROTATE,lon1,lat1,lonpole, latpole, astr.crval,LONGPOLE = astr.longpole, $
              LATPOLE = astr.latpole, THETA0 = theta0
+               	
 
 ;Update astrometry structure
  astr.ctype = [ctype1,ctype2]
  astr.longpole = lonpole
  astr.latpole = latpole
  astr.crval = [ncrval1, ncrval2]
+ 
+;Also update PV1[3] and PV1[4] if present
+
+  if N_elements(astr.PV1) EQ 5 then begin
+  	astr.pv1[3] = lonpole
+  	astr.pv1[4] = latpole
+  endif
+  
+  astr.coord_sys = strmid(conv,0,1)		
 
  if sz.type_name EQ 'STRING' then begin        ;Update FITS header? 
           putast, h_or_astr, astr, alt = alt_out 

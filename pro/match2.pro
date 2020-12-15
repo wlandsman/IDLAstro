@@ -43,6 +43,10 @@
 ;       but for matching purposes, only the first one found will
 ;       be reported.
 ;
+;       MATCH2 internally converts values to double precision and so 
+;       cannot be used with long64 integers that cannot be converted to double.
+;       Best to convert such long64 integers to strings before matching.
+;
 ;       If A and B are string arrays, then non-printable ASCII values
 ;       1B and 2B will confuse the algorithm.  Don't use these
 ;       non-printable characters in strings.
@@ -70,6 +74,7 @@
 ;   More updated documentation (example), 03 Sep 2007
 ;   Bug fix for string arrays with numerical contents; the subset
 ;   string is now 1B and 2B; this is now documented, 2014-10-20 CM
+;   Added warning about problems with LONG64 values WL 2020-10-29
 ;   
 ; 
 ;-
@@ -118,14 +123,16 @@ pro match2, a, b, suba, subb
 
 ; sort combined list
 
- if da EQ 7 OR db EQ 7 then begin
+ if da EQ 7 OR db EQ 7 then begin         ;String input?
      vecstr = [string(1b), string(2b)]
      ;; String sort (w/ double key)
      sub = sort(c+vecstr[vec])
  endif else begin
      ;; Number sort (w/ double key)
-     eps = (machar(/double)).eps
-     sub = sort(double(c)*(1d + vec*eps))
+     mc = machar(/double)
+     if (da ge 12) || (db ge 12) && (max(c) gt (long64(mc.ibeta))^(mc.it)) then message, $
+         'ERROR - match2 cannot be used with values exceeding double precision range.
+     sub = sort(double(c)*(1d + vec*mc.eps))
  endelse
 
  c = c[sub]

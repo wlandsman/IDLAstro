@@ -12,9 +12,9 @@ pro linterp, Xtab, Ytab, Xint, Yint, MISSING = missing, NoInterp = NoInterp
 ;             truncates to the endpoints (or uses the MISSING keyword)
 ;         (3) LINTERP (unlike INTERPOL) uses the intrinsic INTERPOLATE function
 ;                 and thus may have a speed advantage
-;         (4) LINTERP always converts the new grid vector to floating point 
-;                (because INTERPOLATE does this) whereas INTERPOL() will 
-;                 keep double precision if supplied.
+;         (4) Prior to V8.2.3 LINTERP converted the new grid vector to floating point 
+;                (because INTERPOLATE does this) whereas INTERPOL() and post-V8.2.3 
+;                LINTERP will keep double precision if supplied.
 ;
 ;       Use QUADTERP for quadratic interpolation.
 ;
@@ -36,7 +36,7 @@ pro linterp, Xtab, Ytab, Xint, Yint, MISSING = missing, NoInterp = NoInterp
 ;       Yint  -  Scalar or vector with the interpolated value(s) of the 
 ;               dependent variable at the XINT grid points.
 ;               YINT is double precision if XTAB or YTAB are double,
-;               otherwise YINT is REAL*4
+;               otherwise YINT is float
 ;
 ; OPTIONAL INPUT KEYWORD:
 ;       MISSING - Scalar specifying YINT value(s) to be assigned, when Xint
@@ -74,6 +74,7 @@ pro linterp, Xtab, Ytab, Xint, Yint, MISSING = missing, NoInterp = NoInterp
 ;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Added NoInterp keyword  W. Landsman      July 1999
 ;       Work for unsigned, 64 bit integers  W. Landsman  October 2001
+;       Call INTERPOLATE with /DOUBLE if V8.2.3 W. Landsman Feb 2015
 ;-
  On_error,2
  compile_opt idl2
@@ -102,6 +103,8 @@ pro linterp, Xtab, Ytab, Xint, Yint, MISSING = missing, NoInterp = NoInterp
 
  if (ytype LE 3) || (ytype GE 12) then  $             ;Integer or byte input?
      Yint = interpolate( float(Ytab), r) else $
+     if !VERSION.RELEASE GE '8.2.3' then $
+     Yint = interpolate( Ytab, r, DOUBLE = (ytype EQ 5) ) else $
      Yint = interpolate( Ytab, r)
 
  endelse 

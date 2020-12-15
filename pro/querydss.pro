@@ -37,7 +37,7 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;            target's coordinates.  The default is to use Simbad for
 ;            the target search.
 ;
-;     OUTPUT  - scalar string specifying name of output FITS file.    
+;     OUTFILE  - scalar string specifying name of output FITS file.    
 ;            If set, then the output IDL variables are not used.
 ; 
 ;     /STSCI - obsolete keyword, now does nothing, since STSCI is the default
@@ -46,9 +46,13 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;     SURVEY - Scalar string specifying which survey to retrieve.  
 ;          Possible values are 
 ;          '1' - First generation (red), this is the default
+;          '1b' - First generation (blue)
 ;          '2b' - Second generation blue
 ;          '2r' - Second generation red
 ;          '2i' - Second generation near-infrared
+;
+;     TIMEOUT - numeric scalar giving the time in seconds to wait for a server
+;             response.   Default is 20 seconds
 ; 
 ;      Note that 2nd generation images may not be available for all regions
 ;      of the sky.   Also note that the first two letters of the 'REGION'
@@ -62,18 +66,23 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;             contains a single 0.
 ;
 ;       Hdr - The FITS header of the image. Empty string in case of errors.
+;             This header will contain a "best" tangent approximation to the 
+;             Guide Star astrometry as the default.     However, the original 
+;             Guide Star astrometry keywords with up to 20 parameters will also 
+;             be present.
 ;
 ;       If the OutFile keyword is set then no outputs are returned (only the
 ;       file is written).
 ; SIDE EFFECTS: 
-;     If Im and Hdr exist in advance,  they are overwritten.
+;     If Im and Hdr exist in advance,  they are overwritten.     A temporary file
+;     may be written.
 ;
 ; RESTRICTIONS: 
 ;      Relies on a working network connection. 
 ;
 ; PROCEDURE: 
-;      Construct a query-url,  call WEBGET() and sort out the server's 
-;      answer.
+;      Construct a query-url,  fetch file with IDLNetURL object, and optionally 
+;      read the file into IDL variables.
 ;
 ; EXAMPLE:           
 ;      Retrieve an 10'  image surrounding the ultracompact HII region
@@ -92,7 +101,7 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;       IDL> QueryDSS, [288.587, 11.1510], survey='2b', out='gal045_2b.fits'
 ;   
 ; PROCEDURES CALLED:
-;       QUERYSIMBAD, WEBGET()
+;       QUERYSIMBAD
 ; MODIFICATION HISTORY: 
 ;       Written by M. Feldt, Heidelberg, Oct 2001 <mfeldt@mpia.de>
 ;       Option to supply target name instead of coords  W. Landsman Aug. 2002
@@ -100,17 +109,28 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;       Don't abort on Simbad failure W. Landsman/J. Brauher  June 2003
 ;       Added /VERBOSE keyword W. Landsman   Jan 2009
 ;       Make /STScI server the default  W. Landsman June 2010
-;      Fix OUTPUT option  W. Landsman June 2010
-;
+;       Fix OUTPUT option  W. Landsman June 2010
+;       Major rewrite to use IDLNetURL object W. Landsman September 2016
 ;-
-  On_error,2
   compile_opt idl2
-  if N_params() LT 1 then begin
+  
+  if N_params() LT 1 || (N_params() EQ 1 && ~keyword_set(outfile)) then begin
       print,'Syntax - QueryDSS, TargetName_or_coords, image, header'
       print,"           [Imsize= ,/ESO, /STScI, Survey = ['1','2b','2r','2i'] "
       print,'            /NED, OutFile = ]'
       return
    endif
+   
+   Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+    if size(oURL,/tname) EQ 'OBJREF' then $
+          oURL-> GetProperty, RESPONSE_HEADER= rspHdr else $
+          rspHdr = ''
+     void = cgErrorMsg(rspHdr,/quiet)
+     RETURN
+     ENDIF
+ 
   ;;
   if N_elements(target) EQ 2 then begin
       ra = float(target[0])
@@ -123,10 +143,13 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
              return
        endif
   endelse  
-  IF ~Keyword_Set(ImSize) THEN ImSize = 10
+  IF ~Keyword_Set(ImSize) THEN ImSize = 10 else $
+     if N_elements(ImSize) GT 1 then $
+     message,'Error - ImSize keyword must contain a scalar value'
   Equinox = 'J2000'
   ;;
   ;;
+ if N_elements(timeout) EQ 0 then timeout = 20.
  if N_elements(survey) EQ 0 then survey = '1'
  dss = strlowcase(strtrim(strmid(survey,0,2),2))
  if keyword_set(ESO) then begin
@@ -138,45 +161,57 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
   else: message,'Unrecognized Survey - should be 1, 2b, 2r or 2i'
  endcase
  endif
-  IF keyword_set(eso) THEN $ 
-    QueryURL=strcompress("http://archive.eso.org/dss/dss/image?ra="+$
-                       string(RA)+$
-                       "&dec="+$
-                       string(DEC)+$
-                       "&x="+$
-                       string(ImSize)+$
-                       "&y="+$
-                       string(ImSize)+$
-                       "&Sky-Survey="+dss +"&mime-type=download-fits", /remove) $
-  ELSE $
-    QueryURL=strcompress("http://archive.stsci.edu/cgi-bin/dss_search?ra="+$
-                         string(RA)+$
-                         "& dec="+$
-                         string(DEC)+$
-                         "& equinox="+$
-                         Equinox +$
-                         "& height="+$
-                         string(ImSize) +$
+  IF keyword_set(eso) THEN BEGIN 
+        host = 'archive.eso.org' 
+        path = 'dss/dss/image
+        queryURL = strcompress( "ra=" + string(RA)+$
+                       "&dec=" + string(DEC) + $
+                       "&x=" + string(ImSize) + $
+                       "&y="+ string(ImSize) + $
+                       "&Sky-Survey="+dss +"&mime-type=download-fits", /remove) 
+  ENDIF ELSE BEGIN      
+        host = 'archive.stsci.edu'
+        path = 'cgi-bin/dss_search
+        queryURL = strcompress( "ra=" + string(RA) + $
+                            "&dec=" + string(DEC) + $
+                         "& equinox="+ Equinox +$
+                         "& height="+ string(ImSize) +$
                          "&generation=" + dss +$                       
-                         "& width="+$
-                         string(ImSize)+$
+                         "& width="+ string(ImSize)+$
                          "& format=FITS", /remove)
-  ;;
-
+  ENDELSE      
+                      
+   oURL = obj_new('IDLnetURL')
+   oURL-> SetProperty, URL_Scheme = 'http',URL_Host=host,URL_Query=QueryURL, $
+                      URL_PATH=path,TIMEOUT = timeout
   if keyword_set(verbose) then message,/INF, QueryURL
-  if keyword_set(OutFile) then begin
-      if ~keyword_set(ESO) then dss = 'DSS' + dss
-      message,'Writing ' + dss + ' FITS file ' + outfile,/inf
-      Result = webget(QueryURL, copyfile= outfile)
-      return
-  endif
-  Result = webget(QueryURL)
-  Image = Result.Image
-  Header = Result.ImageHeader
-  ;;
-  ;; error ?
+  do_outfile = keyword_set(outfile)
+  if ~do_outfile then outfile = getenv('IDL_TMPDIR') + 'temp.fits'   
+ 
+   Result = oURL -> GET(FILENAME = outfile)    
+;Did we receive a FITS file or a .html file (if an error) ?
+  openr,lun,outfile,/get_lun
+  buf = bytarr(6)
+  readu,lun,buf
+  free_lun,lun
+  if strlowcase(buf) EQ '<html>' then begin
+            message,'Invalid DSS parameters',/INF
+            fdecomp,outfile,disk,dir,fname
+            html = disk+dir+fname + '.html'
+            file_move,outfile, html,/OVERWRITE
+            file_launch,html
+            return                   
+            endif 
+            
+    if do_outfile then begin        
+         message,'Writing FITS file ' + outfile,/inf
+        return
+      endif       
+
+       
+  Image = readfits(outfile,header)
   ;;
   IF N_Elements(Image) NE 1 THEN return
-  message, 'Problem retrieving your image! The server answered:', /info
-  print, Result.Text
+  message, 'Problem retrieving your image!,/INF
+  return
 END 

@@ -16,9 +16,11 @@
 ;	setting !p.position, !x.tickname and !y.tickname automatically.
 ;	A call (multiplot,/reset) restores original values.
 ;
-;   Coyote graphics users might want to look at CGLAYOUT
+;   Coyote graphics users can find similar functionality in CGLAYOUT
 ;        http://www.idlcoyote.com/idldoc/cg/cglayout.html
-;   which has similar functionality. 
+;   Users of the post-8.0 IDL function graphics can find similar functionality
+;   in Paulo Penteado's routine PP_MULTIPLOT
+;        http://ppenteado.net/idl/pp_lib/doc/pp_multiplot__define.html
 ; CALLING SEQUENCE:
 ;	multiplot, pmulti, 
 ;       gap=, xgap=, ygap=, 

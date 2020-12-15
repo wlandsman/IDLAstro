@@ -1,7 +1,8 @@
         FUNCTION FXPAR, HDR, NAME, ABORT, COUNT=MATCHES, COMMENT=COMMENTS, $
                         START=START, PRECHECK=PRECHECK, POSTCHECK=POSTCHECK, $
                         NOCONTINUE = NOCONTINUE, DATATYPE=DATATYPE, $
-                        NULL=K_NULL, NAN=NAN, MISSING=MISSING
+                        NULL=K_NULL, NAN=NAN, MISSING=MISSING, $
+                        MULTIVALUE=MULTIVALUE
 ;+
 ; NAME: 
 ;        FXPAR()
@@ -109,13 +110,15 @@
 ;       /NAN    = If set, then return Not-a-Number (!values.f_nan) for missing
 ;                 values.  Ignored if keyword MISSING is present.
 ;       /NULL   = If set, then return !NULL (undefined) for missing values.
-;                 Ignored if MISSING of /NAN is present, or if earlier than IDL
+;                 Ignored if MISSING or /NAN is present, or if earlier than IDL
 ;                 version 8.0.  If multiple values would be returned, then
 ;                 MISSING= or /NAN should be used instead of /NULL, making sure
 ;                 that the datatype is consistent with the non-missing values,
 ;                 e.g. MISSING='' for strings, MISSING=-1 for integers, or
 ;                 MISSING=-1.0 or /NAN for floating point.  /NAN should not be
 ;                 used if the datatype would otherwise be integer.
+;       /MULTIVALUE = Allow multiple values to be returned, if found in the
+;                     header.
 ; OPTIONAL OUTPUT KEYWORD:
 ;       COUNT   = Optional keyword to return a value equal to the number of
 ;                 parameters found by FXPAR.
@@ -127,7 +130,7 @@
 ;
 ;       The system variable !err is set to -1 if parameter not found, 0 for a
 ;       scalar value returned.  If a vector is returned it is set to the number
-;       of keyword matches found.
+;       of keyword matches found.    This use of !ERR is deprecated.
 ;
 ;       If a keyword occurs more than once in a header, a warning is given,
 ;       and the first occurence is used.  However, if the keyword is "HISTORY",
@@ -170,6 +173,12 @@
 ;               Don't convert LONG64 numbers to to double precision
 ;       Version 12, William Thompson, 13-Aug-2014
 ;               Add keywords MISSING, /NAN, and /NULL
+;	Version 13, W. Landsman 25-Jan-2018
+;		Return ULONG64 integer if LONG64 would overflow
+;       Version 14, William Thompson, 03-Jun-2019
+;               Add /MULTIVALUE keyword
+;       Version 15, Mats Löfdahl, 11-Sep-2019
+;               Read CONTINUE mechanism multi-line comments.
 ;-
 ;------------------------------------------------------------------------------
 ;
@@ -272,10 +281,16 @@
             NFOUND = WHERE(KEYWORD EQ NAM, MATCHES)
             IF MATCHES EQ 0 AND START GE 0 THEN GOTO, RESTART
             IF START GE 0 THEN NFOUND = NFOUND + MN
-            IF (MATCHES GT 1) AND (NAM NE 'HISTORY ') AND               $
-                (NAM NE 'COMMENT ') AND (NAM NE '') THEN        $
-                MESSAGE,/INFORMATIONAL, 'WARNING- Keyword ' +   $
-                NAM + 'located more than once in ' + ABORT
+            IF (MATCHES GT 1) THEN BEGIN
+                IF KEYWORD_SET(MULTIVALUE) THEN BEGIN
+                    VECTOR = 1
+                    NUMBER = INDGEN(MATCHES) + 1
+                END ELSE IF (NAM NE 'HISTORY ') AND (NAM NE 'COMMENT ') $
+                  AND (NAM NE '') THEN BEGIN
+                    MESSAGE, /INFORMATIONAL, 'WARNING- Keyword ' +   $
+                             NAM + 'located more than once in ' + ABORT
+                ENDIF
+            ENDIF
             IF (MATCHES GT 0) THEN START = NFOUND[MATCHES-1]
         ENDELSE
 ;
@@ -300,6 +315,7 @@
                     NEXT_CHAR = 0
                     OFF = 0
                     VALUE = ''
+                    COMMENT = ''
 ;
 ;  Find the next apostrophe.
 ;
@@ -322,21 +338,19 @@ NEXT_APOST:
 ;  Extract the comment, if any.
 ;
                     SLASH = STRPOS(TEST, "/", ENDAP)
-                    IF SLASH LT 0 THEN COMMENT = '' ELSE        $
-                        COMMENT = STRMID(TEST, SLASH+1, STRLEN(TEST)-SLASH-1)
-
+                    IF SLASH GE 0 THEN COMMENT += STRMID(TEST, SLASH+1, STRLEN(TEST)-SLASH-1)
 ;
 ; CM 19 Sep 1997
 ; This is a string that could be continued on the next line.  Check this
 ; possibility with the following four criteria: *1) Ends with '&'
 ; (2) Next line is CONTINUE  (3) LONGSTRN keyword is present (recursive call to
-;  FXPAR) 4. /NOCONTINE is not set
+;  FXPAR) 4. /NOCONTINUE is not set
 
-    IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
-                    OFF = OFF + 1
-                    VAL = STRTRIM(VALUE,2)
+                    IF NOT KEYWORD_SET(NOCONTINUE) THEN BEGIN
+                       OFF = OFF + 1
+                       VAL = STRTRIM(VALUE,2)
 
-                    IF (STRLEN(VAL) GT 0) AND $
+                       IF (STRLEN(VAL) GT 0) AND $
                       (STRMID(VAL, STRLEN(VAL)-1, 1) EQ '&') AND $
                       (STRMID(HDR[NFOUND[I]+OFF],0,8) EQ 'CONTINUE') THEN BEGIN
                        IF (SIZE(FXPAR(HDR, 'LONGSTRN',/NOCONTINUE)))[1] EQ 7 THEN BEGIN                    
@@ -405,12 +419,15 @@ NOT_COMPLEX:
                                 GE 0) OR (STRPOS(VALUE,'D') GE 0) THEN BEGIN
                             IF ( STRPOS(VALUE,'D') GT 0 ) OR $
                                     ( STRLEN(VALUE) GE 8 ) THEN BEGIN
-                                VALUE = DOUBLE(VALUE)
+                            	VALUE = DOUBLE(VALUE)
                                 END ELSE VALUE = FLOAT(VALUE)
                         ENDIF ELSE BEGIN
                             LMAX = 2.0D^31 - 1.0D
                             LMIN = -2.0D^31       ;Typo fixed Feb 2010
-                            VALUE = LONG64(VALUE)
+                            IF STRMID(VALUE,0,1) NE '-' THEN BEGIN
+                            	VALUE = ULONG64(VALUE)
+                            	IF VALUE LT ULONG64(2)^63-1 THEN VALUE = LONG64(VALUE)
+                            ENDIF ELSE VALUE = LONG64(VALUE)
                             if (VALUE GE LMIN) and (VALUE LE LMAX) THEN $
                                 VALUE = LONG(VALUE)
                         ENDELSE

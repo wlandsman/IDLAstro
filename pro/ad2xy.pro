@@ -96,6 +96,7 @@ pro ad2xy, a, d, astr, x, y
 ;     Evaluate TPV distortion (SCAMP) if present  W. Landsman  Jan 2014
 ;     Support IRAF TNX projection M. Sullivan U. of Southhamptom  Mar 2014
 ;     No longer check that CDELT[0] differs from 1 W. Landsman Apr 2015
+;     Default projection is PIXEL not Tangent  W. Landsman Oct 2017
 ;     
 ;-
 
@@ -131,11 +132,6 @@ pro ad2xy, a, d, astr, x, y
                ((coord[0] EQ 'ELAT') && (coord[1] EQ 'ELON'))
  ENDELSE
  if reverse then crval = rotate(crval,2)        ;Invert CRVAL?
-
- if (ctype[0] EQ '') then begin   
-      ctype = ['RA---TAN','DEC--TAN']
-      message,'No CTYPE specified - assuming TANgent projection',/INF
- endif      
      
   spherical = strmid(astr.ctype[0],4,1) EQ '-'
   if spherical then begin

@@ -1,4 +1,4 @@
-pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
+pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave, incremental = incremental
 ;+
 ; NAME:
 ;       CHECKSUM32
@@ -11,7 +11,7 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ;       http://fits.gsfc.nasa.gov/registry/checksum.html
 ;
 ; CALLING SEQUENCE:
-;       CHECKSUM32, array, checksum, [/FROM_IEEE, /NoSAVE]
+;       CHECKSUM32, array, checksum, [/FROM_IEEE, /NoSAVE, /Incremental]
 ;
 ; INPUTS:
 ;       array - any numeric idl array.  If the number of bytes in the array is 
@@ -19,14 +19,21 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ;               (the array is returned unchanged).   Convert a string array 
 ;               (e.g. a FITS header) to bytes prior to calling CHECKSUM32.
 ;
-; OUTPUTS:
+; INPUT-OUTPUT:
 ;       checksum - unsigned long scalar, giving sum of array elements using 
-;                  ones-complement arithmetic
+;                ones-complement arithmetic.    This is normally an output
+;                parameter, but can also be an input parameter if /Incremental 
+;                is set.  
 ; OPTIONAL INPUT KEYWORD:
 ;
 ;      /FROM_IEEE - If this keyword is set, then the input is assumed to be in
 ;           big endian format (e.g. an untranslated FITS array).   This keyword
 ;           only has an effect on little endian machines (e.g. Linux boxes).
+;
+;      /Incremental - If this keyword is set, use the checksum
+;           parameter as input of a partial checksum from a previous
+;           call, allowing checksums for large arrays to be calculated 
+;           incrementally. 
 ;
 ;      /NoSAVE - if set, then the input array is not saved upon exiting.   Use 
 ;           the /NoSave keyword to save time if the input array is not needed 
@@ -41,9 +48,17 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ; RESTRICTIONS:
 ;       (1) Not valid for object or pointer data types
 ; EXAMPLE:
-;       Find the 32 bit checksum of the array x = findgen(35)
+;        (1) Find the 32 bit checksum of the array x = findgen(35)
 ;
 ;       IDL> checksum32, x, s    ===> s =  2920022024
+;
+;        (2) Find the checksum of an array too large to fit in memory at one time
+;            by breaking it up into 15 pieces.
+;
+;       IDL> a = randomn(seed,100,100, 15)
+;		IDL> for i=0,14 do checksum32,a[*, *,i], checksum_incr, /incremental
+;
+;
 ; FUNCTION CALLED:
 ;       HOST_TO_IEEE, IS_IEEE_BIG(), N_BYTES()
 ; MODIFICATION HISTORY:
@@ -56,11 +71,12 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 ;       Sep. 2004 update not implemented correctly (sigh) W. Landsman Dec 2004         
 ;       No need to byteswap 4 byte datatypes on little endian W. L. May 2009
 ;       Use /INTEGER keyword to TOTAL() function W.L. June 2009
+;       Allow incremental calculation of checksums. Mats Löfdahl July 2019.
 ;       
 ;-
- if N_params() LT 2 then begin
-      print,'Syntax - CHECKSUM32, array, checksum, /FROM_IEEE, /NoSAVE'
-      return
+  if N_params() LT 2 then begin
+     print,'Syntax - CHECKSUM32, array, checksum, /FROM_IEEE, /NoSAVE'
+     return
  endif
  idltype = size(array,/type)
 
@@ -86,10 +102,11 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 
  maxnum = long64(2)^31       
  Niter =  (N-1)/maxnum
- checksum = long64(0)
-  word32 =  long64(2)^32
-  bswap  = ~is_ieee_big()
-  if bswap then begin
+; If keyword incremental is set, use existing value of checksum as input.
+ if ~keyword_set(incremental) || n_elements(checksum) eq 0 then checksum = long64(0)
+ word32 =  long64(2)^32
+ bswap  = ~is_ieee_big()
+ if bswap then begin
        if ~keyword_set( from_ieee) then begin 
             if (idltype NE 3) && (idltype NE 4) then begin 
 	         if idltype NE 1 then host_to_ieee, uarray,idltype=idltype   
@@ -118,5 +135,9 @@ pro checksum32, array, checksum, FROM_IEEE = from_IEEE, NOSAVE = nosave
 
  endfor
 
+ checksum_part = checksum
+ 
  return
  end
+
+

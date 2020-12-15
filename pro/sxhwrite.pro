@@ -60,7 +60,7 @@ pro sxhwrite,name,h
 
  ZPARCHECK, 'SXHWRITE', h, 2, 7, 1, 'FITS header'
 
- sxdelpar,'XTENSION',h       ;For SDAS header SIMPLE must be the first line
+ sxdelpar,h,'XTENSION'       ;For SDAS header SIMPLE must be the first line
  SXADDPAR, h, 'SIMPLE', 'F', ' Written by IDL:  ' + systime()
 
 ; Determine if an END line occurs, and add one if necessary

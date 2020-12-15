@@ -35,9 +35,11 @@ function sunsymbol, FONT=font
 ;	IDL>  cgplot,indgen(10),xtit = 'M / M' + sunsymbol()
 ;
 ; RESTRICTIONS:
-;	(1) The postscript output does not have the dot perfectly centered in 
-;		the circle.   For a better symbol, consider postprocessing with
-;               psfrag (see http://www.astrobetter.com/idl-psfrag/ ).
+;	(1) For the best postscript output use Font=1 and IDL Version V8.6.1
+;           or later.  Otherwise, the postscript output will not have the dot
+;           perfectly centered in the circle.   For a better symbol, consider 
+;            postprocessing with psfrag 
+;           (see http://www.astrobetter.com/idl-psfrag/ ).
 ;	(2) SUNSYMBOL() includes subscript output positioning commands in the 
 ;		output string.
 ;       (3) For true-type fonts(Font=1) and IDL Versions prior to V8.2,
@@ -54,11 +56,23 @@ function sunsymbol, FONT=font
 ;	Written,  W. Landsman,    HSTX          April, 1997
 ;       Allow font keyword to be passed.  T. Robishaw Apr. 2006
 ;       Since IDL8.2 a Sun symbol is available for true-type fonts Feb 2013
+;       Use a better true-type font symbol for V8.6.1 or later October 2019
 ;-
- On_error,2
+
  compile_opt idl2
 
+Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN,''
+     ENDIF
+
  if N_elements(font) eq 0 then font = !p.font
+
+ if (font EQ 1) && (!VERSION.RELEASE GE '8.6.1') then  begin
+     return,  '!D!V'+ string(244b) + '!X'
+ endif    
  if (font EQ -1) then return,'!D!9n!N!X' else $
  if (!D.NAME NE 'PS')  then return,'!DSun!N' else begin
 

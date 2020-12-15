@@ -62,7 +62,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
 ;                The file is assumed to be compressed if it ends in '.gz'
 ;       DELIMITER - Character(s) specifying delimiter used to separate 
 ;                columns.   Usually a single character but, e.g. delimiter=':,'
-;                specifies that either a colon or comma as a delimiter. 
+;                specifies either a colon or a comma as the delimiter. 
 ;                Set DELIM = string(9b) to read tab separated data
 ;                The default delimiter is either a comma or a blank.
 ;       /NAN - if set, then an empty field will be read into a floating or 
@@ -125,17 +125,10 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
 ;       the value 0.13 read with an 'I' format will be converted to 0.
 ;
 ; PROCEDURES CALLED
-;       GETTOK(), STRNUMBER()
-;       The version of STRNUMBER() must be after August 2006.
+;       cgErrorMsg(), GETTOK(), REMCHAR, STRNUMBER()
 ; REVISION HISTORY:
 ;       Written         W. Landsman                 November, 1988
-;       Modified             J. Bloch                   June, 1991
-;       (Fixed problem with over allocation of logical units.)
-;       Added SKIPLINE and NUMLINE keywords  W. Landsman    March 92
-;       Read a maximum of 25 cols.  Joan Isensee, Hughes STX Corp., 15-SEP-93.
-;       Call NUMLINES() function W. Landsman          Feb. 1996
-;       Added DELIMITER keyword  W. Landsman          Nov. 1999
-;       Fix indexing typos (i for k) that mysteriously appeared W. L. Mar. 2000
+;        Added DELIMITER keyword  W. Landsman          Nov. 1999
 ;       Hexadecimal support added.  MRG, RITSS, 15 March 2000.
 ;       Default is comma or space delimiters as advertised   W.L. July 2001
 ;       Faster algorithm, use STRSPLIT if V5.3 or later  W.L.  May 2002
@@ -166,8 +159,9 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
 ;                          W.L. July 2012
 ;       Read up to 50 columns W.L.  March 2013
 ;       Assume a compressed file if it ends in '.gz'  W.L.  Oct 2015
+;       Avoid error if more format codes than output variables W.L. April 2017
 ;-
-  On_error,2                    ;Return to caller
+
   compile_opt idl2
 
   if N_params() lt 2 then begin
@@ -176,6 +170,12 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
      return
   endif
 
+  Catch, theError
+  if theError NE 0 then begin
+       Catch,/Cancel
+       void = cgErrorMsg(/quiet)
+  return
+  endif
 ; Get number of lines in file
 
   ngood = 0L                 ;Number of good lines
@@ -266,6 +266,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
      if idltype[i] GT 0 then begin
         bigarr[k] = ptr_new(make_array(nlines,type=idltype[i]))
         k++
+        if k GE ncol then break
      endif
 
   endfor
@@ -293,7 +294,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
      if strlen(temp) LT ncol then begin ;Need at least 1 chr per output line
         ngood--
         if ~keyword_set(SILENT) then $
-           message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF
+           message,'Skipping Line (strlen) ' + strtrim(skipline+j+1,2),/INF
         goto, BADLINE 
      endif
 
@@ -310,7 +311,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
        :strsplit(strcompress(temp) ,delimiter,/extract, preserve=preserve_null) 
      if N_elements(var) LT nfmt then begin 
         if ~keyword_set(SILENT) then $ 
-           message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF 
+           message,'Skipping Line (n_elements) ' + strtrim(skipline+j+1,2),/INF
         ngood--            
         goto, BADLINE           ;Enough columns?
      endif
@@ -330,7 +331,7 @@ pro readcol,name,v1,V2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15, $
            tst = strnumber(var[i],val,hex=hex[i],NAN=nan)   ;Valid number?
            if ~tst  then begin                           ;If not, skip this line
               if ~keyword_set(SILENT) then $ 
-                 message,'Skipping Line ' + strtrim(skipline+j+1,2),/INF 
+                 message,'Skipping Line (check_numeric) ' + strtrim(skipline+j+1,2),/INF
               ngood--
               goto, BADLINE 
            endif
@@ -361,7 +362,7 @@ endelse
   if ngood lt Nlines then for i=0,ncol-1 do $
      (*bigarr[i]) = (*bigarr[i])[0:ngood-1]
 
-; Use SCOPE_VARFETCH to place into output variables..
+; Use SCOPE_VARFETCH to place into output variables...
    for i=0,ncol-1 do $
          (SCOPE_VARFETCH(vv[i],LEVEL=0)) = reform(*bigarr[i])
     ptr_free, bigarr	 

@@ -40,12 +40,12 @@ pro planet_coords, date, ra, dec, planet=planet, jd = jd, jpl = jpl
 ;             A copy of the JPL ephemeris FITS file JPLEPH.405 is available in
 ;                 http://idlastro.gsfc.nasa.gov/ftp/data/         
 ; EXAMPLES:
-;    (1)  Find the RA, Dec of Venus on 1992 Dec 20
-;          IDL> planet_coords, [1992,12,20], ra,dec    ;Compute for all planets
+;    (1)  Find the RA, Dec of Venus on 2018 Dec 20
+;          IDL> planet_coords, [2018,12,20], ra,dec    ;Compute for all planets
 ;          IDL> print,adstring(ra[1],dec[1],1)         ;Venus is second planet
-;     ====> RA = 21 05  2.66  Dec = -18 51 45.7
-;    This position is 37" from the full DE406 ephemeris position of
-;          RA = 21 05  5.24        -18 51 43.1
+;     ====> RA = 14 42 41.17  Dec = -12 30 53.5
+;    This position is 61" from the full JPL ephemeris position of
+;          RA = 14 42 45.32       -12 30 50.6
 ;
 ;    (2) Return the current RA and Dec of all 8 planets using JPL ephemeris
 ;          IDL> get_juldate, jd                 ;Get current Julian Date
@@ -146,7 +146,7 @@ pro planet_coords, date, ra, dec, planet=planet, jd = jd, jpl = jpl
 
    helio,jj,index,rad,lon,lat,/radian
 
-; extract Earth's info
+; extract Earth-Moon barycenter info
 
    helio,jj,3,rade,lone,late,/radian
 

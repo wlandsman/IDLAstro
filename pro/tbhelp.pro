@@ -46,11 +46,7 @@ pro tbhelp,h, TEXTOUT = textout
      print,'Syntax - tbhelp, hdr, [TEXTOUT= ]'     
      return
  endif
-; Define !TEXTOUT and !TEXTUNIT if not already present
- defsysv,'!TEXTOUT',exists=ex                  ; Check if !TEXTOUT exists.
- if ex eq 0 then defsysv,'!TEXTOUT',1          ; If not define it.
- defsysv,'!TEXTUNIT',exists=ex                 ; Check if !TEXTUNIT exists.
- if ex eq 0 then defsysv,'!TEXTUNIT',0         ; If not define it.
+
 
  zparcheck, 'TBHELP', h, 1, 7, 1, 'Table Header'
 
@@ -69,7 +65,6 @@ pro tbhelp,h, TEXTOUT = textout
  tform = sxpar(h,'TFORM*', Count = N_tform)      ;Get required TFORM* values
  n = n > N_tform
  
- if ~keyword_set(TEXTOUT) then textout = !TEXTOUT
  textopen,'tbhelp',TEXTOUT=textout
 
  printf,!TEXTUNIT,'FITS Binary Table: ' + $

@@ -77,14 +77,13 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 ;        IDL> xyad, hdr, 23.3, 100.2, /GALACTIC
 ;
 ; PROCEDURES CALLED
-;       ADSTRING(), EULER, EXTAST, GSSSXYAD, REPCHR(),  XY2AD
+;       ADSTRING(), EULER, EXTAST, GET_EQUINOX(), GSSSXYAD, REPCHR(),  XY2AD
 ;
 ; REVISION HISTORY:
 ;       W. Landsman                 STX          Jan, 1988
 ;       Use astrometry structure  W. Landsman    Jan, 1994
 ;       Recognize GSSS header  W. Landsman       June, 1994
 ;       Changed ADSTRING output format   W. Landsman    September 1995
-;       Converted to IDL V5.0   W. Landsman   September 1997
 ;       Use vector call to ADSTRING() W. Landsman February 2000
 ;       Added ALT input keyword  W. Landsman June 2003
 ;       Add precision keyword  W. Landsman February 2004
@@ -96,9 +95,9 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 ;       Fix display when no equinox in header W.L. Dec 2007
 ;       Fix header display for noncelestial coords W.L. Jan 2008
 ;       Check for non-standard projections, set FK4 flag. J. P. Leahy Jul 2013
+;       Use CATCH instead of ON_ERROR, 2  W. Landsman May 2018
 ;-
  compile_opt idl2
- On_error,2
 
  npar = N_params()
  if ( npar EQ 0 ) then begin
@@ -108,8 +107,15 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
         print,'X,Y - Input X and Y positions (scalar or vector)'
         print,'A,D - Output RA and Dec in decimal degrees'
         return
- endif                                                         
-
+ endif 
+ 
+  Catch, theError
+ IF theError NE 0 then begin
+     Catch,/Cancel
+     void = cgErrorMsg(/quiet)
+     RETURN
+     ENDIF
+                                                    
   extast, hdr, astr, noparams, ALT = alt       ;Extract astrometry structure
 
   if ( noparams LT 0 ) then begin
@@ -128,7 +134,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
          else: xy2ad, x, y, astr, a, d
   endcase
   titname = strmid(astr.ctype,0,4)
-  if (titname[0] EQ 'DEC-') or (titname[0] EQ 'ELAT') or $
+  if (titname[0] EQ 'DEC-') || (titname[0] EQ 'ELAT') || $
           (titname[0] EQ 'GLAT') then titname = rotate(titname,2)
 
   eqnx = get_equinox(hdr,code)  
@@ -161,7 +167,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
       titname = ['RA--','DEC-']
   endif 
 
-  if (npar lt 5) or keyword_set(PRINT) then begin
+  if (npar lt 5) || keyword_set(PRINT) then begin
         g = where( finite(d) and finite(a), Ng)
 	 tit1= titname[0]
 	 t1 = strpos(tit1,'-')
@@ -179,7 +185,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 	if sexig then begin 
   
  	eqnx = code NE -1 ? '_' + string(eqnx,f='(I4)') :  '    '
-	tit = tit +  $
+	tit +=  $
 	   '        ' + tit1  + eqnx +  '      ' + tit2 + eqnx
         if N_elements(precision) EQ 0 then precision = 1
         str = replicate('    ---          ---    ', Npts)
@@ -195,7 +201,7 @@ pro xyad, hdr, x, y, a, d, PRINT = print, GALACTIC = galactic, ALT = alt, $
 	    unit2 = strtrim( sxpar( hdr, 'CUNIT2'+alt,count = N_unit2),2)
             if N_unit2 EQ 0 then unit2 = ''
        print,'    X       Y         ' + titname[0] + '     ' + titname[1] 
-       if (N_unit1 GT 0) or (N_unit2 GT 0) then $
+       if (N_unit1 GT 0) || (N_unit2 GT 0) then $
        print,unit1 ,unit2,f='(t23,a,t33,a)' 	    
         for i=0l, npts-1 do $
        print,FORMAT=fmt, float(x[i]), float(y[i]), a[i], d[i]

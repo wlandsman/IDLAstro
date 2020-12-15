@@ -66,7 +66,7 @@ function boxave, array, xsize, ysize
      message,'Syntax -   out =  BOXAVE( array, xsize, [ysize ])',/NoName
 
  s = size(array)
- if ( s[0] NE 1 ) and ( s[0] NE 2 ) then $
+ if ( s[0] NE 1 ) && ( s[0] NE 2 ) then $
      message,'Input array (first parameter) must be 1 or 2 dimensional'
 
  if N_elements(xsize) EQ 0 then read,'BOXAVE: Enter box size: ',xsize 
@@ -76,7 +76,7 @@ function boxave, array, xsize, ysize
  ninx = s[1]                                  
  noutx = ninx/xsize     
  type = s[ s[0] + 1]
- integer = (type LT 4) or (type GE 12)
+ integer = (type LT 4) || (type GE 12)
 
  if s[0] EQ 1 then begin                ; 1 dimension?
 

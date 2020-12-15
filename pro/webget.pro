@@ -1,14 +1,20 @@
-;+
+ ;+
 ; NAME: 
-;    WEBGET()
+;	WEBGET()
 ;
 ; PURPOSE: 
-;    Use the IDL SOCKET procedure to get data from http servers
+;	Use the IDL SOCKET procedure to get data from http servers
 ;
 ; EXPLANATION: 
-;     WEBGET() can access http servers - even from behind a firewall - 
-;     and perform simple downloads. Currently, text and FITS files can be 
-;     accessed.    
+;	WEBGET() can access http servers - even from behind a firewall - 
+;	and perform simple downloads. Currently, text and FITS files can be 
+;	accessed.    
+;
+;	This function is now partially deprecated because the IDLNetURL object is a much 
+;	more robust way of transferring files across the Web.    However webget()
+;   remains useful for maintaining an open unit, e.g. see querydss.pro 
+;
+;	The standard IDL function wget.pro is an alternative for copying files.  
 ;
 ; CALLING SEQUENCE: 
 ;      a=webget(URL)
@@ -22,7 +28,7 @@
 ;       COPYFILE - if set to a valid filename (file must have write permission),
 ;            the data contents of the web server's answer is copied to that 
 ;            file.
-;       HTTP10 - If set, then use the HTTP 1.0 
+;       HTTP10 - If set, then use the HTTP 1.0 protocol
 ;       POST - if set to a structure, the structure tags and values
 ;              will be used as post variables and POST'ed to the URL.
 ;              If POST is not set, the normal HTTP GET is used to
@@ -68,22 +74,10 @@
 ;     FITS file.
 ;
 ; EXAMPLE: 
-;      IDL> a=webget('http://www.mpia.de/index.html')
-;      IDL> print,a.Text
-;      or
-;
-;          > PointingRA=0.0
-;          > PointingDE=30.0
-;          > QueryURL = strcompress("http://archive.eso.org/dss/dss/image?ra="+$
-;          >                          string(PointingRA)+$
-;          >                          "&dec="+$
-;          >                          string(PointingDE)+$
-;          >                          "&x=10&y=10&Sky-Survey=DSS1&mime-type=download-fits", $
-;          >                          /remove)
-;          > a=webget(QueryURL)
-;          > tvscl,a.Image
-;          > print,a.ImageHead
-;
+;	Query the Space Telescope Science Institute Guide Star Catalog
+;    IDL> t = 'http://gsss.stsci.edu/webservices/vo/CatalogSearch.aspx?RA=250&Dec=36&SR=0.1&FORMAT=CSV'
+;    IDL> a = webget(t)
+;    IDL> print,a.text
 ;
 ; MODIFICATION HISTORY: 
 ;     Written by M. Feldt, Heidelberg, Oct 2001 <mfeldt@mpia.de>
@@ -105,6 +99,7 @@
 ;     Timeout applies to connecting as well as reading, default is now 15
 ;               seconds  W Landsman January 2012
 ;     Allow http_proxy to be upper or lower case W.L./D. Palmer Feb 2013
+;     Function is now partially deprecated  W. Landsman  December 2017
 ;-
 
 PRO MimeType,  Header, Class, Type, Length
