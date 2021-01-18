@@ -171,6 +171,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
 ;	v2.5.2 Like V2.5.1 but also when CD matrix suppied WL May 2016
 ;	v2.5.3 Add warning if CPDIS1 keyword present WL Nov 2016
 ;	v2.5.4 Add HAS_CPDIS and HAS_D2IMDIS keywords WL Nov 2017
+;   v2.5.5 Keep SIP distortion even if PV values present WL Jan 2021
 ;-
 
  compile_opt idl2
@@ -223,7 +224,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
  typ = WHERE(test GE 0, ntyp)
  lon = -1  & lat = -1
  lon_form = -1 & lat_form = -1
- 
+
  IF ntyp GT 0 THEN BEGIN
      ctlen = ctlen[typ] - STRLEN('CTYPE'+alt) ; gives # digits in axis number
      
@@ -251,7 +252,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
      lat = MAX(lat,subs)
      lat_form = lat GE 0 ? form[subs] : -1
  ENDIF
- 
+
 ;
 ; Longitude axis data is initially stored in element 0 and latitude
 ; axis data in element 1 of the various arrays. For backwards compatibility,
@@ -293,6 +294,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
 
  tpv = strmid(ctype[0],2,3,/reverse) EQ 'TPV'
  tnx = strmid(ctype[0],2,3,/reverse) EQ 'TNX'
+ sip = strmid(ctype[0],2,3,/reverse) EQ 'SIP'
  
  IF (TPV || tnx) THEN BEGIN 
     proj = 'TAN'
@@ -345,7 +347,7 @@ pro extast,hdr,astr,noparams, alt=alt, Has_CPDIS = has_cpdis, HAS_D2IMDIS= has_d
 
  cd = dblarr(2,2)
  cdelt = [1.0d,1.0d]
-
+ 
 ; Look for distortion keywords pointing to another FITS extension
  
  cpdis1 = ''
@@ -441,10 +443,12 @@ GET_CD_MATRIX:
 
 ; Kluge to test for non-standard PVi_j distortion terms used by SCAMP
  scamp_distort = 0b
+ if ~sip then begin
  if ~tpv && (proj EQ 'TAN')  then $
      tpv = ~array_equal(strmatch(keyword,'PV1_[5-9]'),0) &&  $  ;Updated 1-8-14
            ~array_equal(strmatch(keyword,'PV2_[3-9]'),0)   
-	  
+ endif
+ 	  
 ;Extract PV_* keywords.   Special case for TPV distortion
  if tpv then begin
    g= where(strmatch(keyword,'PV1_*'), Ng)
@@ -701,7 +705,6 @@ ENDELSE
          DATEOBS: dateobs, MJDOBS: DOUBLE(mjdobs), X0Y0: x0y0}
 
 ; Check for any distortion keywords
-
  
      case distort_flag of 
          'SIP': begin

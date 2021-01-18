@@ -97,6 +97,7 @@ pro ad2xy, a, d, astr, x, y
 ;     Support IRAF TNX projection M. Sullivan U. of Southhamptom  Mar 2014
 ;     No longer check that CDELT[0] differs from 1 W. Landsman Apr 2015
 ;     Default projection is PIXEL not Tangent  W. Landsman Oct 2017
+;     Ignore PV values if SIP distortion present W. Landsman Jan 2021
 ;     
 ;-
 
@@ -149,11 +150,12 @@ pro ad2xy, a, d, astr, x, y
 	  ENDIF ELSE BEGIN
 	  pv1 = astr.pv1
 	  pv2 = astr.pv2
-          if tag_exist(astr,'DISTORT') then $
-	      if astr.distort.name EQ 'TPV' then begin 
+          if tag_exist(astr,'DISTORT') then begin
+	      if (astr.distort.name EQ 'TPV') || (astr.distort.name EQ 'SIP') then begin 
 	           pv1 = [0.0d,0,90.0d,180d,90d]    ;Tangent projection
 	           pv2 = [0.0,0.0]
-	      ENDIF   
+	      ENDIF 
+	      ENDIF
           wcssph2xy, a, d, xsi, eta, CTYPE = ctype, PV1 = pv1, $
               PV2 = pv2, CRVAL = crval, CRXY = astr.x0y0 
 	   ENDELSE

@@ -92,6 +92,7 @@ pro xy2ad, x, y, astr, a, d
 ;       Evalue TPV distortion (SCAMP) if present W. Landsman   Jan 2014
 ;       Support IRAF TNX porjection  M. Sullivan U. of Southamptom  Mar 2014
 ;       No longer check that CDELT[0] NE 1  W. Landsman Apr 2015
+;       Ignore PV values if SIP distortion W. Landsman  Jan 2021
 ;- 
  common Broyden_coeff, pv1, pv2       ;Needed for TPV transformation
  compile_opt idl2
@@ -126,14 +127,13 @@ pro xy2ad, x, y, astr, a, d
            na = ((size(a,/dimen))[0])
            xdif1 = xdif
            ydif1 = ydif
-           
+
            for i=0,na-1 do begin
                for j=0,na-1 do begin
                   if a[i,j] NE 0.0 then xdif1 +=  xdif^i*ydif^j*a[i,j]            
                   if b[i,j] NE 0.0 then ydif1 +=  xdif^i*ydif^j*b[i,j]
            endfor
            endfor
-
            xdif = TEMPORARY(xdif1)
            ydif = TEMPORARY(ydif1)
            
@@ -163,8 +163,10 @@ pro xy2ad, x, y, astr, a, d
         eta = reform( result[*,1] )
         no_PV1 = 1
         ctype = strmid(astr.ctype,0,4) + '-TAN'
+        
      endif
-
+ 
+ if tag_exist(astr,'DISTORT') && astr.distort.name EQ 'SIP' then no_PV1= 1
  if N_elements(ctype) Eq 0 then ctype = astr.ctype
  crval = astr.crval
  IF astr2 THEN reverse = astr.reverse ELSE BEGIN
@@ -184,7 +186,8 @@ pro xy2ad, x, y, astr, a, d
      endif else begin 
             pv1 = astr.pv1
 	    pv2 = astr.pv2
-     endelse 	    
+     endelse 
+     	    
      if astr2 THEN $
          WCSXY2SPH, xsi, eta, a, d, CTYPE = ctype[0:1], PV1 = pv1, $
               PV2 = astr.PV2, CRVAL = crval, CRXY = astr.x0y0 $
