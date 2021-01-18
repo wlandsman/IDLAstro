@@ -97,8 +97,8 @@ pro sky,image,skymode,skysig, SILENT=silent, CIRCLERAD = circlerad, $
 ;      Use  TOTAL(/INTEGER)      June 2009
 ;      Fix occasional out of bounds problem when /NAN set W. Landsman Jul 2013
 ;      Use HIGHBAD in selecting data points  W. Landsman  Nov 2016
+;      Really fix occasional out of bounds when /NAN set W. Landsman Dec 2020
 ;-
-  On_error,2              ;Return to caller
   compile_opt idl2
 
  if N_params() eq 0 then begin
@@ -106,6 +106,13 @@ pro sky,image,skymode,skysig, SILENT=silent, CIRCLERAD = circlerad, $
         print, '                    READNOISE = , /NAN, CIRCLERAD = , /SILENT ]'
         return
  endif
+ 
+ Catch, theError
+ if theError NE 0 then begin
+    Catch,/cancel
+    void = cgErrorMsg(/quiet)
+    return
+    endif
 
  checkbad = (N_elements(highbad) GT 0) || keyword_set(circlerad) || $
               keyword_set(nan)                          
@@ -135,6 +142,7 @@ pro sky,image,skymode,skysig, SILENT=silent, CIRCLERAD = circlerad, $
  maxsky = 2*npts/(nrow-1) > 10000          ;Maximum # of pixels to be used in sky calculation
 ; Maintain the same data type as the input image Nov 2005
     istep = npts/maxsky +1
+    nskyvec = maxsky + 200
  skyvec = make_array(maxsky+200,type=size(image,/type))
      nstep = (nrow/istep)
  
@@ -162,7 +170,9 @@ pro sky,image,skymode,skysig, SILENT=silent, CIRCLERAD = circlerad, $
    	      imax = value_locate( index, ng-1) > 0
 	       ix = index[0:imax] < (ng-1)
 	       skyvec[jj] = row[ix]
+	      
           jj = jj + imax + 1
+	       if jj ge nskyvec then skyvec = [skyvec,skyvec[0:200]*0]
  DONE:
 
   endfor    
