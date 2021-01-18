@@ -149,7 +149,7 @@ pro putast, hdr, astr, crpix, crval, ctype, EQUINOX=equinox, $
 ;       Fix typo spelling RADECSYS, don't use LONPOLE, LATPOLE in PV keywords when
 ;          TPV projection   WL  December 2015
 ;	    Corrected for case when Equinox is NaN in structure. J. Murthy May 2016
-;       Fix when no structure supplied W. Landsman Oct 2018
+;       Fix no PV update if no structure supplied W. Landsman Oct 2018
 ;-
  compile_opt idl2
  npar = N_params()
