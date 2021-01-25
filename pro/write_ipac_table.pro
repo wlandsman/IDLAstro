@@ -79,7 +79,7 @@ PRO write_ipac_table, in_struct, outfile, table_col_info=table_col_info, table_h
 ;       columns - TYB Aug 2017
 ;-
 
-;Copyright © 2013, California Institute of Technology
+;Copyright Â© 2013, California Institute of Technology
 ;All rights reserved. Based on Government Sponsored Research NAS7-03001 and NNN12AA01C.
 ;
 ;

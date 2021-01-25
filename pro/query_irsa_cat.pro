@@ -113,7 +113,7 @@ FUNCTION query_irsa_cat, targetname_OR_coords, catalog=catalog, radius=radius, r
 ;    Replace webget with IDLnetURL and redo structues - TYB Aug 2017
 ;-
 
-;Copyright © 2013, California Institute of Technology
+;Copyright Â© 2013, California Institute of Technology
 ;All rights reserved. Based on Government Sponsored Research NAS7-03001 and NNN12AA01C.
 ;
 ;

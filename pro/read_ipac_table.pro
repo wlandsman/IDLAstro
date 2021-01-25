@@ -55,7 +55,7 @@ FUNCTION read_ipac_table, filename, table_col_info=table_col_info, table_hdr=tab
 ;      Re-do structures to separate out the data - TYB Aug 2017 
 ;-
 
-;Copyright © 2013, California Institute of Technology
+;Copyright Â© 2013, California Institute of Technology
 ;All rights reserved. Based on Government Sponsored Research NAS7-03001 and NNN12AA01C.
 ;
 ;
