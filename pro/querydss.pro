@@ -11,8 +11,8 @@ PRO QueryDSS, target, Image,  Header, IMSIZE=ImSIze, ESO=eso, STSCI=stsci, $
 ;     The script can query the DSS survey and retrieve an image and FITS 
 ;     header either from the the Space Telescope Science Institute (STScI) or 
 ;     European Space Observatory (ESO) servers.
-;     See http://archive.eso.org/dss/dss and/or 
-;     http://archive.stsci.edu/dss/index.html for details.
+;     See https://archive.eso.org/dss/dss and/or 
+;     https://archive.stsci.edu/dss/index.html for details.
 ;
 ; CALLING SEQUENCE: 
 ;      QueryDSS, targetname_or_coords, Im, Hdr, [IMSIZE= , /ESO, Outfile= ]
