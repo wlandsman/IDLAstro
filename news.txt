@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 27-Aug-2021: MRDFITS() - Use '8000000000000000'xll long64 offset for GDL/FL compatibility
 
 18-Jan-2021: AD2XY, XY2AD, EXTAST - SIP coefficients take priority over PVi if 'SIP' in 
                    CTYPE
 
-=======
->>>>>>> 0da32286d31d2e40caa62b6a8a8cf008281d6666
 15-Oct-2020: SKY - fix occasional out of bounds when /NaN is set
 
 29-Oct-2020: MRDFITS() - Read integers in ASCII table longer than I12 as LONG64
