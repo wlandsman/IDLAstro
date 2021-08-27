@@ -385,10 +385,7 @@
 ;       V2.23  Use 64 bit for  very large files  WL  April 2014
 ;       V2.24  Binary table is allowed to have zero columns  WL  September 2018
 ;       V2.25  Use long64 for ASCII table integers longer than I12 WL   October 2020
-<<<<<<< HEAD
 ;       V2.26  Use '8000000000000000'xll long64 offset for GDL/FL compatibility WL Aug 2021
-=======
->>>>>>> 0da32286d31d2e40caa62b6a8a8cf008281d6666
 ;-
 PRO mrd_fxpar, hdr, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
 compile_opt idl2, hidden
@@ -983,11 +980,7 @@ compile_opt idl2, hidden
                 return
        endif
 ; Special test for long64 integers       
-<<<<<<< HEAD
        if (ftype EQ 'I') && (lenarr[i]	GT 12)  then sclstr[j] = '8000000000000000'xll    
-=======
-       if (ftype EQ 'I') && (lenarr[i]	GT 12)  then sclstr[j] = -9223372036854775808LL   
->>>>>>> 0da32286d31d2e40caa62b6a8a8cf008281d6666
        fvalues[i] = ftype NE 'A' ? sclstr[j] : $
 	                  'string(replicate(32b,'+strtrim(flen,2)+'))'
                                                
