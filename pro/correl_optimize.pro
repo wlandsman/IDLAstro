@@ -64,7 +64,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 		      ', Magnification =, /Numpix'
 		return
         endif
-
+        
 	simA = size( image_A )
 	simB = size( image_B )
 
@@ -95,6 +95,7 @@ pro correl_optimize, image_A, image_B, xoffset_optimum, yoffset_optimum, $
 		corrmat = correl_images( image_A, image_B, XOFF=xoff,YOFF=yoff,$
 					       NUM=numpix, XS=xshift,YS=yshift,$
 					       REDUCTION=reducf, MONIT=monitor )
+stop
 		corrmat_analyze, corrmat, xoff, yoff, XOFF=xoff, YOFF=yoff, $
 						PRINT=print, REDUCTION=reducf
 		xshift = 2*reducf

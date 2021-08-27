@@ -59,7 +59,11 @@
 ;     W. Landsman  SSAI               December 2002
 ;     Return quietly if CHECKSUM keywords not found W. Landsman May 2003
 ;     Add /NOSAVE to CHECKSUM32 calls when possible W. Landsman Sep 2004
+<<<<<<< HEAD
 ;     New option /TRUST_DATASUM. Mats Löfdahl July 2020
+=======
+;     New option /TRUST_DATASUM. Mats LÃ¶fdahl July 2020
+>>>>>>> 0da32286d31d2e40caa62b6a8a8cf008281d6666
 ;-
   On_error,2 
   compile_opt idl2 
