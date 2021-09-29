@@ -171,8 +171,9 @@
 ;                user specifies the same value for the STRUCTYP keyword
 ;                in calls to MRDFITS in the same IDL session for extensions
 ;                which have different structures.
-;       /UNSIGNED - For integer data with appropriate zero points and scales
-;                read the data into unsigned integer arrays.
+;       /UNSIGNED - For integer image data with appropriate zero points and scales,
+;                read the data into unsigned integer arrays.     This is the 
+;                default for binary tables.
 ;       /USE_COLNUM - When creating column names for binary and ASCII tables
 ;                MRDFITS attempts to use the appropriate TTYPE keyword
 ;                values.  If USE_COLNUM is specified and non-zero then
@@ -386,6 +387,8 @@
 ;       V2.24  Binary table is allowed to have zero columns  WL  September 2018
 ;       V2.25  Use long64 for ASCII table integers longer than I12 WL   October 2020
 ;       V2.26  Use '8000000000000000'xll long64 offset for GDL/FL compatibility WL Aug 2021
+;       V2.27  Allow different columns to have different datatypes for TSCALn and TZEROn 
+;              Use ULONG64() when necessary WL Sep 2021
 ;-
 PRO mrd_fxpar, hdr, xten, nfld, nrow, rsize, fnames, fforms, scales, offsets
 compile_opt idl2, hidden
@@ -440,8 +443,8 @@ compile_opt idl2, hidden
   ;; The others
   fnames = strarr(n_mforms)
   fforms = strarr(n_mforms) 
-  scales = dblarr(n_mforms)
-  offsets = dblarr(n_mforms)
+  scales = ptrarr(n_mforms, /all)
+  offsets = ptrarr(n_mforms, /all)
 
   ;;comments = strarr(n_mnames)
 
@@ -456,7 +459,6 @@ compile_opt idl2, hidden
   match, keyword, scales_names, mkey_scales, mscales, count = N_mscales
 
   match, keyword, offsets_names, mkey_offsets, moffsets,count = N_moffsets
-
   FOR in=0L, nnames-1 DO BEGIN 
 
       CASE names[in] OF
@@ -488,6 +490,7 @@ compile_opt idl2, hidden
       ENDCASE 
 
       ;;help,matches,nmatches
+         ptr = size(result,/tname) EQ 'POINTER'   ;Is it a pointer?
 
 ;
 ;  Extract the parameter field from the specified header lines.  If one of the
@@ -569,6 +572,7 @@ NEXT_APOST:
 NOT_COMPLEX:
                       ON_IOERROR, GOT_VALUE
                       value = test
+                    
                       IF ~VALID_NUM(value) THEN GOTO, GOT_VALUE
 
                       IF (STRPOS(value,'.') GE 0) || (STRPOS(value,'E') $
@@ -580,9 +584,13 @@ NOT_COMPLEX:
                       ENDIF ELSE BEGIN
                           lmax = long64(2)^31 - 1
                           lmin = -long64(2)^31
-                          value = long64(value)
+                          if strmid(value,0,1) NE '-' then begin
+                          value = ulong64(value)
+                          if value lt ulong64(2)^63-1 then value = long64(value)
+                          endif else value = long64(value)
                           if (value GE lmin) && (value LE lmax) THEN $
                             value = LONG(value)
+                            
                       ENDELSE
                       
 ;
@@ -590,22 +598,23 @@ GOT_VALUE:
                       ON_IOERROR, NULL
                   ENDELSE
               ENDELSE           ; if string
+            
 ;
 ;  Add to vector if required.
 ;
-              
-              result[tmatches[i]] = value
+          if ptr then $
+              *result[tmatches[i]] = value else $
+               result[tmatches[i]] = value
              
           ENDFOR
-
+    
           CASE names[in] OF
               'TTYPE': fnames[number] = strtrim(result, 2)
               'TFORM': fforms[number] = strtrim(result, 2)
-              'TSCAL': scales[number] = result
-              'TZERO': offsets[number] = result
+              'TSCAL':  scales[number] = result
+              'TZERO':  offsets[number] = result
               ELSE: message,'What?'
           ENDCASE 
-
 ;
 ;  Error point for keyword not found.
 ;
@@ -615,8 +624,8 @@ GOT_VALUE:
 
 
   ENDFOR 
+
 END
-  
 
 ; Get a tag name give the column name and index
 function  mrd_dofn, name, index, use_colnum, alias=alias
@@ -2140,7 +2149,6 @@ compile_opt idl2, hidden
     if range[0] gt 0 then mrd_skip, unit, rsize*range[0]
     readu,unit, table
     if N_elements(rows) GT 0 then table = table[rows- range[0]]
-
     ; Move to the beginning of the heap -- we may have only read some rows of
     ; the data.
     if range[1] lt nrows-1 then begin
@@ -2308,8 +2316,9 @@ pro mrd_table, header, structyp, use_colnum,           $
 
     ;; Use scale=1 if not found
     if nnames GT 0 then begin
-      wsc=where(scales EQ 0.0d,nwsc)
-      IF nwsc NE 0 THEN scales[wsc] = 1.0d
+      for i = 0,N_elements(scales)-1 do $
+            if *scales[i] EQ 0.0d then *scales[i] = 1.0d
+
     endif
 
     xten = strtrim(xten,2)
@@ -2403,7 +2412,7 @@ pro mrd_table, header, structyp, use_colnum,           $
          
         ; Add in the structure label. 
         ; 
-         
+      
         ; Handle variable length columns. 
         
         if (ftype eq 'P') || (ftype eq 'Q') then begin 
@@ -2424,10 +2433,9 @@ pro mrd_table, header, structyp, use_colnum,           $
 
             vcls[i] = 1
 	    
-	    
 	    xunsigned = mrd_chkunsigned(bitpix[ppos], scales[i],       $
 				       offsets[i], $
-				       unsigned=unsigned)
+				       unsigned=1)
 
 	    if (xunsigned) then begin
 		
@@ -2446,14 +2454,13 @@ pro mrd_table, header, structyp, use_colnum,           $
         for j=0, n_elements(types) - 1 do begin
 	    
             if ftype eq types[j] then begin
-
-                xunsigned = mrd_chkunsigned(bitpix[j], scales[i], $
-                                            offsets[i], $
-                                            unsigned=unsigned)
+                xunsigned = mrd_chkunsigned(bitpix[j], *scales[i], $
+                                            *offsets[i], $
+                                            unsigned=1)
 
 		if xunsigned then begin		     
 		    fxaddpar, header, 'TZERO'+istr, 0, 'Modified by MRDFITS V'+mrd_version()
-                    offsets[i] = 0 ;; C. Markwardt Aug 2007 - reset to zero so offset is not applied twice'
+                    *offsets[i] = 0 ;; C. Markwardt Aug 2007 - reset to zero so offset is not applied twice'
 	        endif
                 if dim eq 0 then begin
 
@@ -2661,7 +2668,6 @@ function mrdfits, file, extension, header,      $
 	status = -2
 	return, 0
     endif
-
     mrd_hread, unit, header, status, SILENT = silent, ERRMSG = errmsg
     
     if status lt 0 then begin

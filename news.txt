@@ -1,3 +1,6 @@
+28-Sep-2021: MRDFITS() - Allow different columns to have different datatypes for TSCALn and TZEROn 
+                         Use ULONG64() when necessary
+
 27-Aug-2021: MRDFITS() - Use '8000000000000000'xll long64 offset for GDL/FL compatibility
 
 18-Jan-2021: AD2XY, XY2AD, EXTAST - SIP coefficients take priority over PVi if 'SIP' in 
