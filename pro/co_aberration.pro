@@ -5,9 +5,9 @@ PRO co_aberration, jd, ra, dec, d_ra, d_dec, eps=eps
 ; PURPOSE:
 ;     Calculate changes to Ra and Dec due to the effect of annual aberration 
 ; EXPLANATION:
-;      as described in Meeus, Chap 23.
+;      as described in Jean Meeus, "Astronomical Algorithms" Chap 23.
 ; CALLING SEQUENCE:
-;      co_aberration, jd, ra, dec, d_ra, d_dec, [EPS = ]
+;      co_aberration, jd, ra, dec, d_ra, d_dec, [EPS = , /FAST ]
 ; INPUTS
 ;       jd      : Julian Date [scalar or vector]
 ;       ra, dec : Arrays (or scalars) of the ra  and dec's in degrees
@@ -21,9 +21,10 @@ PRO co_aberration, jd, ra, dec, d_ra, d_dec, eps=eps
 ;                     is *not* multiplied by cos(dec), so that 
 ;                     apparent_ra = ra + d_ra/3600. 
 ; OPTIONAL INPUT KEYWORD:
-;       eps : set this to the true obliquity of the ecliptic (in radians), or
+;       eps - set this to the true obliquity of the ecliptic (in radians), or
 ;         it will be set for you if you don't know it (in that case, set it to
 ;                 an empty variable).
+;       /fast - set this to assume all jd's are the same
 ; EXAMPLE:
 ;   Compute the change in RA and Dec of Theta Persei (RA = 2h46m,11.331s, Dec =
 ;   49d20',54.54") due to aberration on 2028 Nov 13.19 TD
@@ -45,27 +46,34 @@ PRO co_aberration, jd, ra, dec, d_ra, d_dec, eps=eps
 ;   June 2009 update fixed case where JD was scalar but RA,Dec were vectors, but 
 ;     broke the case when both JD and RA,Dec were vectors Aug 2012 W. Landsman
 ;   Further fix when JD is 1 element vector  W. Landsman
+;   Added /FAST keyword, use vector Nutate  Chris O'Dell  Colorado State U. December 2021
 ;-
  compile_opt idl2
  d2r = !dpi/180.
  if N_elements(jd) EQ 1 then jd = jd[0]
  T = (jd -2451545.0)/36525.0 ; julian centuries from J2000 of jd.
+ if keyword_set(fast) then T = T[0]
  if n_elements(eps) eq 0 then begin ; must calculate obliquity of ecliptic
-        njd = n_elements(jd)
-        d_psi = dblarr(njd)
-        d_epsilon = d_psi
-        for i=0L,njd-1 do begin
-                nutate, jd[i], dp, de ; d_psi and d_epsilon in degrees
-                d_psi[i] = dp
-                d_epsilon[i] = de
-        endfor
+       if keyword_set(fast) then nutate, jd[0], d_psi, d_epsilon $
+        	else nutate,jd,d_psi, d_epsilon
         eps0 = ten(23,26,21.448)*3600.d - 46.8150*T - 0.00059*T^2 +  $
                0.001813*T^3
         eps = (eps0 + d_epsilon)/3600.*d2r ; true obliquity of the ecliptic 
 ;                                            in radians
 endif
-
- sunpos, jd, sunra, sundec, sunlon
+if (keyword_set(fast) AND (n_elements(jd) GT 1)) then begin
+    ; do simple interpolation to get sun longitudes fast
+     jdmn = min(jd)
+     jdmx = max(jd)
+     sunpos, [jdmn,jdmx], sunra, sundec, sunlon
+     if abs(jdmx-jdmn) LE 1d-5 then begin
+        ; in this case, all the Julian dates are essentially identical
+        ; (within one second of each other)
+        sunlon = sunlon[0] + dblarr(n_elements(jd))
+     endif else begin
+        sunlon = sunlon[0] + (sunlon[1]-sunlon[0]) * (jd-jdmn)/(jdmx-jdmn)
+     endelse
+endif else sunpos, jd, sunra, sundec, sunlon
 
 ; Earth's orbital eccentricity
  e = 0.016708634d - 0.000042037d*T - 0.0000001267d*T^2

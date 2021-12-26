@@ -1,3 +1,5 @@
+26-Dec-2021: CO_ABERRATION - Added /FAST keyword, use vector call to NUTATE
+
 28-Sep-2021: MRDFITS() - Allow different columns to have different datatypes for TSCALn and TZEROn 
                          Use ULONG64() when necessary
 
