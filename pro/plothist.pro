@@ -19,12 +19,14 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;                                     /AUTOBIN,  ...plotting keywords]
 ; INPUTS:
 ;      arr - The array to plot the histogram of.   It can include negative
-;            values, but non-integral values will be truncated.              
+;            values.    See /HALFBIN for the different default treatments of integer
+;            and non-integer data.             
 ;
 ; OPTIONAL OUTPUTS:
 ;      xhist - X vector used in making the plot  
 ;              ( = lindgen( N_elements(h)) * bin + min(arr) )
 ;      yhist - Y vector used in making the plot  (= histogram(arr/bin))
+;              An integer vector unless the PEAK keyword is set
 ;
 ; OPTIONAL INPUT-OUTPUT KEYWORD:
 ;      BIN -  The size of each bin of the histogram, positive scalar (not necessarily
@@ -34,12 +36,8 @@ PRO plothist, arr, xhist,yhist, BIN=bin,  NOPLOT=NoPlot, $
 ;             Prior to July 2016, the default was to use the square root of the
 ;             number of data points (see /sqrt keyword).
 ;             If undefined on input, then upon return BIN will contain the 
-;             automatically computing bin factor.
+;             automatically computed bin factor.
 ; OPTIONAL INPUT KEYWORDS:
-;      /AUTOBIN - (OBSOLETE) Formerly would automatically determines bin size 
-;                 of the histogram as the square root of the number of samples. 
-;                 This is now the default so the keyword is no longer needed.
-;                 Use the  BIN keyword to manually set the bin size.
 ;      AXISCOLOR - Color (string or number) of the plotting axes.  
 ;      BOXPLOT - If set (default), then each histogram data value is plotted
 ;             "box style" with vertical lines drawn from Y=0 at each end of 
