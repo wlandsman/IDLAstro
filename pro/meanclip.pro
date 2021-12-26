@@ -44,6 +44,7 @@ PRO MEANCLIP, Image, Mean, Sigma, CLIPSIG=clipsig, MAXITER=maxiter, $
 ;                   improved doc.  RSH
 ;       Nov 2005   Added /DOUBLE keyword, check if all pixels are removed  
 ;                  by clipping W. Landsman 
+;       Nov 2021   Use /EVEN keyword to Median()   W. Landsman
 ;-
 
 IF N_params() LT 1 THEN BEGIN
@@ -66,7 +67,7 @@ REPEAT BEGIN
     skpix = image[subs]
     iter = iter + 1
     lastct = ct
-    medval = median(skpix)
+    medval = median(skpix,/even)
     mom = moment(skpix,max=2,double=double)
     sig = sqrt(mom[1])
     wsm = where(abs(skpix-medval) LT clipsig*sig,ct)
