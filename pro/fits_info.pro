@@ -108,8 +108,9 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ;       Turned ptr to long64 for very large files EH Dec 2013
 ;       Replace 2880L with 2880LL for very large files  EH  Mar 2015
 ;       Let TEXTOPEN test for !TEXTOUT  WL Sep 2016
+;       Replace || with OR to work on multiple files L.Haffner/WL Apr 30 2022
 ;-
- On_error,2
+
  compile_opt idl2
  COMMON descriptor,fdescript
 
@@ -123,7 +124,7 @@ pro fits_info, filename, SILENT=silent,TEXTOUT=textout, N_ext=n_ext, extname=ext
 ; File is gzip compressed if it ends in .gz or .ftz 
  len = strlen(fil)
  ext = strlowcase(strmid(fil,transpose(len-3),3))
- compress = (ext EQ '.gz') || (ext EQ 'ftz')
+ compress = (ext EQ '.gz') OR (ext EQ 'ftz')
 
  silent = keyword_set( SILENT )
  if ~silent then textopen, 'FITS_INFO', TEXTOUT=textout
