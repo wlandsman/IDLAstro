@@ -143,6 +143,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ;       Allow structure with only 1 element  W.L.  Feb 2012
 ;       Don't require that a FITS header is supplied W.L.  Feb 2016
 ;       Use CATCH rather than ON_IOError, 2  W. L  July 2018
+;       Fix when no header supplied W.L. June 2022
 ;-
 
   compile_opt idl2
@@ -191,7 +192,7 @@ pro MODFITS, filename, data, header, EXTEN_NO = exten_no, ERRMSG = errmsg, $
 ; Open file and read header information
          
    if (exten_no EQ 0) && (~keyword_set(EXTNAME)) then begin 
-         if nheader GT 0 then $
+         if nheader GT 1 then $
              if strmid( header[0], 0, 8)  NE 'SIMPLE  ' then begin 
                  message = $
                 'Input header does not contain required SIMPLE keyword'

@@ -1,3 +1,5 @@
+1-Jun-2022: MODFITS - Work even if header not supplied
+
 30-Apr-2022: FITS_INFO - Use OR instead of || (which only worked on scalars)
 
 26-Dec-2021: CO_ABERRATION - Added /FAST keyword, use vector call to NUTATE
