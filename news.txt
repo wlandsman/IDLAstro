@@ -1,3 +1,6 @@
+22-Sep-2022: FXREAD - Set BLANK values to NAN when the data are scaled by BZERO and BSCALE 
+values from integers into floating point arrays. 
+
 1-Jun-2022: MODFITS - Work even if header not supplied
 
 30-Apr-2022: FITS_INFO - Use OR instead of || (which only worked on scalars)

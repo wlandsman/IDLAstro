@@ -155,7 +155,10 @@
 ;       Version 13, W. Landsman  Remove IEEE_TO_HOST, V6.0 notation
 ;       Version 14, William Thompson, 25-Sep-2014, fix BSCALE bug in version 13
 ;       Version 15, William Thompson, 24-Jul-2017, allow NAXISn=0 if n>NAXIS
-;       Version 16, W. Landsman 25-Sep-2017, allow NAXISn=0 
+;       Version 16, W. Landsman 25-Sep-2017, allow NAXISn=0
+;       Version 17, W. Thompson, 9-Sep-2022, set BLANK values to NaN or
+;               NANVALUE when BZERO, BSCALE used to match FITS standard.
+;               Also remove BLANK from HEADER.
 ;-
 ;
 	ON_ERROR, 2
@@ -541,43 +544,63 @@
 	END ELSE COUNT = 0
 ;
 ;  If the parameters BZERO and BSCALE are non-trivial, then adjust the array by
-;  these values.  Also update the BLANK keyword, if present.
+;  these values, and convert to floating point.
 ;
+        NMISSING = 0
+        SCALED = 0
 	IF ~KEYWORD_SET(NOSCALE) THEN BEGIN
-		BZERO  = FXPAR(HEADER,'BZERO')
-		BSCALE = FXPAR(HEADER,'BSCALE')
+		BZERO  = FXPAR(HEADER,'BZERO')  * 1.0
+                BSCALE = FXPAR(HEADER,'BSCALE') * 1.0
+;
+;  If the BLANK keyword was set, then also keep track of any pixels that should
+;  be marked as missing.
+;
                 BLANK  = FXPAR(HEADER,'BLANK',COUNT=NBLANK)
+                IF NBLANK EQ 1 THEN WMISSING = WHERE(DATA EQ BLANK, NMISSING)
+;
 		GET_DATE,DTE
 		IF (BSCALE NE 0) && (BSCALE NE 1) THEN BEGIN
 			DATA *= BSCALE
+                        SCALED = 1
 			IF ~KEYWORD_SET(NOUPDATE) THEN BEGIN
                             FXADDPAR,HEADER,'BSCALE',1.
                             FXADDPAR,HEADER,'HISTORY',DTE +		$
                               ' applied BSCALE = '+ STRTRIM(BSCALE,2)
                             IF NBLANK EQ 1 THEN BEGIN
-                                print, bscale, blank
-                                BLANK *= BSCALE
-                                FXADDPAR,HEADER,'BLANK',BLANK
+                                IF N_ELEMENTS(NANVALUE) EQ 1 THEN $
+                                  FXADDPAR, HEADER, 'BLANK', NANVALUE ELSE $
+                                    SXDELPAR,HEADER,'BLANK'
                             ENDIF
 			ENDIF
 		ENDIF
 		IF BZERO NE 0 THEN BEGIN
 			DATA += BZERO
+                        SCALED = 1
 			IF ~KEYWORD_SET(NOUPDATE) THEN BEGIN
                             FXADDPAR,HEADER,'BZERO',0.
                             FXADDPAR,HEADER,'HISTORY',DTE +		$
                               ' applied BZERO = '+ STRTRIM(BZERO,2)
                             IF NBLANK EQ 1 THEN BEGIN
-                                BLANK += BZERO
-                                FXADDPAR,HEADER,'BLANK',BLANK
+                                IF N_ELEMENTS(NANVALUE) EQ 1 THEN $
+                                  FXADDPAR, HEADER, 'BLANK', NANVALUE ELSE $
+                                    SXDELPAR,HEADER,'BLANK'
                             ENDIF
 			ENDIF
 		ENDIF
 	ENDIF
 ;
-;  Store NANVALUE everywhere where the data corresponded to IEE NaN.
+;  Store NANVALUE everywhere where the original data corresponded to IEEE NaN.
 ;
-	IF COUNT GT 0 THEN DATA[W] = NANVALUE
+        IF COUNT GT 0 THEN DATA[W] = NANVALUE
+;
+;  Store either NaN or NANVALUE everywhere the orignal data corresponded to
+;  BLANK.
+;
+        IF (NMISSING GT 0) AND (SCALED EQ 1) THEN BEGIN
+            IF N_ELEMENTS(NANVALUE) EQ 1 THEN MISSING = NANVALUE ELSE $
+              MISSING = !VALUES.F_NAN
+            DATA[WMISSING] = MISSING
+        ENDIF
 ;
 ;  Close the file and return.
 ;
