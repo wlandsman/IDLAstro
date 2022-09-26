@@ -1,0 +1,327 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;
+      charset=ISO-8859-1">
+    <meta name="orgcode" content="667">
+    <meta name="rno" content="Ted.Gull">
+    <meta name="content-owner" content="Wayne.Landsman">
+    <meta name="webmaster" content="Wayne.Landsman">
+    <meta name="description" content="IDL Astronomy Library: a
+      collection of low-level routines, mainly
+      related to astronomy, written in the commercial language IDL">
+    <meta name="keywords" content="IDL, Astronomy, software">
+    <title> The IDL Astronomy User's Library </title>
+    <script language="JavaScript1.2">
+
+
+/*
+Change Cell Backgrounds -
+&copy; Shivaji Basu (www.shivbasu.com)
+To add more shock to your site, visit www.DHTML Shock.com
+*/
+
+function cOn(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#006699";
+}
+}
+
+function cOut(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#666666";
+}
+}
+
+function gofOut(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#000000";
+}
+}
+
+function epoOut(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#dd0000";
+}
+}
+
+function liteOut(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#999999";
+}
+}
+
+function leftOn(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#999999";
+}
+}
+
+function leftOut(td){
+if(document.getElementById||(document.all && !(document.getElementById))){
+td.style.backgroundColor="#cccccc";
+}
+}
+
+</script>
+    <link type="text/css" rel="stylesheet" href="includes/styles.css">
+    <link type="text/css" rel="stylesheet" href="includes/styles2.css">
+    <link type="text/css" rel="stylesheet" href="includes/eud.css">
+    <link rel="stylesheet" type="text/css" href="includes/print.css"
+      media="print">
+    <script type="text/javascript" language="JavaScript">
+var dtt_agent = navigator.userAgent.toLowerCase();
+var dtt_isAlpha = dtt_agent.indexOf("alpha") != -1
+var dtt_isOSF = dtt_agent.indexOf("osf1") != -1
+var dtt_isSunOS = dtt_agent.indexOf("sunos") != -1
+if (dtt_isAlpha || dtt_isOSF || dtt_isSunOS) {
+    document.write('<link type=text/css rel=stylesheet href=\"/portal_osf.css\">\n');
+}
+</script>
+<script id="fed_an_js_tag" type="text/javascript" src="http://asd.gsfc.nasa.gov/scripts/Federated-Analytics.js?agency=NASA">
+<!-- Google Analytics -->
+</script> 
+  </head>
+  <body>
+    <a href="#content"><img alt="skip to content"
+        src="includes/pixel.gif" border="0" height="1" width="1"></a>
+    <!-- main white cell -->
+    <table valign="top" bgcolor="#ffffff" border="0" cellpadding="0"
+      width="750" align="center">
+      <tbody>
+        <tr>
+          <td>
+            &nbsp;
+            <div class="navigation">
+              <!-- NASA header & search box--> <map name="MapMap">
+                <area shape="circle" coords="35,26,24"
+                  href="http://www.nasa.gov/" alt="NASA Home Page">
+                <area shape="rect" coords="71,13,310,39"
+                  href="http://www.nasa.gov/goddard" alt="Goddard Space
+                  Flight Center Home Page">
+              </map>
+              <table border="0" cellpadding="0" cellspacing="0"
+                width="730" align="center">
+                <tbody>
+                  <tr>
+                    <td bgcolor="#cccccc" width="344"><img
+                        src="includes/header.gif" alt="NASA Logo -
+                        Goddard Space Flight Center" usemap="#MapMap"
+                        border="0" height="52" width="344"></td>
+                    <td bgcolor="#cccccc"> <span class="news"> &nbsp;<a
+                          href="http://www.nasa.gov/">+ NASA Homepage</a><br>
+                        &nbsp;<a href="http://science.gsfc.nasa.gov/">+
+                          Sciences &amp; Exploration Directorate</a><br>
+                        &nbsp;<a
+                          href="http://astrophysics.gsfc.nasa.gov/">+
+                          Astrophysics Science Division</a> </span> </td>
+                    <td bgcolor="#006699" valign="middle" width="181"
+                      align="center">
+                      <form method="post"
+                        action="http://universe.gsfc.nasa.gov/cgi-bin/search.pl">
+                        <label for="search"><font color="#ffffff">SEARCH
+                            THE UNIVERSE</font></label> <input
+                          id="search" name="tquery" size="20"
+                          value="enter search terms" style="width:
+                          100pt;" maxlength="60" ;=""
+                          onfocus="this.value='';">
+                        <br>
+                        ... this could take a while... </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <!-- END OF BLUE/GREY NASA HEADER -->
+            <table cellpadding="0" cellspacing="2" width="100%">
+              <tbody>
+                <tr valign="CENTER" align="left">
+                  <td width="30%">&nbsp;
+                    <!-- HIDE INTERNAL LINKS FROM NON-EUD MACHINES -->
+                    <!--cvexternal=yes-->
+                    <h1>The IDL Astronomy User's Library</h1>
+                    <big>The IDL Astronomy Users Library is a central
+                      repository for low-level astronomy software
+                      written in the commercial language <a
+                        href="http://www.harrisgeospatial.com/ProductsandTechnology/Software/IDL.aspx"> IDL.
+                      </a> The Library is not meant to be an integrated
+                      package, but rather is a
+                      collection of procedures from which users can pick
+                      and choose (and possibly
+                      modify) for their own use. Submitted procedures
+                      are given a cursory testing,
+                      but are basically stored in the Library as
+                      submitted. Instrument-specific software is
+                      generally not
+                      included in the IDL Astronomy Library, but can be
+                      found at the <a href="other_url.html"> Links to
+                        Other Astronomy and IDL related sites</a>.
+                    </big>
+                    <p><big>
+                        The entire contents of the Library can be
+                        downloaded in a tar file or in a .zip file
+                        from the
+                        the <a href="ftp"> download site </a>.
+                        Additional
+                        software, not included in the tar files, is
+                        available in a <a href="ftp/contrib">
+                          contrib </a> directory.
+                        Individual procedures can be copied by browsing
+                        through a list of <a href="contents.html">
+                          one-line descriptions. </a> Changes to the
+                        contents of the Library are
+                        recorded in a <a href="news.html"> news
+                        </a> file.    A versioned copy of the library is
+			available on <a href="https://github.com/wlandsman/IDLAstro">
+		            GitHub</a>, and one can also be download the Library with the command 
+		            <br>
+		            <i> git clone git://github.com/wlandsman/IDLAstro.git </i>
+                      </big></p>
+		                 <p><big>
+                         Some routines in the IDL Astronomy
+                        Library make use of programs in the
+<a href="http://www.idlcoyote.com/documents/programs.php#COYOTE_LIBRARY_DOWNLOAD">Coyote
+                          Graphics Library</a>, which must be downloaded
+			  separately.   Alternatively, one can download
+			  <a href="ftp/coyote_astron.tar.gz"> 
+			  coyote_astron.tar.gz </a> which contains a
+			  subset of the Coyote procedures needed for the
+			  Astronomy library.   We also suggest downloading the 
+<a href="http://www.physics.wisc.edu/~craigm/idl/fitting.html">MPFIT</a> curve
+fitting routines developed by Craig Markwardt, although it is currently only
+used by one Astronomy Library routine 
+(<a href="http://idlastro.gsfc.nasa.gov/ftp/pro/astrom/solve_astro.pro">
+SOLVE_ASTRO</a> ) .
+			  </big></p>
+                    <p><big>
+                        Documentation is available describing the
+                        various options for working with <a
+                          href="fitsio.html">FITS data in IDL.</a> </big></p>
+          
+                   <p><big>
+                        The IDL Astronomy Library requires at least IDL
+                        V6.4.
+                        However, separate (frozen) versions of the
+                        Library that work with earlier
+                        versions of IDL are available at the <a
+                          href="ftp/old"> /old </a> download site. </big></p>
+                    <p><big> The success of the IDL Astronomy User's
+                        Library depends on the willingness
+                        of users to give as well as take. Please inform
+                        Wayne Landsman of any
+                        possible contributions to the Library,
+                        programming bugs or documentation
+                        errors, or of relevant web sites. </big></p>
+                    <p><big>
+                      </big></p>
+                    <ul>
+                      <big>
+                      </big>
+                      <li><big><a href="contents.html"> One-line
+                            descriptions of procedures </a></big>
+                        <p><big> </big></p>
+                      </li>
+                      <li><big><a href="other_url.html"> Links to Other
+                            Astronomy and IDL related sites</a></big>
+                        <p><big>
+                          </big></p>
+                      </li>
+                      <li><big>IDL Astronomy Library<a href="ftp">
+                            download site </a></big> or 
+		       <big><a href="https://github.com/wlandsman/IDLAstro">
+		            GitHub site </a></big>     
+                        <p><big> </big></p>
+                      </li>
+                      <li><big><a href="news.html"> Chronological list
+                            of
+                            changes to the Library</a></big>
+                        <p><big>
+                          </big></p>
+                      </li>
+                      <li><big><a href="idlfaq.html"> Frequently Asked
+                            Questions (FAQ) </a>
+                        </big></li>
+                    </ul>
+                    <p>
+                      <!-- ============================= BEGIN FOOTER =========================== -->
+                    </p>
+                    <p>
+                      <br>
+                    </p>
+                  </td>
+                </tr>
+                <tr bgcolor="#cccccc" align="left">
+                  <td>
+                    <div class="navigation">
+                      <span class="footer">
+                        A service of the <a class="footer"
+                          href="http://universe.gsfc.nasa.gov/">
+                          Astrophysics Science Division (ASD)</a> at <a
+                          class="footer" href="http://www.nasa.gov/">NASA's</a>
+                        <a class="footer"
+                          href="http://www.nasa.gov/goddard">GSFC</a><br>
+                        <!--
+<p>
+<LI>Astronomy Questions?
+        <a class="footer"
+href="http://imagine.gsfc.nasa.gov/docs/ask_astro/ask_an_astronomer.html">
+Ask an Astrophysicist</a>.<br>
+
+<LI>NASA-specific Questions?  Try the 
+<a class="footer" href="http://www.nasa.gov/"> NASA Homepage</a> <br>
+
+<P>
+-->
+                        <li>Download <a class="footer"
+                            href="http://universe.gsfc.nasa.gov/plugins.html">helper
+                            applications</a> like Acrobat Reader.
+                          <p>
+                          </p>
+                        </li>
+                      </span></div>
+                    <!--
+<img src="http://universe.gsfc.nasa.gov/images/pixel.gif" alt="" height="2" width="730">
+-->
+                    <!-- open footer table 1 -->
+                    <table bgcolor="#cccccc" border="0" cellpadding="4"
+                      cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td valign="middle" width="150" align="left">
+                            <a href="http://www.firstgov.gov/"><img
+                                src="http://universe.gsfc.nasa.gov/images/footer_firstgov.gif"
+                                alt="FirstGov logo" border="0"
+                                height="41" width="113"></a></td>
+                          <td width="225"><a
+                              href="http://www.nasa.gov/about/highlights/HP_Privacy.html">
+                              + NASA Privacy, Security, Notices</a></td>
+                          <td width="61"> <a
+                              href="http://www.nasa.gov/home/index.html"><img
+src="http://universe.gsfc.nasa.gov/images/footer_nasalogo.gif"
+                                alt="NASA" border="0" height="40"
+                                width="61"></a></td>
+                          <td valign="top" width="294"> Curator: <a
+                              href="mailto:wayne.landsman@nasa.gov">Wayne
+                              Landsman</a><br>
+                            NASA Official: Theodore Gull<br>
+                            Last Updated: Apr-2016</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <!-- close footer table 1 -->
+                    <p></p>
+                  </td>
+                </tr>
+                <!-- ============================== END FOOTER =========================== -->
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
