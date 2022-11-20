@@ -134,8 +134,12 @@
 ;       Version 17, William Thompson/Terje Fredvik, 30-Aug-2018, preserve
 ;               original dimensionality
 ;       Version 18, William Thompson, 31-Aug-2018, correction to v17
+;       Version 19, William Thompson, 09-Nov-2022, fix bug when reading
+;               multi-dimensional arrays over multiple lines.
+;       Version 20, William Thompson, 18-Nov-2022, fix bug introduced in
+;               version 19 when reading string arrays
 ; Version     :
-;       Version 18, 31-Aug-2018
+;       Version 20, 18-Nov-2022
 ;-
 ;
 @fxbintable
@@ -320,8 +324,11 @@ CHECK_ROW:
 		DATA = MAKE_ARRAY(TYPE=DATATYPE,DIMENSION=DIMS)
 		DATA = REFORM(DATA,DIMS,/OVERWRITE)
 		READU,UNIT,DATA
+                DIMS2 = DIMS
 	END ELSE BEGIN
 		DIMS2 = [DIMS, ROW2-ROW1+1]
+                IF (N_ELEMENTS(DIMS) EQ 1) AND (DIMS[0] EQ 1) THEN $
+                        DIMS2 = DIMS2[1]
 		DATA = MAKE_ARRAY(TYPE=DATATYPE, DIMENSION=DIMS2)
 		DATA = REFORM(DATA, DIMS2, /OVERWRITE)
 		TEMPDATA = MAKE_ARRAY(TYPE=DATATYPE, DIMENSION=DIMS)
@@ -339,6 +346,7 @@ CHECK_ROW:
 ;
 	IF IDLTYPE[ICOL,ILUN] EQ 7 THEN BEGIN
 		DATA = STRING(DATA)
+                IF N_ELEMENTS(DIMS2) EQ 1 THEN DIMS2 = 1 ELSE DIMS2 = DIMS2[1:*]
 		COUNT = 0
 ;
 ;  Otherwise, if necessary, then convert the data to the native format of the
@@ -369,11 +377,11 @@ CHECK_ROW:
 		BSCALE = TSCAL[ICOL,ILUN]
 		IF (BSCALE NE 0) AND (BSCALE NE 1) THEN DATA *= BSCALE
                 IF BZERO NE 0 THEN DATA += BZERO
-                IF N_ELEMENTS(DIMS) NE 1 THEN BEGIN
-                    DDIMS = DIMS
+                IF N_ELEMENTS(DIMS2) NE 1 THEN BEGIN
+                    DDIMS = DIMS2
                     IF (SIZE(DATA,/TNAME) EQ 'STRING') AND $
-                      (PRODUCT(DIMS) GT N_ELEMENTS(DATA)) THEN $
-                        DDIMS = DIMS[1:*]
+                      (PRODUCT(DIMS2) GT N_ELEMENTS(DATA)) THEN $
+                        DDIMS = DIMS2[1:*]
                     IF N_ELEMENTS(DDIMS) NE 1 THEN $
                       DATA = REFORM(DATA, DDIMS, /OVERWRITE)
                 ENDIF
