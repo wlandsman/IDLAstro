@@ -266,6 +266,7 @@
 ;       Implement histogram filling.  J. Sapp  Aug 2015.
 ;       Only set polycolor if using polygon filling W. Landsman Sep 2016
 ;       Set default polycolor in case psym=10.  J. Sapp  Sep 2017
+;       Fix charsize call to CgText C. Sandin/W Landsman Oct 2025
 ;       
 ;-
 pro al_legend, items, BOTTOM_LEGEND=bottom, BOX = box, CENTER_LEGEND=center, $
@@ -617,7 +618,7 @@ for iclr = 0,clear do begin
          size=charsize,align=xalign,charthick = charthick,font=font	 
   x += width*xsign
   if width ne 0 then x += 0.5*xspacing
-  cgText,x,y,items[i],width=width,/norm,color=textcolors[i],size=charsize, $
+  cgText,x,y,items[i],width=width,/norm,color=textcolors[i],charsize=charsize, $
             align=xalign,charthick=charthick,font=font
   x += width*xsign
   if ~vertical && (i lt (n-1)) then x += 2*xspacing; ADD INTER-ITEM SPACE
